@@ -1,0 +1,8 @@
+{
+  "id": "deepseek.flet-assistant",
+  "name": "Flet Assistant",
+  "version": "1.0.0",
+  "description": "Enhanced Flet development support for Deepseek IDE",
+  "author": "Deepseek IDE",
+  "main": "index.ts"
+}

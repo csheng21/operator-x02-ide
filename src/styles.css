@@ -1,0 +1,2603 @@
+/* 
+ * Complete Enhanced styles.css - AI Code IDE
+ * Fixed Layout with Terminal in Explorer
+ * Version: Final Clean
+ */
+
+/* ====================================
+   Theme System - Unified Color Scheme
+   ==================================== */
+:root {
+  /* Base theme (dark) */
+  --primary-color: #10a37f;
+  --primary-color-rgb: 16, 163, 127;
+  --background-color: #1e1e1e;
+  --sidebar-color: #252526;
+  --menu-color: #333333;
+  --border-color: #404040;
+  --border-color-rgb: 64, 64, 64;
+  --text-color: #cccccc;
+  --highlight-color: #007acc;
+  --highlight-color-rgb: 0, 122, 204;
+  --panel-header-color: #333333;
+  --status-bar-color: #007acc;
+  --terminal-bg: #1e1e1e;
+  --terminal-text: #f0f0f0;
+  --terminal-prompt: #64dd17;
+  --terminal-command: #64dd17;
+  --terminal-error: #ff5252;
+  --terminal-info: #2196f3;
+  --terminal-success: #4caf50;
+  --scrollbar-track: #2a2a2a;
+  --scrollbar-thumb: #555;
+  --editor-bg: #1e1e1e;
+  --editor-line-number: #858585;
+  --editor-selection: #264f78;
+  --file-hover: rgba(255, 255, 255, 0.05);
+  --file-active: rgba(255, 255, 255, 0.08);
+  --explorer-tab-bg: #2d2d2d;
+  --explorer-tab-active: #252526;
+  --explorer-tab-hover: #383838;
+  
+  /* Enhanced menu colors */
+  --menu-gradient-start: #4a9eff;
+  --menu-gradient-end: #74b9ff;
+  --menu-success: #4CAF50;
+  --menu-warning: #ff9800;
+  --menu-error: #f44336;
+}
+
+/* Light theme */
+body.light-theme {
+  --primary-color: #10a37f;
+  --primary-color-rgb: 16, 163, 127;
+  --background-color: #f5f5f5;
+  --sidebar-color: #e0e0e0;
+  --menu-color: #d0d0d0;
+  --border-color: #c0c0c0;
+  --border-color-rgb: 192, 192, 192;
+  --text-color: #333333;
+  --highlight-color: #0078d4;
+  --highlight-color-rgb: 0, 120, 212;
+  --panel-header-color: #d0d0d0;
+  --status-bar-color: #0078d4;
+  --terminal-bg: #f5f5f5;
+  --terminal-text: #333333;
+  --terminal-prompt: #0d904f;
+  --terminal-command: #0d904f;
+  --terminal-error: #d32f2f;
+  --terminal-info: #1976d2;
+  --terminal-success: #388e3c;
+  --scrollbar-track: #e5e5e5;
+  --scrollbar-thumb: #bbb;
+  --editor-bg: #ffffff;
+  --editor-line-number: #a0a0a0;
+  --editor-selection: #add6ff;
+  --file-hover: rgba(0, 0, 0, 0.05);
+  --file-active: rgba(0, 0, 0, 0.08);
+  --explorer-tab-bg: #f0f0f0;
+  --explorer-tab-active: #e0e0e0;
+  --explorer-tab-hover: #d8d8d8;
+  
+  --menu-gradient-start: #0969da;
+  --menu-gradient-end: #0550ae;
+}
+
+/* ====================================
+   Base Styling
+   ==================================== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ====================================
+   Main IDE Layout
+   ==================================== */
+.ide-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* ====================================
+   Menu Bar
+   ==================================== */
+.menu-bar {
+  display: flex;
+  flex-direction: row;
+  background-color: var(--menu-color);
+  height: 30px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--border-color);
+  align-items: center;
+  flex-shrink: 0;
+  z-index: 10000;
+  position: relative;
+}
+
+.menu-item {
+  display: inline-block;
+  padding: 0 12px;
+  line-height: 30px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  border-radius: 4px;
+  position: relative;
+  pointer-events: auto !important;
+  z-index: 10001;
+}
+
+.menu-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.menu-item.active {
+  background-color: rgba(0, 122, 204, 0.2);
+  color: var(--highlight-color);
+}
+
+.menu-bar .menu-item[data-menu="run"],
+.menu-bar .run-menu {
+  background: transparent !important;
+  color: var(--text-color) !important;
+}
+
+.menu-bar .menu-item[data-menu="run"]:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ====================================
+   Main Container
+   ==================================== */
+.main-container {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  overflow: hidden;
+  height: calc(100vh - 52px);
+}
+
+/* ====================================
+   Explorer Panel
+   ==================================== */
+.explorer-panel {
+  width: 350px;
+  min-width: 300px;
+  max-width: 500px;
+  flex-shrink: 0; /* FIX: Prevent collapse on hot reload/compilation */
+  background-color: var(--sidebar-color);
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border-color);
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.explorer-panel.hidden {
+  display: none !important;
+  width: 0 !important;
+}
+
+.explorer-panel .panel-header {
+  display: none !important;
+}
+
+/* Remove ALL pseudo-elements that create duplicate text */
+.explorer-content::before,
+.explorer-content::after,
+.explorer-tabs::before {
+  display: none !important;
+  content: none !important;
+}
+
+/* Explorer Tabs */
+.explorer-tabs {
+  display: flex !important;
+  background-color: var(--explorer-tab-bg);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+  height: 36px;
+}
+
+.explorer-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: var(--explorer-tab-bg);
+  color: var(--text-color);
+  border-right: 1px solid var(--border-color);
+  transition: all 0.2s ease;
+  user-select: none;
+  pointer-events: auto !important;
+  z-index: 10;
+  height: 100%;
+}
+
+.explorer-tab * {
+  pointer-events: none !important;
+}
+
+.explorer-tab:hover {
+  background-color: var(--explorer-tab-hover);
+}
+
+.explorer-tab.active {
+  background-color: var(--explorer-tab-active);
+  border-bottom: 2px solid var(--highlight-color);
+  color: var(--highlight-color);
+  font-weight: 500;
+}
+
+.explorer-tab:last-child {
+  border-right: none;
+}
+
+.explorer-tab .tab-icon {
+  font-size: 14px;
+  filter: drop-shadow(0 0 1px rgba(0,0,0,0.3));
+}
+
+.explorer-tab .tab-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Explorer Content Area */
+.explorer-content {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-content {
+  display: none;
+  flex: 1;
+  overflow: hidden;
+  flex-direction: column;
+}
+
+.tab-content.active {
+  display: flex !important;
+}
+
+/* Files Tab Content */
+#files-content {
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#files-content.active {
+  display: flex !important;
+}
+
+/* Search/Filter Controls */
+.explorer-filter-controls {
+  padding: 6px;
+  background: #252526;
+  border-bottom: 1px solid #3c3c3c;
+  flex-shrink: 0;
+}
+
+.filter-search-box {
+  width: 100%;
+  height: 24px;
+  padding: 3px 8px;
+  margin-bottom: 6px;
+  background: #3c3c3c;
+  border: 1px solid #464647;
+  border-radius: 0;
+  font-size: 11px;
+  color: #cccccc;
+}
+
+.filter-search-box:focus {
+  outline: none;
+  border-color: #007acc;
+}
+
+.view-mode-buttons {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.view-mode-btn {
+  padding: 3px 8px;
+  font-size: 11px;
+  background: transparent;
+  border: 1px solid #464647;
+  border-radius: 2px;
+  color: #969696;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-mode-btn:hover {
+  background: #2d2d30;
+  color: #cccccc;
+}
+
+.view-mode-btn.active {
+  background: #094771;
+  border-color: #007acc;
+  color: white;
+}
+
+.filter-status {
+  font-size: 10px;
+  color: #6a6a6a;
+  margin: 2px 0 0 2px;
+}
+
+/* File Tree */
+.file-tree {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+  background: #1e1e1e;
+}
+
+/* Project Header with Close Button */
+.file-tree > div:first-child {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100%;
+  height: 28px;
+  line-height: 28px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #2d2d30 0%, #252526 100%);
+  border-bottom: 1px solid #007acc;
+  color: #e1e1e1;
+  margin: 0 0 4px 0;
+  position: relative;
+  cursor: default;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.file-tree > div:first-child::after {
+  content: "×";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  cursor: pointer;
+  color: #ccc;
+  font-size: 18px;
+  pointer-events: auto;
+  z-index: 10000;
+  transition: all 0.2s ease;
+}
+
+.file-tree > div:first-child:hover::after {
+  background: rgba(255, 0, 0, 0.3);
+  border-color: rgba(255, 0, 0, 0.5);
+  color: #fff;
+}
+
+/* Compact file items */
+.file-item,
+.folder-item,
+.directory {
+  padding: 2px 8px 2px 4px !important;
+  font-size: 12px !important;
+  line-height: 20px !important;
+  min-height: 24px !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  overflow: visible !important;  /* ✅ Add this */
+}
+/* Smooth transitions */
+.file-item,
+.folder-item {
+  animation: fadeInFile 0.2s ease;
+}
+
+@keyframes fadeInFile {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.file-item:hover,
+.folder-item:hover {
+  background-color: var(--file-hover);
+}
+/* Enhanced scrollbar */
+.file-tree::-webkit-scrollbar {
+  width: 8px !important;
+}
+
+.file-tree::-webkit-scrollbar-track {
+  background: #1a1a1a !important;
+  border-radius: 4px;
+}
+
+.file-tree::-webkit-scrollbar-thumb {
+  background: #404040 !important;
+  border-radius: 4px;
+  border: 2px solid #1a1a1a;
+}
+
+.file-tree::-webkit-scrollbar-thumb:hover {
+  background: #4a4a4a !important;
+}
+.file-item.active,
+.folder-item.active,
+.file-item.selected {
+  background-color: rgba(var(--highlight-color-rgb), 0.2);
+}
+
+
+.folder-content {
+  display: none;
+  padding-left: 16px;
+}
+
+.folder-expanded > .folder-content {
+  display: block;
+}
+
+.chevron,
+.file-arrow {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+  margin-right: 4px;
+  transition: transform 0.3s ease;
+  user-select: none;
+  color: #6a6a6a;
+}
+
+.folder-expanded > .file-item .file-arrow,
+.folder-expanded > .chevron {
+  transform: rotate(90deg);
+}
+
+/* ====================================
+   Terminal Tab Content
+   ==================================== */
+#terminal-content {
+  flex-direction: column;
+  background-color: var(--terminal-bg);
+  height: 100%;
+}
+
+#terminal-content.active {
+  display: flex !important;
+}
+
+.integrated-terminal {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 13px;
+  color: var(--terminal-text);
+}
+
+.terminal-header {
+  padding: 8px 12px;
+  background-color: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.terminal-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+.terminal-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.terminal-action {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.7;
+  font-size: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-color);
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.terminal-action:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+#debug-mode-toggle {
+  background: rgba(100, 221, 23, 0.1);
+  border-color: rgba(100, 221, 23, 0.3);
+}
+
+#debug-mode-toggle:hover {
+  background: rgba(100, 221, 23, 0.2);
+  transform: scale(1.05);
+}
+
+#debug-mode-toggle.active {
+  background: rgba(100, 221, 23, 0.3);
+  border-color: #64dd17;
+  box-shadow: 0 0 5px rgba(100, 221, 23, 0.5);
+}
+
+.terminal-output,
+#integrated-terminal-output {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 12px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: 1.4;
+  background-color: var(--terminal-bg);
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 12px;
+}
+
+#integrated-terminal-output[data-debug="false"] > div[data-debug="true"] {
+  display: none;
+}
+
+.terminal-input-line {
+  display: flex;
+  padding: 8px 12px;
+  border-top: 1px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.1);
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.terminal-prompt {
+  color: var(--terminal-prompt);
+  margin-right: 8px;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.terminal-input,
+#integrated-terminal-input {
+  flex: 1;
+  background-color: transparent;
+  border: none;
+  color: var(--terminal-text);
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+  padding: 4px 0;
+}
+
+.terminal-error-output {
+  color: var(--terminal-error);
+  background-color: rgba(255, 82, 82, 0.1);
+  padding: 4px 8px;
+  border-left: 3px solid var(--terminal-error);
+  margin: 4px 0;
+}
+
+.terminal-success-output {
+  color: var(--terminal-success);
+  background-color: rgba(76, 175, 80, 0.1);
+  padding: 4px 8px;
+  border-left: 3px solid var(--terminal-success);
+  margin: 4px 0;
+}
+
+/* ====================================
+   Editor Panel
+   ==================================== */
+.editor-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--background-color);
+  overflow: hidden;
+  z-index: 5;
+}
+
+.editor-tabs {
+  display: flex;
+  background-color: var(--background-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-top: 4px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  flex-shrink: 0;
+}
+
+.editor-tab {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  background-color: var(--sidebar-color);
+  border-right: 1px solid var(--border-color);
+  font-size: 13px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  max-width: 180px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.editor-tab:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.editor-tab.active {
+  background-color: var(--editor-bg);
+  border-bottom: 2px solid var(--highlight-color);
+}
+
+.tab-icon {
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.tab-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab-close {
+  margin-left: 8px;
+  opacity: 0.6;
+  font-size: 14px;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.tab-close:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.2);
+}
+
+.editor-content {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+#monaco-editor {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+/* ====================================
+   AI Assistant Panel
+   ==================================== */
+.assistant-panel {
+  width: 350px;
+  min-width: 250px;
+  max-width: 500px;
+  background-color: var(--sidebar-color);
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border-color);
+  position: relative;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  height: 100%;
+  z-index: 100;
+  pointer-events: auto;
+}
+
+.assistant-panel.hidden {
+  display: none !important;
+  width: 0 !important;
+}
+
+.assistant-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.assistant-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.assistant-icon {
+  color: var(--primary-color);
+  font-size: 16px;
+  animation: breathe 3s ease-in-out infinite;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 8px rgba(16, 163, 127, 0.3));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 15px rgba(16, 163, 127, 0.6));
+  }
+}
+
+.assistant-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ai-chat-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background-color: rgba(0, 0, 0, 0.05);
+  scroll-behavior: smooth;
+}
+
+.chat-input-area {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border-color);
+  background-color: rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+/* ====================================
+   Status Bar
+   ==================================== */
+.status-bar {
+  height: 22px;
+  background-color: var(--status-bar-color);
+  color: white;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 12px;
+  flex-shrink: 0;
+  z-index: 1000;
+}
+
+.status-item {
+  margin-right: 15px;
+}
+
+.status-item.right {
+  margin-left: auto;
+  margin-right: 0;
+}
+
+/* ====================================
+   Menu Dropdown
+   ==================================== */
+.menu-dropdown {
+  background: linear-gradient(135deg, #2d2d2d, #252526);
+  border: 1px solid #464647;
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  color: var(--text-color);
+  font-size: 13px;
+  min-width: 280px;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 100000;
+  position: fixed !important;
+  animation: menuSlideIn 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: auto;
+}
+
+@keyframes menuSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.menu-dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  position: relative;
+  border-radius: 6px;
+  margin: 2px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.menu-dropdown-item:hover {
+  background: linear-gradient(135deg, rgba(74, 158, 255, 0.15), rgba(74, 158, 255, 0.08));
+  border-color: rgba(74, 158, 255, 0.3);
+  transform: translateX(4px);
+  box-shadow: 0 2px 8px rgba(74, 158, 255, 0.2);
+}
+/* ====================================
+   Conversation List Styling
+   ==================================== */
+.conversation-item,
+.chat-item,
+.conversation-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px !important; /* Reduce gap between title and metadata */
+  padding: 8px 12px;
+}
+
+.conversation-title,
+.chat-title {
+  margin-bottom: 2px !important; /* Minimal space below title */
+  line-height: 1.2;
+}
+
+.conversation-metadata,
+.chat-metadata {
+  margin-top: 0 !important; /* Remove top margin */
+  padding-top: 0 !important; /* Remove top padding */
+  display: flex;
+  gap: 8px;
+  font-size: 11px;
+  color: #888;
+  line-height: 1;
+}
+
+.conversation-item > div:first-child {
+  margin-bottom: 2px !important;
+}
+
+.conversation-item > div:last-child {
+  margin-top: 0 !important;
+}
+/* ====================================
+   Scrollbars
+   ==================================== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}
+
+/* ====================================
+   Ensure Interactivity
+   ==================================== */
+button,
+input,
+.menu-item,
+.file-item,
+.folder-item,
+.explorer-tab,
+.terminal-action {
+  pointer-events: auto !important;
+}
+
+/* ====================================
+   Hide Old/Duplicate Elements
+   ==================================== */
+.terminal-panel {
+  display: none !important;
+}
+/* ====================================
+   FIX: FORCE BOTH TABS TO APPEAR
+   ==================================== */
+
+/* Create FILES tab if missing using CSS */
+.explorer-tabs {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  background-color: #2d2d2d !important;
+  border-bottom: 1px solid #404040 !important;
+  height: 36px !important;
+}
+
+/* Style the existing TERMINAL tab */
+.explorer-tab[data-tab-id="terminal"],
+.explorer-tab:only-child {
+  grid-column: 2 !important;
+}
+
+/* Add FILES tab using CSS if it doesn't exist */
+.explorer-tabs::before {
+  content: "📁 FILES";
+  grid-column: 1;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: #252526;
+  color: #007acc;
+  border-right: 1px solid #404040;
+  border-bottom: 2px solid #007acc;
+  font-weight: 500;
+  height: 100%;
+}
+
+/* Make FILES tab clickable (though won't switch without JS) */
+.explorer-tabs::before:hover {
+  background-color: #383838;
+}
+
+/* Show files content by default since FILES tab can't actually switch */
+#files-content {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+#terminal-content {
+  display: none !important;
+}
+
+/* If you want to see terminal, uncomment these and comment the above */
+/* #files-content {
+  display: none !important;
+}
+
+#terminal-content {
+  display: flex !important;
+} */
+
+/* Hide the fake CSS X button */
+.file-tree > div:first-child::after {
+    display: none !important;
+}
+
+/* Style for real close button */
+.close-project-btn {
+    position: absolute !important;
+    right: 8px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 20px !important;
+    height: 20px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: rgba(255, 0, 0, 0.2) !important;
+    border: 1px solid rgba(255, 0, 0, 0.3) !important;
+    border-radius: 3px !important;
+    cursor: pointer !important;
+    color: white !important;
+    font-size: 18px !important;
+    z-index: 99999 !important;
+    pointer-events: auto !important;
+}
+
+.close-project-btn:hover {
+    background: rgba(255, 0, 0, 0.5) !important;
+    border-color: rgba(255, 0, 0, 0.7) !important;
+}
+/* Hide EXPLORER header completely */
+.explorer-header {
+  display: none !important;
+}
+
+/* Adjust file tree to use full height without header */
+.file-tree {
+  height: 100% !important;
+  padding-top: 8px;
+}
+
+/* Add to your styles.css */
+.code-block-container {
+  margin: 12px 0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #1e1e1e;
+}
+
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: #2d2d30;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.code-header span {
+  color: #858585;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.code-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.copy-code-btn, .insert-code-btn {
+  background: #007acc;
+  color: white;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  transition: background 0.2s;
+}
+
+.copy-code-btn:hover, .insert-code-btn:hover {
+  background: #005a9e;
+}
+
+.code-block-container pre {
+  margin: 0;
+  padding: 16px;
+  overflow-x: auto;
+  background: #1e1e1e;
+}
+
+.code-block-container code {
+  color: #d4d4d4;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+/* ====================================
+   PROFESSIONAL FILE EXPLORER ENHANCEMENTS
+   ==================================== */
+
+/* Enhanced File Container */
+.file-tree {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1e1e1e;
+  overflow: hidden;
+}
+
+.file-container-enhanced {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: #424242 #1e1e1e;
+}
+
+.file-container-enhanced::-webkit-scrollbar {
+  width: 8px;
+}
+
+.file-container-enhanced::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.file-container-enhanced::-webkit-scrollbar-thumb {
+  background: #424242;
+  border-radius: 4px;
+}
+
+.file-container-enhanced::-webkit-scrollbar-thumb:hover {
+  background: #4e4e4e;
+}
+
+/* Enhanced Project Header */
+.project-header-enhanced {
+  padding: 12px;
+  border-bottom: 1px solid #3e3e3e;
+  background: linear-gradient(180deg, #2d2d2d 0%, #252525 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.project-header-enhanced > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.project-header-enhanced span:first-child {
+  font-weight: 600;
+  font-size: 14px;
+  color: #ffffff;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.project-header-enhanced button {
+  background: transparent;
+  border: none;
+  color: #858585;
+  cursor: pointer;
+  font-size: 20px;
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.project-header-enhanced button:hover {
+  background: #f14c4c;
+  color: #ffffff;
+}
+
+/* Project Path Display */
+.project-header-enhanced > div > div > span:last-child {
+  font-size: 10px;
+  color: #858585;
+  font-family: 'SF Mono', 'Cascadia Code', monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  margin-top: 4px;
+}
+
+/* Project Statistics Row */
+.project-header-enhanced > div:last-child {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: #858585;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  flex-wrap: wrap;
+}
+
+/* Sorting Controls */
+.project-header-enhanced + div {
+  padding: 8px 12px;
+  background: #252525;
+  border-bottom: 1px solid #3e3e3e;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.project-header-enhanced + div > span:first-child {
+  font-size: 11px;
+  color: #858585;
+}
+
+.project-header-enhanced + div button {
+  padding: 4px 8px;
+  background: transparent;
+  border: 1px solid #3e3e3e;
+  color: #cccccc;
+  font-size: 11px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.project-header-enhanced + div button:hover {
+  background: #007acc;
+  border-color: #007acc;
+}
+
+/* Enhanced File Items */
+.file-item-enhanced {
+  padding: 6px 8px !important;
+  cursor: pointer;
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  background-color: transparent;
+  transition: all 0.15s ease;
+  border-radius: 4px;
+  margin: 2px 4px;
+  font-size: 13px;
+  color: #cccccc;
+  animation: fadeInFile 0.2s ease;
+  border-left: 2px solid transparent;
+}
+
+.file-item-enhanced:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-left: 2px solid #007acc;
+  padding-left: 6px;
+}
+
+.file-item-enhanced.active,
+.file-item-enhanced.selected {
+  background-color: rgba(0, 122, 204, 0.2);
+  border-left: 2px solid #007acc;
+}
+
+/* File Item Left Section (Icon + Name) */
+.file-item-enhanced > div:first-child {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 8px;
+}
+
+.file-item-enhanced > div:first-child > span:first-child {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.file-item-enhanced > div:first-child > span:last-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+/* File Item Metadata Section (Size + Date) */
+.file-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: #858585;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  flex-shrink: 0;
+}
+
+.file-meta > span {
+  min-width: 60px;
+  text-align: right;
+}
+
+/* Folder Item Count Styling */
+.file-item-enhanced.folder-item .file-meta > span:first-child {
+  color: #007acc;
+}
+
+/* Nested Folder Indentation with Border */
+.file-item-enhanced + div {
+  margin-left: 20px;
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
+  padding-left: 4px;
+}
+
+/* File Item Animations */
+@keyframes fadeInFile {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Click Feedback Animation */
+.file-item-enhanced:active {
+  background-color: rgba(0, 122, 204, 0.2);
+  transform: scale(0.98);
+}
+
+/* Enhanced Tooltips for File Items */
+.file-item-enhanced[title] {
+  position: relative;
+}
+
+/* Column Headers (Optional) */
+.file-explorer-columns {
+  display: flex;
+  padding: 8px 12px;
+  background: #252525;
+  border-bottom: 1px solid #3e3e3e;
+  font-size: 11px;
+  color: #858585;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.file-explorer-columns > span {
+  padding: 0 8px;
+}
+
+.file-explorer-columns > span:first-child {
+  flex: 1;
+}
+
+/* File Type Icon Styling */
+.file-item-enhanced .file-type-icon {
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Folder Expansion Animation */
+.folder-item-enhanced {
+  transition: all 0.3s ease;
+}
+
+.folder-item-enhanced.expanded {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Loading State for Files */
+.file-item-enhanced.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.file-item-enhanced.loading::after {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border: 2px solid #007acc;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-left: 8px;
+}
+
+/* Empty State Styling */
+.file-tree-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: #6a6a6a;
+  font-size: 13px;
+  text-align: center;
+}
+
+.file-tree-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+/* Search Highlight in Files */
+.file-item-enhanced.search-match {
+  background-color: rgba(255, 193, 7, 0.15);
+  border-left: 2px solid #ffc107;
+}
+
+.file-item-enhanced.search-match mark {
+  background-color: #ffc107;
+  color: #000;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+/* Responsive File Tree */
+@media (max-width: 768px) {
+  .file-meta {
+    display: none;
+  }
+  
+  .file-item-enhanced {
+    padding: 8px 12px !important;
+  }
+}
+
+/* File Context Menu Support */
+.file-item-enhanced.context-menu-open {
+  background-color: rgba(0, 122, 204, 0.15);
+  border-left: 2px solid #007acc;
+}
+
+/* Drag and Drop States */
+.file-item-enhanced.drag-over {
+  background-color: rgba(0, 122, 204, 0.2);
+  border: 2px dashed #007acc;
+}
+
+.file-item-enhanced.dragging {
+  opacity: 0.5;
+  cursor: move;
+}
+
+/* File Status Indicators */
+.file-item-enhanced::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 8px;
+  display: none;
+}
+
+.file-item-enhanced.modified::before {
+  display: block;
+  background-color: #ffc107;
+}
+
+.file-item-enhanced.error::before {
+  display: block;
+  background-color: #f44336;
+}
+
+.file-item-enhanced.success::before {
+  display: block;
+  background-color: #4caf50;
+}
+
+/* Smooth Scrolling for File Tree */
+.file-tree,
+.file-container-enhanced {
+  scroll-behavior: smooth;
+}
+
+/* Selection Highlight */
+.file-item-enhanced::selection,
+.file-item-enhanced *::selection {
+  background-color: rgba(0, 122, 204, 0.3);
+}
+
+/* Focus State for Accessibility */
+.file-item-enhanced:focus {
+  outline: 2px solid #007acc;
+  outline-offset: -2px;
+}
+
+/* ====================================
+   COMPACT FILE EXPLORER
+   ==================================== */
+
+/* Compact file items */
+.file-item,
+.folder-item,
+.directory {
+  padding: 2px 8px 2px 4px !important;
+  font-size: 12px !important;
+  line-height: 20px !important;
+  min-height: 24px !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  overflow: visible !important;  /* ✅ Add this */
+}
+
+
+/* File size styling - professional and refined */
+.file-size,
+.folder-count {
+  color: #999 !important;  /* ✅ Slightly brighter gray */
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace !important;
+  min-width: 65px !important;  /* ✅ Reduced from 70px */
+  text-align: right !important;
+  flex-shrink: 0 !important;
+  margin-left: 12px !important;  /* ✅ Reduced from 15px */
+  font-size: 10px !important;
+  font-weight: 500 !important;  /* ✅ Slightly bolder */
+  letter-spacing: 0.3px !important;  /* ✅ Better spacing */
+  opacity: 0.85 !important;
+  transition: opacity 0.2s ease !important;
+}
+
+/* File name - ensure it doesn't wrap */
+.file-name {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  max-width: calc(100% - 100px) !important;  /* ✅ Changed from 80px to 100px */
+  color: #cccccc !important;
+}
+
+/* Compact file tree container */
+.file-tree {
+  padding: 4px 0 !important;
+}
+
+/* Compact project header */
+.project-header {
+  padding: 6px 8px !important;
+  min-height: 28px !important;
+}
+
+/* Remove extra spacing */
+.file-container {
+  padding: 0 !important;
+}
+
+/* Hover effect - more subtle */
+.file-item:hover,
+.folder-item:hover {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+/* File type color hints */
+/* ====================================
+   FILE TYPE COLOR SCHEME
+   Code files = White, Folders/Text = Grey
+   ==================================== */
+
+/* DEFAULT: All files grey */
+.file-item .file-name,
+.folder-item .file-name {
+  color: #888 !important;  /* Grey by default */
+}
+
+/* CODE FILES: White */
+.file-item[data-name*=".ts"] .file-name,
+.file-item[data-name*=".tsx"] .file-name,
+.file-item[data-name*=".js"] .file-name,
+.file-item[data-name*=".jsx"] .file-name,
+.file-item[data-name*=".py"] .file-name,
+.file-item[data-name*=".java"] .file-name,
+.file-item[data-name*=".cpp"] .file-name,
+.file-item[data-name*=".c"] .file-name,
+.file-item[data-name*=".h"] .file-name,
+.file-item[data-name*=".cs"] .file-name,
+.file-item[data-name*=".go"] .file-name,
+.file-item[data-name*=".rs"] .file-name,
+.file-item[data-name*=".php"] .file-name,
+.file-item[data-name*=".rb"] .file-name,
+.file-item[data-name*=".swift"] .file-name,
+.file-item[data-name*=".kt"] .file-name,
+.file-item[data-name*=".dart"] .file-name {
+  color: #e8e8e8 !important;  /* ✅ White for code files */
+}
+
+/* MARKUP/STYLE: Slightly dimmed white */
+.file-item[data-name*=".html"] .file-name,
+.file-item[data-name*=".css"] .file-name,
+.file-item[data-name*=".scss"] .file-name,
+.file-item[data-name*=".sass"] .file-name {
+  color: #d4d4d4 !important;  /* Dimmed white */
+}
+
+/* CONFIG FILES: Light grey */
+.file-item[data-name*=".json"] .file-name,
+.file-item[data-name*=".yaml"] .file-name,
+.file-item[data-name*=".yml"] .file-name {
+  color: #b0b0b0 !important;  /* Light grey */
+}
+
+/* TEXT FILES: Grey */
+.file-item[data-name*=".txt"] .file-name,
+.file-item[data-name*=".md"] .file-name,
+.file-item[data-name*=".readme"] .file-name {
+  color: #888 !important;  /* ✅ Grey for text files */
+}
+
+/* FOLDERS: Grey */
+.folder-item .file-name,
+.directory .file-name {
+  color: #999 !important;  /* ✅ Grey for folders */
+}
+
+/* HOVER: Everything becomes white */
+.file-item:hover .file-name {
+  color: #fff !important;
+}
+
+.folder-item:hover .file-name {
+  color: #bbb !important;
+}
+
+/* ACTIVE/SELECTED: Always white */
+.file-item.active .file-name,
+.file-item.selected .file-name {
+  color: #fff !important;
+  font-weight: 500 !important;
+}
+/* Active/selected state */
+/* Better active/selected state */
+.file-item.active,
+.file-item.selected {
+  background-color: rgba(0, 122, 204, 0.25) !important;
+  border-left: 2px solid #007acc !important;
+  padding-left: 4px !important;
+}
+
+.file-item.active .file-name,
+.file-item.selected .file-name {
+  color: #fff !important;
+  font-weight: 500 !important;
+}
+
+.file-item.active .file-size,
+.file-item.selected .file-size {
+  color: #bbb !important;
+  opacity: 1 !important;
+}
+
+/* Compact indentation for nested items */
+.file-item + div {
+  margin-left: 16px !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.05) !important;
+  padding-left: 2px !important;
+}
+
+/* Icon sizing */
+.file-item span:first-child,
+.folder-item span:first-child {
+  width: 16px !important;
+  font-size: 14px !important;
+  flex-shrink: 0 !important;
+}
+
+/* Compact scrollbar */
+.file-tree::-webkit-scrollbar {
+  width: 6px !important;
+}
+
+.file-tree::-webkit-scrollbar-thumb {
+  background: #424242 !important;
+  border-radius: 3px !important;
+}
+
+/* Remove filter controls padding */
+.explorer-filter-controls {
+  padding: 4px 6px !important;
+}
+
+/* Compact filter buttons */
+.view-mode-btn {
+  padding: 2px 6px !important;
+  font-size: 10px !important;
+  height: 20px !important;
+}
+
+/* Compact search box */
+.filter-search-box {
+  height: 22px !important;
+  padding: 2px 6px !important;
+  font-size: 11px !important;
+  margin-bottom: 4px !important;
+}
+
+/* Folder count color */
+.folder-count {
+  color: #666 !important;
+  font-style: italic;
+}
+
+/* Ensure proper layout */
+.file-item > div:first-child {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+/* ====================================
+   SIMPLE FOLDER TOOLTIP
+   ==================================== */
+
+/* Remove default tooltips */
+.directory:hover::before,
+.directory:hover::after,
+.integrated-folder-header:hover::before,
+.integrated-folder-header:hover::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* Add simple folder path tooltip only */
+.file-item[data-path]:hover::after,
+.directory[data-path]:hover::after {
+  content: attr(data-path);
+  position: absolute;
+  left: 100%;
+  top: 0;
+  margin-left: 8px;
+  background: #1e1e1e;
+  color: #cccccc;
+  padding: 4px 8px;
+  border: 1px solid #464647;
+  border-radius: 4px;
+  font-size: 10px;
+  white-space: nowrap;
+  z-index: 10000;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+/* ============================================================================
+   MODIFIED FILES & TABS STYLING
+   ============================================================================ */
+
+/* Pulsing dot animation */
+@keyframes pulse-dot {
+  0%, 100% { 
+    opacity: 1; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.5; 
+    transform: scale(1.1);
+  }
+}
+
+/* Modified file in file tree */
+.file-item.modified .file-name {
+  color: #ffa500 !important;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.file-item.modified:hover {
+  background: rgba(255, 165, 0, 0.1) !important;
+}
+
+.file-item.modified .file-item-content:hover {
+  background: rgba(255, 165, 0, 0.15) !important;
+}
+
+.file-item.modified .file-icon {
+  filter: brightness(1.2) sepia(0.3) hue-rotate(10deg);
+}
+
+/* Modified indicator in file tree */
+.modified-indicator {
+  display: inline-block;
+  color: #ffa500;
+  font-size: 12px;
+  margin-left: 6px;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Subtle glow for modified files */
+.file-item.modified .file-name {
+  position: relative;
+  padding-left: 6px;
+}
+
+.file-item.modified .file-name::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 80%;
+  background: #ffa500;
+  border-radius: 1px;
+  opacity: 0.6;
+}
+
+/* ============================================================================
+   MODIFIED TABS STYLING
+   ============================================================================ */
+
+/* Modified tab */
+.editor-tab.modified {
+  color: #ffa500 !important;
+}
+
+.editor-tab.modified .tab-name {
+  color: #ffa500 !important;
+  font-style: italic;
+  font-weight: 500;
+}
+
+.editor-tab.modified:hover {
+  background: rgba(255, 165, 0, 0.1) !important;
+}
+
+/* Modified dot in tab */
+.tab-modified-dot {
+  display: inline-block;
+  color: #ffa500;
+  font-size: 10px;
+  margin-left: 4px;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* Close button warning for modified tabs */
+.editor-tab.modified .tab-close {
+  position: relative;
+}
+
+.editor-tab.modified .tab-close::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  background: #ffa500;
+  border-radius: 50%;
+  opacity: 0.2;
+  z-index: -1;
+}
+
+/* ============================================================================
+   NOTIFICATION ANIMATIONS
+   ============================================================================ */
+
+@keyframes slideIn {
+  from { 
+    transform: translateY(100%); 
+    opacity: 0; 
+  }
+  to { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
+}
+
+@keyframes slideOut {
+  from { 
+    transform: translateY(0); 
+    opacity: 1; 
+  }
+  to { 
+    transform: translateY(100%); 
+    opacity: 0; 
+  }
+}
+
+/* ============================================================================
+   VIEW MODE NOTIFICATIONS
+   ============================================================================ */
+
+.view-mode-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 8px 16px;
+  background: #1e1e1e;
+  color: #cccccc;
+  border: 1px solid #464647;
+  border-radius: 4px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.3s;
+  pointer-events: none;
+  z-index: 1000;
+  font-size: 13px;
+}
+
+.view-mode-notification.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ============================================================================
+   NOTIFICATION TYPES
+   ============================================================================ */
+
+.notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  z-index: 10000;
+  font-size: 14px;
+  animation: slideIn 0.3s ease;
+}
+
+.notification-success {
+  background: #28a745;
+  color: white;
+}
+
+.notification-error {
+  background: #dc3545;
+  color: white;
+}
+
+.notification-warning {
+  background: #ffc107;
+  color: #333;
+}
+
+.notification-info {
+  background: #17a2b8;
+  color: white;
+}
+
+/* ============================================================================
+   CONTEXT MENU STYLES
+   ============================================================================ */
+
+.tab-context-menu,
+.file-context-menu {
+  position: fixed;
+  background: #2d2d2d;
+  border: 1px solid #464647;
+  border-radius: 6px;
+  padding: 6px 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  z-index: 10000;
+  min-width: 200px;
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.menu-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  color: #cccccc;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.menu-item:hover {
+  background: #094771;
+  color: #ffffff;
+}
+
+.menu-separator {
+  height: 1px;
+  background: #464647;
+  margin: 4px 8px;
+}
+
+/* ============================================================================
+   ACCESSIBILITY
+   ============================================================================ */
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .file-item.modified .file-name,
+  .editor-tab.modified .tab-name {
+    color: #ffb84d !important;
+    font-weight: 600;
+  }
+  
+  .modified-indicator,
+  .tab-modified-dot {
+    color: #ffb84d;
+    font-weight: bold;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .modified-indicator,
+  .tab-modified-dot {
+    animation: none;
+  }
+  
+  .notification {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* Focus indicators for keyboard navigation */
+.file-item:focus,
+.editor-tab:focus {
+  outline: 2px solid #0078d7;
+  outline-offset: 2px;
+}
+
+.file-item.modified:focus {
+  outline-color: #ffa500;
+}
+/* File size display fix */
+.file-item {
+  display: flex !important;
+  align-items: center !important;
+  width: 100% !important;
+  padding-right: 15px !important;  /* ✅ More padding */
+  overflow: visible !important;
+}
+
+.file-item .file-size,
+.file-item [class*="size"],
+.file-item > span:last-child {
+  flex-shrink: 0 !important;
+  margin-left: 15px !important;
+  font-size: 10px !important;
+  color: #888 !important;
+  white-space: nowrap !important;
+  min-width: 70px !important;  /* ✅ Increased to 70px */
+  text-align: right !important;
+  overflow: visible !important;
+  display: inline-block !important;  /* ✅ Add this */
+}
+
+.file-name {
+  flex: 1 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  min-width: 0 !important;
+  max-width: calc(100% - 80px) !important;  /* ✅ Leave room for size */
+}
+/* ====================================
+   FILE SIZE VISIBILITY FIX
+   ==================================== */
+.file-tree,
+.file-container,
+.tab-content,
+#files-content,
+.explorer-content {
+  overflow-x: visible !important;  /* Allow horizontal overflow for file sizes */
+}
+
+.file-tree {
+  overflow-y: auto !important;  /* Keep vertical scrolling */
+}
+
+
+/* ====================================
+   END SIMPLE FOLDER TOOLTIP
+   ==================================== */
+/* ====================================
+   END COMPACT FILE EXPLORER
+   ==================================== */
+
+/* ====================================
+   END PROFESSIONAL FILE EXPLORER
+   ==================================== */
+/* If you only want to hide the text but keep the buttons */
+/* Use this instead:
+.explorer-header > span:first-child {
+  display: none !important;
+}
+.explorer-header {
+  justify-content: flex-end !important;
+  min-height: 32px;
+}
+*/
+/* ====================================
+   End of Complete Styles
+   ==================================== */
+/* ====================================
+   COMPACT PROFESSIONAL CONVERSATION MODAL STYLES
+   Add this section to the end of styles.css
+   ==================================== */
+
+/* Modal Header Compact */
+.modal-header-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: #1e1e1e;
+}
+
+.modal-header-compact h2 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  color: #e0e0e0;
+}
+
+.modal-header-compact .modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-header-compact .modal-close:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: #e0e0e0;
+}
+
+/* Search Bar Compact */
+.modal-search-bar-compact {
+  position: relative;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: #1e1e1e;
+}
+
+.modal-search-bar-compact input {
+  width: 100%;
+  padding: 8px 12px 8px 36px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  color: #e0e0e0;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.modal-search-bar-compact input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modal-search-bar-compact input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.modal-search-bar-compact .search-icon {
+  position: absolute;
+  left: 32px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* Storage Stats Compact */
+.storage-stats-compact {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0;
+  margin: 0;
+}
+
+.stat-compact {
+  background: #1e1e1e;
+  padding: 12px 16px;
+  text-align: center;
+}
+
+.stat-compact .stat-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 4px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+}
+
+.stat-compact .stat-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #3b82f6;
+  display: block;
+}
+
+/* List Toolbar Compact */
+.list-toolbar-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: #1e1e1e;
+}
+
+.list-count {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.toolbar-btn-compact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  color: #e0e0e0;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toolbar-btn-compact:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.toolbar-btn-compact.active {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.toolbar-btn-compact svg {
+  flex-shrink: 0;
+}
+
+/* Selection Toolbar Compact */
+.selection-toolbar-compact {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background: rgba(59, 130, 246, 0.1);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.select-all-checkbox-compact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #e0e0e0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.select-all-checkbox-compact input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+.delete-selected-btn-compact {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 5px;
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.delete-selected-btn-compact:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: #ef4444;
+}
+
+.delete-selected-btn-compact:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.delete-selected-btn-compact svg {
+  flex-shrink: 0;
+}
+
+/* Conversation Item Compact Styles */
+.conversation-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.2s;
+  gap: 12px;
+  background: #1e1e1e;
+}
+
+.conversation-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.conversation-item.current {
+  background: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid #3b82f6;
+  padding-left: 17px;
+}
+
+.conversation-item .item-checkbox {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+}
+
+.conversation-item .conv-checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+.conversation-item .item-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.conversation-item:hover .item-icon {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.conversation-item .item-content {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.conversation-item .item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.conversation-item .item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e0e0e0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.conversation-item .current-badge {
+  flex-shrink: 0;
+  font-size: 9px;
+  padding: 2px 6px;
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.conversation-item .item-preview {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.conversation-item .item-metadata {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.conversation-item .meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.conversation-item .meta-item svg {
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.conversation-item .item-delete-btn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0;
+}
+
+.conversation-item:hover .item-delete-btn {
+  opacity: 1;
+}
+
+.conversation-item .item-delete-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+  transform: scale(1.05);
+}
+
+/* Modal Container Adjustments */
+.conversation-modal .modal-content {
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #1e1e1e;
+}
+
+.conversation-list-container {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.conversation-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar for Conversation List */
+.conversation-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.conversation-list::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.conversation-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.conversation-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* No Conversations State */
+.no-conversations {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+}
+
+.no-conversations svg {
+  margin-bottom: 16px;
+  opacity: 0.3;
+}
+
+.no-conversations p {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.no-conversations .empty-hint {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Selection State */
+.conversation-item.selected {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.conversation-item.selected:hover {
+  background: rgba(59, 130, 246, 0.12);
+}
+
+/* Loading State */
+.conversation-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .modal-header-compact {
+    padding: 12px 16px;
+  }
+  
+  .modal-search-bar-compact {
+    padding: 10px 16px;
+  }
+  
+  .list-toolbar-compact {
+    padding: 10px 16px;
+  }
+  
+  .conversation-item {
+    padding: 10px 16px;
+  }
+  
+  .stat-compact {
+    padding: 10px 12px;
+  }
+  
+  .storage-stats-compact {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ====================================
+   END COMPACT CONVERSATION MODAL STYLES
+   ==================================== */

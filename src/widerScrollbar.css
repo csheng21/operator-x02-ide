@@ -1,0 +1,152 @@
+/* ============================================================================
+ * WIDER SCROLLBAR ON HOVER - AI Chat Panel
+ * Makes scrollbar easier to grab when mouse hovers over it
+ * ============================================================================ */
+
+/* Base scrollbar style - thin by default */
+.ai-chat-container::-webkit-scrollbar {
+  width: 6px;
+  transition: width 0.3s ease;
+}
+
+.ai-chat-container::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.ai-chat-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.ai-chat-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* WIDER scrollbar when hovering the chat container */
+.ai-chat-container:hover::-webkit-scrollbar {
+  width: 14px;
+}
+
+.ai-chat-container:hover::-webkit-scrollbar-thumb {
+  background: rgba(79, 195, 247, 0.5);
+  border-radius: 7px;
+}
+
+.ai-chat-container:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 195, 247, 0.8);
+}
+
+.ai-chat-container:hover::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 7px;
+}
+
+/* ============================================================================
+ * ALTERNATIVE: Always visible wider scrollbar (uncomment if preferred)
+ * ============================================================================ */
+/*
+.ai-chat-container::-webkit-scrollbar {
+  width: 12px;
+}
+
+.ai-chat-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+}
+
+.ai-chat-container::-webkit-scrollbar-thumb {
+  background: rgba(79, 195, 247, 0.4);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.ai-chat-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 195, 247, 0.7);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*/
+
+/* ============================================================================
+ * Apply to conversation list sidebar too
+ * ============================================================================ */
+
+.conversation-list::-webkit-scrollbar {
+  width: 4px;
+  transition: width 0.3s ease;
+}
+
+.conversation-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.conversation-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+.conversation-list:hover::-webkit-scrollbar {
+  width: 10px;
+}
+
+.conversation-list:hover::-webkit-scrollbar-thumb {
+  background: rgba(79, 195, 247, 0.4);
+  border-radius: 5px;
+}
+
+.conversation-list:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 195, 247, 0.7);
+}
+
+/* ============================================================================
+ * Global scrollbar improvements for all scrollable areas
+ * ============================================================================ */
+
+/* File explorer */
+.file-tree::-webkit-scrollbar,
+.explorer-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.file-tree:hover::-webkit-scrollbar,
+.explorer-content:hover::-webkit-scrollbar {
+  width: 12px;
+}
+
+.file-tree::-webkit-scrollbar-thumb,
+.explorer-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.file-tree:hover::-webkit-scrollbar-thumb,
+.explorer-content:hover::-webkit-scrollbar-thumb {
+  background: rgba(79, 195, 247, 0.4);
+  border-radius: 6px;
+}
+
+/* Terminal */
+.terminal-container::-webkit-scrollbar,
+.xterm-viewport::-webkit-scrollbar {
+  width: 6px;
+}
+
+.terminal-container:hover::-webkit-scrollbar,
+.xterm-viewport:hover::-webkit-scrollbar {
+  width: 12px;
+}
+
+.terminal-container::-webkit-scrollbar-thumb,
+.xterm-viewport::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.terminal-container:hover::-webkit-scrollbar-thumb,
+.xterm-viewport:hover::-webkit-scrollbar-thumb {
+  background: rgba(79, 195, 247, 0.4);
+  border-radius: 6px;
+}

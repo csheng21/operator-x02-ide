@@ -1,0 +1,77 @@
+Folder PATH listing for volume System
+Volume serial number is 09C1-B27D
+C:.
+    aiChangesExplanation.ts
+    aiChatFileIntegration.ts
+    aiCodeAssistantPanel.ts
+    aiDirectEditor.ts
+    aiFileCreator.test.ts
+    aiFileCreator.ts
+    aiFileCreatorChatIntegration.ts
+    aiFileCreatorUI.ts
+    aiStreamingEditor.ts
+    apiProviderManager.ts
+    applySettings_AI_Handler.ts
+    assistantStyles.ts
+    assistantUI.ts
+    assistantUI_htmlviewer.ts
+    assistantUI_simpleviewer.ts
+    assistantUI_templateSelector.ts
+    assistantUI_wysiwygEditor.ts
+    clarificationKeyboardShortcut.ts
+    clarificationManager.ts
+    clarificationUI.ts
+    codeAnalysisManager.ts
+    codeAnalyzer.ts
+    codeContextManager.ts
+    codeInsertionManager.ts
+    codeViewerHTML.ts
+    contextIntegration.ts
+    contextManager.ts
+    contextStatusBar.ts
+    contextUI.ts
+    conversationManager.ts
+    conversationUI.ts
+    dateFormatUtils.ts
+    developerPresets.ts
+    editorContextCapture.ts
+    editorManager.ts
+    enhancedContextUI.ts
+    extendedContextManager.ts
+    handleEnhancedSendMessage.ts
+    htmlViewerGenerator.ts
+    inlineAICodeWriter.ts
+    instantClarificationShortcut.ts
+    instantClarificationTrigger.ts
+    intelligentAssistant.ts
+    intelligentAssistantUI.ts
+    intelligentContextCollector.ts
+    iso26262Detector.ts
+    messageCollapse.ts
+    messageImportanceAnalyzer.ts
+    messageImportanceAnalyzer_developer.ts
+    messageQueueManager.ts
+    messageUI.ts
+    misraCommandParser.ts
+    misraDetector.ts
+    noteManager.ts
+    notificationManager.ts
+    notificationSystem.ts
+    optimizationSettingsUI.ts
+    projectCreator.ts
+    projectScaffoldingAssistant.ts
+    projectScaffoldingUI.ts
+    pythonAutonomous.ts
+    quickAICommand.ts
+    selectionAIEditor.ts
+    Simpleaihandler.ts
+    storagesettingsmanager.ts
+    storageSettingsUI.ts
+    storageUtils.ts
+    suggestedActionsShortcut.ts
+    tree.txt
+    typingIndicator.ts
+    unifiedMarkdownProcessor.ts
+    
+No subfolders exist 
+

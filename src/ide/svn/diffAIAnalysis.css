@@ -1,0 +1,71 @@
+/* AI Diff Analysis Button and Panel Styles */
+
+/* AI Analysis Button */
+.ai-analyze-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    vertical-align: middle;
+}
+
+.ai-analyze-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.ai-analyze-btn:active {
+    transform: translateY(0);
+}
+
+.ai-analyze-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Spinner Animation */
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* AI Panel Scrollbar */
+.diff-ai-panel::-webkit-scrollbar {
+    width: 8px;
+}
+
+.diff-ai-panel::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+.diff-ai-panel::-webkit-scrollbar-thumb {
+    background: #3c3c3c;
+    border-radius: 4px;
+}
+
+.diff-ai-panel::-webkit-scrollbar-thumb:hover {
+    background: #4c4c4c;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .diff-ai-panel {
+        width: 320px !important;
+    }
+}
+
+@media (max-width: 900px) {
+    .diff-ai-panel {
+        width: 100% !important;
+        border-left: none !important;
+        border-top: 1px solid #3c3c3c !important;
+    }
+}

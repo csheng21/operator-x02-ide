@@ -1,0 +1,26 @@
+Folder PATH listing for volume System
+Volume serial number is 09C1-B27D
+C:.
+    apiClient.ts
+    browserUtils.ts
+    commandExecution.ts
+    commandFormatting.ts
+    commandHistory.ts
+    conversationUtils.ts
+    errorHandlers.ts
+    fileUtils.ts
+    index.ts
+    messageFormatting.ts
+    mockFileSystem.ts
+    platformDetection.ts
+    readme.txt
+    securityUtils.ts
+    simpleFileOps.ts
+    systemInfo.ts
+    tauriDiagnostic.ts
+    tauriUtils.ts
+    tree.txt
+    userInfo.ts
+    
+No subfolders exist 
+

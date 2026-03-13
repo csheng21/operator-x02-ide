@@ -1,0 +1,270 @@
+/* 
+ * Operator X02 Code IDE — Clean Developer UI
+ * Professional flat dark theme inspired by VS Code
+ * No glassmorphism, no gradients, no fancy animations
+ */
+
+/* ====================================
+   COLOR PALETTE
+   ==================================== */
+:root {
+  --dev-blue: #58a6ff;
+  --dev-green: #56d364;
+  --dev-orange: #ff7b72;
+  --dev-purple: #a5a5ff;
+  --dev-cyan: #76e3ea;
+  --dev-gray: #6e7681;
+  
+  --dev-bg-primary: #0d1117;
+  --dev-bg-secondary: #161b22;
+  --dev-bg-tertiary: #21262d;
+  --dev-border: #30363d;
+  --dev-text: #f0f6fc;
+  --dev-text-muted: #8b949e;
+}
+
+/* ====================================
+   BASE
+   ==================================== */
+body {
+  background: var(--dev-bg-primary) !important;
+}
+
+/* ====================================
+   PANELS — Flat, clean borders
+   ==================================== */
+
+.explorer-panel {
+  background: var(--dev-bg-secondary) !important;
+  border: 1px solid var(--dev-border) !important;
+  border-radius: 0 !important;
+}
+
+.editor-panel {
+  background: var(--dev-bg-primary) !important;
+  border: 1px solid var(--dev-border) !important;
+  border-radius: 0 !important;
+}
+
+.assistant-panel {
+  background: var(--dev-bg-secondary) !important;
+  border: 1px solid var(--dev-border) !important;
+  border-radius: 0 !important;
+}
+
+.terminal-panel {
+  background: var(--dev-bg-primary) !important;
+  border: 1px solid var(--dev-border) !important;
+  border-radius: 0 !important;
+}
+
+/* Remove ALL decorative ::before pseudo-elements */
+.explorer-panel::before,
+.assistant-panel::before,
+.terminal-panel::before,
+.status-bar::before {
+  display: none !important;
+}
+
+/* Kill all backdrop-filter (main cause of sluggishness) */
+.explorer-panel,
+.editor-panel,
+.assistant-panel,
+.terminal-panel,
+.menu-bar,
+.status-bar,
+.editor-tab,
+.icon-button,
+.assistant-message {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ====================================
+   BUTTONS — Simple, no transforms
+   ==================================== */
+
+.send-button {
+  background: var(--dev-blue) !important;
+  border: none !important;
+  border-radius: 4px !important;
+  padding: 6px 14px !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  color: #fff !important;
+  cursor: pointer !important;
+}
+
+.send-button:hover {
+  background: #4285f4 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.send-button:active {
+  transform: none !important;
+}
+
+.icon-button {
+  background: transparent !important;
+  border: 1px solid var(--dev-border) !important;
+  border-radius: 4px !important;
+  backdrop-filter: none !important;
+}
+
+.icon-button:hover {
+  background: var(--dev-bg-tertiary) !important;
+  border-color: var(--dev-text-muted) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ====================================
+   BARS
+   ==================================== */
+
+.menu-bar {
+  background: var(--dev-bg-secondary) !important;
+  border-bottom: 1px solid var(--dev-border) !important;
+  backdrop-filter: none !important;
+}
+
+.status-bar {
+  background: var(--dev-bg-secondary) !important;
+  border-top: 1px solid var(--dev-border) !important;
+  backdrop-filter: none !important;
+}
+
+/* ====================================
+   FILE EXPLORER
+   ==================================== */
+.file-item {
+  border-radius: 3px !important;
+  transition: background 0.1s ease !important;
+}
+
+.file-item::before {
+  display: none !important;
+}
+
+.file-item:hover {
+  background: rgba(88, 166, 255, 0.08) !important;
+  transform: none !important;
+}
+
+.file-item.active {
+  background: rgba(88, 166, 255, 0.15) !important;
+  border: none !important;
+  color: var(--dev-blue) !important;
+}
+
+/* ====================================
+   CHAT MESSAGES — Clean, flat, IDE-like
+   ==================================== */
+.user-message {
+  background: var(--dev-bg-tertiary) !important;
+  border: 1px solid var(--dev-border) !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+  color: var(--dev-text) !important;
+}
+
+.assistant-message {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--dev-text) !important;
+}
+
+/* ====================================
+   TABS
+   ==================================== */
+.editor-tab {
+  background: var(--dev-bg-secondary) !important;
+  border: 1px solid var(--dev-border) !important;
+  border-bottom: none !important;
+  border-radius: 0 !important;
+  backdrop-filter: none !important;
+}
+
+.editor-tab:hover {
+  background: var(--dev-bg-tertiary) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.editor-tab.active {
+  background: var(--dev-bg-primary) !important;
+  border-color: var(--dev-border) !important;
+  border-top: 2px solid var(--dev-blue) !important;
+  box-shadow: none !important;
+}
+
+/* ====================================
+   LAYOUT
+   ==================================== */
+.main-container {
+  gap: 0 !important;
+  padding: 0 !important;
+  background: var(--dev-bg-primary) !important;
+}
+
+/* ====================================
+   INPUTS
+   ==================================== */
+.chat-input-box {
+  background: var(--dev-bg-primary) !important;
+  border: 1px solid var(--dev-border) !important;
+  border-radius: 4px !important;
+}
+
+.chat-input-box:focus-within {
+  border-color: var(--dev-blue) !important;
+  box-shadow: none !important;
+}
+
+#ai-assistant-input {
+  color: var(--dev-text) !important;
+}
+
+#ai-assistant-input::placeholder {
+  color: var(--dev-text-muted) !important;
+}
+
+/* ====================================
+   QUICK ACTIONS
+   ==================================== */
+.quick-action-btn {
+  background: transparent !important;
+  border: 1px solid var(--dev-border) !important;
+  color: var(--dev-text-muted) !important;
+}
+
+.quick-action-btn:hover {
+  background: var(--dev-bg-tertiary) !important;
+  border-color: var(--dev-text-muted) !important;
+  color: var(--dev-text) !important;
+  transform: none !important;
+}
+
+/* ====================================
+   MISC
+   ==================================== */
+.panel-header:hover {
+  background: var(--dev-bg-tertiary) !important;
+}
+
+.menu-item:hover {
+  background: rgba(88, 166, 255, 0.1) !important;
+  color: var(--dev-blue) !important;
+  border-radius: 3px !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.05s !important;
+  }
+}

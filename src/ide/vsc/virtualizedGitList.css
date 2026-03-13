@@ -1,0 +1,478 @@
+/* ide/vsc/virtualizedGitList.css */
+/* ============================================================================
+   VIRTUALIZED GIT LIST STYLES - High Performance File List
+   ============================================================================ */
+
+/* ============================================================================
+   CONTAINER STYLES
+   ============================================================================ */
+
+.virtualized-git-list-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.virtualized-scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  position: relative;
+  background: var(--bg-secondary, #1e1e1e);
+  
+  /* Custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.virtualized-scroll-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.virtualized-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.virtualized-scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.virtualized-scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.virtualized-content {
+  position: relative;
+  width: 100%;
+}
+
+.virtualized-items {
+  position: absolute;
+  left: 0;
+  right: 0;
+  will-change: transform;
+}
+
+/* ============================================================================
+   FILE ITEM STYLES
+   ============================================================================ */
+
+.git-file-item {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  cursor: pointer;
+  user-select: none;
+  border-left: 3px solid transparent;
+  transition: background-color 0.1s ease;
+  box-sizing: border-box;
+}
+
+.git-file-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.git-file-item.selected {
+  background: rgba(0, 122, 204, 0.3);
+  border-left-color: #007acc;
+}
+
+.git-file-item.selected:hover {
+  background: rgba(0, 122, 204, 0.4);
+}
+
+.git-file-item:focus-visible {
+  outline: 1px solid #007acc;
+  outline-offset: -1px;
+}
+
+.file-item-content {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 8px;
+}
+
+/* ============================================================================
+   STATUS BADGE
+   ============================================================================ */
+
+.status-badge {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: 'Consolas', 'Monaco', monospace;
+  border-radius: 3px;
+  text-transform: uppercase;
+}
+
+/* Status colors */
+.status-modified .status-badge {
+  background: rgba(227, 179, 65, 0.2);
+  color: #e3b341;
+}
+
+.status-added .status-badge {
+  background: rgba(75, 180, 95, 0.2);
+  color: #4bb45f;
+}
+
+.status-deleted .status-badge {
+  background: rgba(220, 80, 80, 0.2);
+  color: #dc5050;
+}
+
+.status-untracked .status-badge {
+  background: rgba(115, 200, 115, 0.2);
+  color: #73c873;
+}
+
+.status-renamed .status-badge {
+  background: rgba(100, 149, 237, 0.2);
+  color: #6495ed;
+}
+
+.status-copied .status-badge {
+  background: rgba(147, 112, 219, 0.2);
+  color: #9370db;
+}
+
+.status-conflict .status-badge {
+  background: rgba(255, 85, 85, 0.3);
+  color: #ff5555;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ============================================================================
+   FILE INFO
+   ============================================================================ */
+
+.file-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+}
+
+.file-name {
+  font-size: 12px;
+  color: var(--text-primary, #cccccc);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-dir {
+  font-size: 10px;
+  color: var(--text-secondary, #808080);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Staged file styling */
+.git-file-item.staged .file-name {
+  color: #4bb45f;
+}
+
+/* ============================================================================
+   FILE ACTIONS
+   ============================================================================ */
+
+.file-actions {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  flex-shrink: 0;
+}
+
+.git-file-item:hover .file-actions,
+.git-file-item.selected .file-actions {
+  opacity: 1;
+}
+
+.action-btn {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: var(--text-secondary, #808080);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  padding: 0;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary, #cccccc);
+}
+
+.stage-btn:hover {
+  background: rgba(75, 180, 95, 0.2);
+  color: #4bb45f;
+}
+
+.unstage-btn:hover {
+  background: rgba(227, 179, 65, 0.2);
+  color: #e3b341;
+}
+
+.discard-btn:hover {
+  background: rgba(220, 80, 80, 0.2);
+  color: #dc5050;
+}
+
+/* ============================================================================
+   SECTION HEADERS (for staged/unstaged groups)
+   ============================================================================ */
+
+.git-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--bg-tertiary, #252526);
+  border-bottom: 1px solid var(--border-color, #3c3c3c);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary, #808080);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.git-section-header .count-badge {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.git-section-header.staged-header {
+  color: #4bb45f;
+}
+
+.git-section-header.staged-header .count-badge {
+  background: rgba(75, 180, 95, 0.2);
+  color: #4bb45f;
+}
+
+.git-section-header.changes-header {
+  color: #e3b341;
+}
+
+.git-section-header.changes-header .count-badge {
+  background: rgba(227, 179, 65, 0.2);
+  color: #e3b341;
+}
+
+/* Section actions */
+.section-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.section-action-btn {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 3px;
+  color: var(--text-secondary, #808080);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.section-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary, #cccccc);
+}
+
+/* ============================================================================
+   FILTER INPUT
+   ============================================================================ */
+
+.git-filter-container {
+  padding: 8px;
+  border-bottom: 1px solid var(--border-color, #3c3c3c);
+  background: var(--bg-secondary, #1e1e1e);
+}
+
+.git-filter-input {
+  width: 100%;
+  padding: 6px 10px;
+  background: var(--input-bg, #3c3c3c);
+  border: 1px solid var(--border-color, #3c3c3c);
+  border-radius: 4px;
+  color: var(--text-primary, #cccccc);
+  font-size: 12px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.git-filter-input:focus {
+  border-color: #007acc;
+}
+
+.git-filter-input::placeholder {
+  color: var(--text-secondary, #808080);
+}
+
+/* ============================================================================
+   LOADING STATE
+   ============================================================================ */
+
+.git-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: var(--text-secondary, #808080);
+  gap: 12px;
+}
+
+.git-loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-top-color: #007acc;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ============================================================================
+   EMPTY STATE
+   ============================================================================ */
+
+.git-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  color: var(--text-secondary, #808080);
+  text-align: center;
+}
+
+.git-empty-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.git-empty-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary, #cccccc);
+  margin-bottom: 4px;
+}
+
+.git-empty-subtitle {
+  font-size: 12px;
+}
+
+/* ============================================================================
+   LARGE FILE COUNT WARNING
+   ============================================================================ */
+
+.git-large-count-warning {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(227, 179, 65, 0.1);
+  border-bottom: 1px solid rgba(227, 179, 65, 0.3);
+  color: #e3b341;
+  font-size: 11px;
+}
+
+.git-large-count-warning svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+/* ============================================================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================================================ */
+
+@media (max-width: 400px) {
+  .file-dir {
+    display: none;
+  }
+  
+  .file-actions {
+    opacity: 1;
+  }
+}
+
+/* ============================================================================
+   HIGH CONTRAST MODE
+   ============================================================================ */
+
+@media (prefers-contrast: high) {
+  .git-file-item.selected {
+    background: #007acc;
+    color: white;
+  }
+  
+  .git-file-item:focus-visible {
+    outline: 2px solid white;
+  }
+  
+  .status-badge {
+    border: 1px solid currentColor;
+  }
+}
+
+/* ============================================================================
+   REDUCED MOTION
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .git-file-item,
+  .action-btn,
+  .file-actions {
+    transition: none;
+  }
+  
+  .status-conflict .status-badge,
+  .git-loading-spinner {
+    animation: none;
+  }
+}

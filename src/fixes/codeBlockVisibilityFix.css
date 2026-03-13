@@ -1,0 +1,17 @@
+
+/* ===== FIX: Code block visibility (content-visibility: auto caused h=0) ===== */
+.enh-code, .muf-code, .cbe-code,
+pre code, pre.enh-pre code, pre.muf-pre code {
+  content-visibility: visible !important;
+  contain-intrinsic-size: auto !important;
+}
+
+.enh-code-scroll, .muf-code-scroll {
+  overflow: auto !important;
+  max-height: 500px !important;
+  min-height: 20px !important;
+}
+
+pre.enh-pre, pre.muf-pre {
+  min-height: 20px !important;
+}

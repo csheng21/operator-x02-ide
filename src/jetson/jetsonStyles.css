@@ -1,0 +1,86 @@
+/* =============================================================================
+   Operator X02 - Phase 2: Jetson Remote Styles
+   Combined CSS for Connection Panel, Deploy Panel, and Monitor Dashboard.
+   Import in your app: import './jetsonStyles.css'
+   ============================================================================= */
+
+/* --- NVIDIA Green Theme Variables --- */
+:root {
+    --jetson-green: #76b900;
+    --jetson-green-light: #8acb00;
+    --jetson-bg-primary: #1a1a2e;
+    --jetson-bg-secondary: #16213e;
+    --jetson-bg-input: #0d1117;
+    --jetson-border: #0f3460;
+    --jetson-border-subtle: #21262d;
+    --jetson-text: #e0e0e0;
+    --jetson-text-dim: #888;
+    --jetson-text-bright: #fff;
+    --jetson-warning: #f39c12;
+    --jetson-critical: #e74c3c;
+    --jetson-success: #2ecc71;
+    --jetson-font-mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace;
+}
+
+/* --- Scrollbar Styling --- */
+.jetson-connection-panel ::-webkit-scrollbar,
+.jetson-deploy-panel ::-webkit-scrollbar,
+.jetson-monitor-dashboard ::-webkit-scrollbar {
+    width: 6px;
+}
+.jetson-connection-panel ::-webkit-scrollbar-track,
+.jetson-deploy-panel ::-webkit-scrollbar-track,
+.jetson-monitor-dashboard ::-webkit-scrollbar-track {
+    background: transparent;
+}
+.jetson-connection-panel ::-webkit-scrollbar-thumb,
+.jetson-deploy-panel ::-webkit-scrollbar-thumb,
+.jetson-monitor-dashboard ::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 3px;
+}
+
+/* --- Animations --- */
+@keyframes jetson-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes jetson-slide-in {
+    from { transform: translateY(-10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.jetson-statusbar-item {
+    animation: jetson-slide-in 0.2s ease-out;
+}
+
+.status-dot.green {
+    animation: jetson-pulse 2s ease-in-out infinite;
+}
+
+/* --- Deploy Stage Animations --- */
+.deploy-stage {
+    transition: all 0.3s ease;
+}
+
+.stat-bar-fill {
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.core-fill {
+    transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- Responsive Grid for Monitor --- */
+@media (max-width: 500px) {
+    .monitor-grid {
+        grid-template-columns: 1fr 1fr !important;
+    }
+}
+
+@media (max-width: 350px) {
+    .monitor-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

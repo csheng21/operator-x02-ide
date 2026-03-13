@@ -1,0 +1,243 @@
+/* performance.css - Performance Optimizations for AI Code IDE */
+/* Add this to your CSS imports for immediate performance improvements */
+
+/* ============================================
+   1. GPU ACCELERATION & CONTAINMENT
+   ============================================ */
+
+/* Force GPU compositing for panels */
+.assistant-panel,
+.editor-panel,
+.explorer-panel,
+.terminal-panel {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout style;
+}
+
+/* Strict containment for chat container */
+.ai-chat-container {
+  contain: strict;
+  will-change: scroll-position;
+  overflow-anchor: none;
+}
+
+/* Content containment for messages */
+.chat-message,
+.user-message,
+.assistant-message {
+  contain: content;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 80px; /* Estimated height */
+}
+
+/* ============================================
+   2. REDUCE BACKDROP-FILTER COST
+   ============================================ */
+
+/* Backdrop blur is EXPENSIVE - reduce or simplify */
+.assistant-panel,
+.explorer-panel,
+.editor-panel {
+  /* Option 1: Reduce blur radius (faster) */
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  
+  /* Option 2: Use solid background instead (fastest) 
+  backdrop-filter: none !important;
+  background: rgba(13, 17, 23, 0.95) !important;
+  */
+}
+
+/* Disable blur on hover/scroll for smoother interactions */
+.ai-chat-container:active .assistant-message,
+.ai-chat-container.scrolling .assistant-message {
+  backdrop-filter: none !important;
+}
+
+/* ============================================
+   3. OPTIMIZE ANIMATIONS
+   ============================================ */
+
+/* Slow down decorative animations (less CPU) */
+.assistant-panel::before,
+.explorer-panel::before,
+.status-bar::before {
+  animation-duration: 10s !important;
+}
+
+/* Pause animations when not visible */
+.assistant-panel:not(:hover)::before {
+  animation-play-state: paused;
+}
+
+/* Reduce transition complexity */
+.file-item,
+.folder-item,
+.menu-item,
+.chat-message {
+  transition: background-color 0.15s ease, transform 0.1s ease !important;
+}
+
+/* Disable animations during resize */
+body.panel-resizing *,
+body.resizing-chat-panel * {
+  animation: none !important;
+  transition: none !important;
+}
+
+/* ============================================
+   4. SCROLLBAR OPTIMIZATION
+   ============================================ */
+
+/* Simpler scrollbar styles */
+.ai-chat-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ai-chat-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ai-chat-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+/* Hide scrollbar during fast scroll (reduces paint) */
+.ai-chat-container.scrolling::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ============================================
+   5. CODE BLOCK OPTIMIZATION
+   ============================================ */
+
+/* Large code blocks should use content-visibility */
+pre, code, .code-block {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 150px;
+}
+
+/* Simplify code block styling */
+pre {
+  box-shadow: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* ============================================
+   6. REDUCE BOX-SHADOW COMPLEXITY
+   ============================================ */
+
+/* Simpler shadows (less layers = faster) */
+.user-message,
+.assistant-message {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Remove shadows during scroll */
+.ai-chat-container.scrolling .user-message,
+.ai-chat-container.scrolling .assistant-message {
+  box-shadow: none !important;
+}
+
+/* ============================================
+   7. IMAGE OPTIMIZATION
+   ============================================ */
+
+img {
+  content-visibility: auto;
+}
+
+/* ============================================
+   8. REDUCE MOTION (Accessibility + Performance)
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================
+   9. FONT OPTIMIZATION
+   ============================================ */
+
+body {
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Use system fonts for UI (faster loading) */
+.assistant-panel,
+.explorer-panel,
+.menu-bar,
+.status-bar {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+/* ============================================
+   10. TYPING INDICATOR OPTIMIZATION
+   ============================================ */
+
+.typing-indicator {
+  will-change: opacity;
+  contain: strict;
+}
+
+.typing-indicator .dot {
+  will-change: transform;
+}
+
+/* ============================================
+   11. CONVERSATION LIST OPTIMIZATION
+   ============================================ */
+
+.conversation-list,
+.conversation-item {
+  contain: content;
+  content-visibility: auto;
+  contain-intrinsic-size: 0 60px;
+}
+
+/* ============================================
+   12. MONACO EDITOR OPTIMIZATION
+   ============================================ */
+
+.monaco-editor {
+  contain: strict;
+}
+
+.monaco-editor .view-lines {
+  contain: layout style;
+}
+
+/* ============================================
+   OPTIONAL: PERFORMANCE MODE (Add class to body)
+   ============================================ */
+
+/* Enable with: document.body.classList.add('performance-mode') */
+
+body.performance-mode .assistant-panel,
+body.performance-mode .explorer-panel,
+body.performance-mode .editor-panel {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: #0d1117 !important;
+}
+
+body.performance-mode *::before,
+body.performance-mode *::after {
+  animation: none !important;
+}
+
+body.performance-mode .user-message,
+body.performance-mode .assistant-message {
+  box-shadow: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}

@@ -1,0 +1,298 @@
+/* src/ide/breadcrumb.css */
+
+/* Main breadcrumb container */
+.breadcrumb-navigation {
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  background-color: #252526;
+  border-bottom: 1px solid #3c3c3c;
+  font-size: 13px;
+  color: #cccccc;
+  min-height: 26px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+  user-select: none;
+}
+
+/* Custom scrollbar for breadcrumb */
+.breadcrumb-navigation::-webkit-scrollbar {
+  height: 4px;
+}
+
+.breadcrumb-navigation::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.breadcrumb-navigation::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+  border-radius: 2px;
+}
+
+.breadcrumb-navigation::-webkit-scrollbar-thumb:hover {
+  background: #5a5a5a;
+}
+
+/* Breadcrumb items */
+.breadcrumb-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Clickable breadcrumb items (folders) */
+.breadcrumb-clickable {
+  cursor: pointer;
+  color: #969696;
+  position: relative;
+}
+
+.breadcrumb-clickable:hover {
+  color: #e1e1e1;
+  background-color: rgba(255, 255, 255, 0.08);
+  text-decoration: underline;
+}
+
+.breadcrumb-clickable:active {
+  background-color: rgba(0, 122, 204, 0.3);
+  transform: scale(0.98);
+}
+
+/* Breadcrumb segment - clickable to open in explorer */
+.breadcrumb-segment {
+  cursor: pointer !important;
+  position: relative;
+}
+
+.breadcrumb-segment:hover {
+  background: rgba(0, 120, 215, 0.2) !important;
+  color: #4fc3f7 !important;
+}
+
+.breadcrumb-segment:hover::after {
+  content: '📂';
+  position: absolute;
+  right: -18px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+/* Current/active breadcrumb item (file) */
+.breadcrumb-current {
+  color: #e1e1e1;
+  font-weight: 500;
+  cursor: default;
+}
+
+/* Separator between breadcrumb items */
+.breadcrumb-separator {
+  margin: 0 6px;
+  color: #6a6a6a;
+  font-size: 14px;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Drive letter or root styling (Windows) */
+.breadcrumb-item[data-path*=":"]:first-child {
+  font-weight: 600;
+  color: #4fc3f7;
+}
+
+/* Home directory styling (Unix-like) */
+.breadcrumb-item[data-path="/"]:first-child,
+.breadcrumb-item[data-path="~"]:first-child {
+  font-weight: 600;
+  color: #4fc3f7;
+}
+
+/* Special folders highlighting */
+.breadcrumb-item[data-path*="Desktop"],
+.breadcrumb-item[data-path*="Documents"],
+.breadcrumb-item[data-path*="Downloads"] {
+  color: #a1c181;
+}
+
+/* Project root folder */
+.breadcrumb-item[data-path*="src"]:not(.breadcrumb-current),
+.breadcrumb-item[data-path*="backup"]:not(.breadcrumb-current) {
+  color: #82aaff;
+}
+
+/* Loading state */
+.breadcrumb-navigation.loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.breadcrumb-navigation.loading::after {
+  content: '...';
+  animation: loading-dots 1.5s infinite;
+  margin-left: 4px;
+}
+
+@keyframes loading-dots {
+  0%, 20% {
+    content: '.';
+  }
+  40% {
+    content: '..';
+  }
+  60%, 100% {
+    content: '...';
+  }
+}
+
+/* Tooltip for long paths */
+.breadcrumb-clickable[title] {
+  position: relative;
+}
+
+.breadcrumb-clickable[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  background: #1e1e1e;
+  border: 1px solid #464647;
+  border-radius: 3px;
+  white-space: nowrap;
+  font-size: 12px;
+  z-index: 10000;
+  pointer-events: none;
+  margin-bottom: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Empty state */
+.breadcrumb-navigation:empty::before,
+.breadcrumb-navigation:has(.breadcrumb-item:only-child:contains("No file selected"))::before {
+  content: 'No file selected';
+  color: #6a6a6a;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .breadcrumb-navigation {
+    font-size: 12px;
+    padding: 3px 8px;
+    min-height: 22px;
+  }
+  
+  .breadcrumb-item {
+    max-width: 120px;
+    padding: 1px 4px;
+  }
+  
+  .breadcrumb-separator {
+    margin: 0 4px;
+  }
+}
+
+/* Dark theme adjustments (default) */
+.theme-dark .breadcrumb-navigation {
+  background-color: #252526;
+  border-bottom-color: #3c3c3c;
+}
+
+/* Light theme adjustments */
+.theme-light .breadcrumb-navigation {
+  background-color: #f3f3f3;
+  border-bottom-color: #e5e5e5;
+  color: #333333;
+}
+
+.theme-light .breadcrumb-clickable {
+  color: #616161;
+}
+
+.theme-light .breadcrumb-clickable:hover {
+  color: #000000;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.theme-light .breadcrumb-current {
+  color: #000000;
+}
+
+.theme-light .breadcrumb-separator {
+  color: #9e9e9e;
+}
+
+/* High contrast theme */
+.theme-high-contrast .breadcrumb-navigation {
+  background-color: #000000;
+  border-bottom-color: #ffffff;
+}
+
+.theme-high-contrast .breadcrumb-clickable {
+  color: #ffffff;
+}
+
+.theme-high-contrast .breadcrumb-clickable:hover {
+  background-color: #1e90ff;
+}
+
+.theme-high-contrast .breadcrumb-current {
+  color: #ffff00;
+  font-weight: bold;
+}
+
+/* Animation for breadcrumb updates */
+.breadcrumb-item {
+  animation: breadcrumb-fade-in 0.3s ease;
+}
+
+@keyframes breadcrumb-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus styles for keyboard navigation */
+.breadcrumb-clickable:focus {
+  outline: 2px solid #007acc;
+  outline-offset: -1px;
+  border-radius: 3px;
+}
+
+/* Icon support (if you add icons later) */
+.breadcrumb-item-icon {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 4px;
+  font-size: 14px;
+}
+
+/* Breadcrumb in collapsed state */
+.breadcrumb-navigation.collapsed {
+  min-height: 0;
+  height: 0;
+  padding: 0;
+  overflow: hidden;
+  border: none;
+}
+
+/* Transition for collapse/expand */
+.breadcrumb-navigation {
+  transition: height 0.3s ease, padding 0.3s ease;
+}

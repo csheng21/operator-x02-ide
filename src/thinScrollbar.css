@@ -1,0 +1,62 @@
+/* thinScrollbar.css - Thin Always-Visible Scrollbar */
+/* ============================================================================ */
+/* LOCATION: src/thinScrollbar.css                                              */
+/* Replace import in main.ts: import './thinScrollbar.css';                     */
+/* ============================================================================ */
+
+/* Chat Container - Always Visible Scrollbar */
+.ai-chat-container,
+div.ai-chat-container,
+.chat-panel .ai-chat-container,
+#ai-assistant .ai-chat-container {
+  /* Force scrollbar to ALWAYS show */
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+  
+  /* Firefox */
+  scrollbar-width: auto !important;
+  scrollbar-color: rgba(60, 80, 90, 0.7) rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Webkit (Chrome, Edge, Safari) - Force always visible */
+.ai-chat-container::-webkit-scrollbar,
+div.ai-chat-container::-webkit-scrollbar,
+.chat-panel .ai-chat-container::-webkit-scrollbar {
+  width: 14px !important;
+  display: block !important;
+  visibility: visible !important;
+}
+
+.ai-chat-container::-webkit-scrollbar-track,
+div.ai-chat-container::-webkit-scrollbar-track,
+.chat-panel .ai-chat-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-radius: 4px;
+  visibility: visible !important;
+}
+
+.ai-chat-container::-webkit-scrollbar-thumb,
+div.ai-chat-container::-webkit-scrollbar-thumb,
+.chat-panel .ai-chat-container::-webkit-scrollbar-thumb {
+  background: rgba(60, 80, 90, 0.7) !important;
+  border-radius: 4px;
+  min-height: 40px;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+.ai-chat-container::-webkit-scrollbar-thumb:hover,
+div.ai-chat-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(80, 100, 110, 0.85) !important;
+}
+
+.ai-chat-container::-webkit-scrollbar-thumb:active,
+div.ai-chat-container::-webkit-scrollbar-thumb:active {
+  background: rgba(100, 120, 130, 0.95) !important;
+}
+
+/* Force scrollbar always visible - disable auto-hide */
+.ai-chat-container {
+  -ms-overflow-style: scrollbar !important;  /* IE/Edge */
+  scrollbar-gutter: stable !important;       /* Reserve space */
+}

@@ -1,0 +1,17 @@
+{
+  "conversations": [
+    [
+      "mftahqmkokgfj6tvmr",
+      {
+        "id": "mftahqmkokgfj6tvmr",
+        "title": "Welcome",
+        "messages": [],
+        "createdAt": 1758434488076,
+        "lastUpdated": 1758434488076
+      }
+    ]
+  ],
+  "currentConversationId": "mftahqmkokgfj6tvmr",
+  "version": "2.0",
+  "savedAt": 1758438848622
+}

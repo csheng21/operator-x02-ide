@@ -1,0 +1,814 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Operator X02 AI IDE</title>
+    <link rel="stylesheet" href="./src/styles.css">
+    <link rel="stylesheet" href="./src/performance.css">
+    <link rel="stylesheet" href="./src/modern-ui-enhancements.css">
+    <link rel="stylesheet" href="./src/appleInputArea.css">
+    <!-- Monaco Editor CDN -->
+    <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/editor/editor.main.min.css">
+    
+    <!-- ====================================================================== -->
+    <!-- MONACO CONTEXT MENU FIX v4 - Must be in head before other scripts -->
+    <!-- ====================================================================== -->
+    <script>
+    (function() {
+      console.log('🛡️ Monaco Fix v4 loading...');
+      var monacoHealthy = true;
+      var lastClickX = 0, lastClickY = 0;
+      
+      function checkHealth() {
+        try {
+          var monaco = window.monaco;
+          if (!monaco || !monaco.editor) return false;
+          var editors = monaco.editor.getEditors();
+          if (!editors || editors.length === 0) return false;
+          var editor = editors[0];
+          if (!editor) return false;
+          var model = editor.getModel();
+          return !!model;
+        } catch (e) {
+          if (e.message && (e.message.indexOf('disposed') !== -1 || e.message.indexOf('InstantiationService') !== -1)) {
+            return false;
+          }
+          return true;
+        }
+      }
+      
+      function showFallback(x, y) {
+        document.querySelectorAll('.monaco-fix-menu').forEach(function(m) { m.remove(); });
+        console.log('🛡️ Showing fallback menu');
+        
+        var menu = document.createElement('div');
+        menu.className = 'monaco-fix-menu';
+        menu.innerHTML = '<style>.monaco-fix-menu{position:fixed;background:#252526;border:1px solid #454545;border-radius:6px;padding:4px 0;min-width:240px;z-index:999999;box-shadow:0 8px 32px rgba(0,0,0,0.5);font:13px -apple-system,sans-serif}.monaco-fix-menu .h{padding:8px 12px;color:#f9a825;font-size:11px;border-bottom:1px solid #333}.monaco-fix-menu .i{display:flex;justify-content:space-between;padding:6px 12px;color:#ccc;cursor:pointer}.monaco-fix-menu .i:hover{background:#094771;color:#fff}.monaco-fix-menu .i .k{color:#888;font-size:11px}.monaco-fix-menu .d{height:1px;background:#454545;margin:4px 8px}.monaco-fix-menu .r{color:#4fc3f7}.monaco-fix-menu .r:hover{background:rgba(79,195,247,0.2)}</style><div class="h">⚠️ Editor Menu (needs repair)</div><div class="i" data-a="cut"><span>Cut</span><span class="k">Ctrl+X</span></div><div class="i" data-a="copy"><span>Copy</span><span class="k">Ctrl+C</span></div><div class="i" data-a="paste"><span>Paste</span><span class="k">Ctrl+V</span></div><div class="d"></div><div class="i" data-a="undo"><span>Undo</span><span class="k">Ctrl+Z</span></div><div class="i" data-a="redo"><span>Redo</span><span class="k">Ctrl+Y</span></div><div class="d"></div><div class="i" data-a="selectAll"><span>Select All</span><span class="k">Ctrl+A</span></div><div class="d"></div><div class="i" data-a="find"><span>Find</span><span class="k">Ctrl+F</span></div><div class="i" data-a="format"><span>Format Document</span><span class="k">Shift+Alt+F</span></div><div class="i" data-a="command"><span>Command Palette</span><span class="k">F1</span></div><div class="d"></div><div class="i r" data-a="repair"><span>🔄 Repair Editor (restore AI menu)</span><span class="k"></span></div>';
+        menu.style.left = x + 'px';
+        menu.style.top = y + 'px';
+        document.body.appendChild(menu);
+        
+        requestAnimationFrame(function() {
+          var rect = menu.getBoundingClientRect();
+          if (rect.right > window.innerWidth - 10) menu.style.left = (window.innerWidth - rect.width - 10) + 'px';
+          if (rect.bottom > window.innerHeight - 10) menu.style.top = (window.innerHeight - rect.height - 10) + 'px';
+        });
+        
+        menu.onclick = function(e) {
+          var item = e.target.closest('.i');
+          if (!item) return;
+          var a = item.getAttribute('data-a');
+          menu.remove();
+          
+          var ed = window.monaco && window.monaco.editor && window.monaco.editor.getEditors()[0];
+          
+          switch(a) {
+            case 'cut': document.execCommand('cut'); break;
+            case 'copy': document.execCommand('copy'); break;
+            case 'paste':
+              navigator.clipboard.readText().then(function(t) {
+                if (ed) { var s = ed.getSelection(); if (s) ed.executeEdits('p', [{range:s, text:t, forceMoveMarkers:true}]); }
+              }).catch(function() { document.execCommand('paste'); });
+              break;
+            case 'undo': if (ed) ed.trigger('m', 'undo', null); break;
+            case 'redo': if (ed) ed.trigger('m', 'redo', null); break;
+            case 'selectAll': if (ed) { var m = ed.getModel(); if (m) ed.setSelection(m.getFullModelRange()); } break;
+            case 'find': if (ed) ed.trigger('m', 'actions.find', null); break;
+            case 'format': if (ed) ed.trigger('m', 'editor.action.formatDocument', null); break;
+            case 'command': if (ed) ed.trigger('m', 'editor.action.quickCommand', null); break;
+            case 'repair': repair(); break;
+          }
+        };
+        
+        setTimeout(function() {
+          var close = function() {
+            menu.remove();
+            document.removeEventListener('click', onClick);
+            document.removeEventListener('keydown', onKey);
+          };
+          var onClick = function(e) { if (!menu.contains(e.target)) close(); };
+          var onKey = function(e) { if (e.key === 'Escape') close(); };
+          document.addEventListener('click', onClick);
+          document.addEventListener('keydown', onKey);
+        }, 10);
+      }
+      
+      function repair() {
+        console.log('🛡️ Repairing editor...');
+        var monaco = window.monaco;
+        if (!monaco) { alert('Monaco not loaded'); return; }
+        
+        var container = document.getElementById('monaco-editor');
+        if (!container) { alert('Container not found'); return; }
+        
+        var content = '', lang = 'typescript', viewState = null;
+        
+        try {
+          var eds = monaco.editor.getEditors();
+          if (eds.length > 0) {
+            var ed = eds[0];
+            try {
+              var model = ed.getModel();
+              if (model) { content = model.getValue(); lang = model.getLanguageId(); }
+              viewState = ed.saveViewState();
+            } catch(e) {}
+            try { ed.dispose(); } catch(e) {}
+          }
+          monaco.editor.getModels().forEach(function(m) { try { m.dispose(); } catch(e) {} });
+        } catch(e) {}
+        
+        container.innerHTML = '';
+        
+        setTimeout(function() {
+          try {
+            var newEd = monaco.editor.create(container, {
+              value: content || '// Editor repaired\n',
+              language: lang,
+              theme: 'vs-dark',
+              automaticLayout: true,
+              minimap: { enabled: true },
+              scrollBeyondLastLine: false,
+              fontFamily: 'Consolas, "Courier New", monospace',
+              fontSize: 14,
+              tabSize: 2,
+              wordWrap: 'on'
+            });
+            if (viewState) try { newEd.restoreViewState(viewState); } catch(e) {}
+            
+            monacoHealthy = true;
+            
+            var toast = document.createElement('div');
+            toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#4caf50;color:white;padding:12px 24px;border-radius:8px;z-index:100000;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
+            toast.textContent = '✅ Editor repaired! AI menu should work now.';
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 3000);
+            
+            console.log('✅ Editor repaired!');
+          } catch(e) {
+            alert('Repair failed: ' + e.message);
+          }
+        }, 100);
+      }
+      
+      document.addEventListener('contextmenu', function(e) {
+        var t = e.target;
+        var isMonaco = false;
+        while (t && t !== document.body) {
+          if (t.classList && t.classList.contains('monaco-editor')) {
+            isMonaco = true;
+            break;
+          }
+          t = t.parentElement;
+        }
+        
+        if (!isMonaco) return;
+        
+        lastClickX = e.clientX;
+        lastClickY = e.clientY;
+        
+        var healthy = checkHealth();
+        console.log('🛡️ Health check:', healthy ? 'OK' : 'BROKEN');
+        
+        if (!healthy) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+          showFallback(lastClickX, lastClickY);
+          return false;
+        }
+        
+        // Monaco is healthy - let it handle the menu
+        // No backup timeout needed since health check works
+      }, true);
+      
+      window.addEventListener('error', function(e) {
+        if (e.message && e.message.indexOf('InstantiationService') !== -1) {
+          console.warn('🛡️ Monaco error caught');
+          monacoHealthy = false;
+          e.preventDefault();
+          return true;
+        }
+      }, true);
+      
+      window.addEventListener('unhandledrejection', function(e) {
+        var msg = e.reason && e.reason.message ? e.reason.message : String(e.reason);
+        if (msg.indexOf('InstantiationService') !== -1) {
+          console.warn('🛡️ Monaco rejection caught');
+          monacoHealthy = false;
+          e.preventDefault();
+        }
+      }, true);
+      
+      window.__monacoFix = {
+        isHealthy: function() { return monacoHealthy; },
+        check: checkHealth,
+        repair: repair,
+        showFallback: function() { showFallback(100, 100); }
+      };
+      
+      console.log('✅ Monaco Fix v4 ready!');
+    })();
+    </script>
+    <!-- END MONACO FIX -->
+
+    <!-- Inline Styles -->
+    <style>
+      :root {
+        --bg-primary: #1e1e1e;
+        --bg-secondary: #252526;
+        --bg-tertiary: #2d2d30;
+        --text-primary: #d4d4d4;
+        --text-secondary: #969696;
+        --border-color: #3e3e42;
+        --accent-color: #007acc;
+        --terminal-bg: #0c0c0c;
+        --terminal-text: #cccccc;
+        --success-color: #4ec9b0;
+        --warning-color: #ffcc02;
+        --error-color: #f44747;
+      }
+
+      /* Context Menu Styles */
+      .context-menu {
+        position: fixed;
+        background: #252526;
+        border: 1px solid #464647;
+        border-radius: 4px;
+        padding: 4px 0;
+        min-width: 220px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        z-index: 10000;
+        font-size: 13px;
+        color: #cccccc;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+
+      .context-menu-item {
+        padding: 6px 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: background-color 0.1s;
+        user-select: none;
+      }
+
+      .context-menu-item:hover {
+        background: #094771;
+        color: #ffffff;
+      }
+
+      .context-menu-item.disabled {
+        color: #5a5a5a;
+        cursor: default;
+        pointer-events: none;
+      }
+
+      .context-menu-item .menu-icon {
+        width: 16px;
+        text-align: center;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+
+      .context-menu-separator {
+        height: 1px;
+        background: #464647;
+        margin: 4px 0;
+      }
+
+      /* Modal Base Styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.8);
+        animation: fadeIn 0.2s ease;
+      }
+
+      .modal-content {
+        position: relative;
+        margin: 5% auto;
+        padding: 0;
+        width: 80%;
+        max-width: 900px;
+        animation: slideIn 0.3s ease;
+        background: var(--bg-primary);
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      }
+
+      .modal-header {
+        padding: 16px 20px;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
+        border-radius: 8px 8px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .modal-header h2 {
+        margin: 0;
+        color: var(--text-primary);
+        font-size: 18px;
+      }
+
+      .close-modal {
+        color: var(--text-secondary);
+        font-size: 24px;
+        cursor: pointer;
+        transition: color 0.2s;
+      }
+
+      .close-modal:hover {
+        color: var(--text-primary);
+      }
+
+      .modal-body {
+        padding: 20px;
+        max-height: 70vh;
+        overflow-y: auto;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @keyframes slideIn {
+        from { transform: translateY(-50px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+
+      .small-modal {
+        width: 400px;
+        max-width: 90%;
+      }
+
+      .project-modal {
+        width: 800px;
+        max-width: 95%;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .secondary-button {
+        background-color: transparent;
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+
+      .secondary-button:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .primary-button {
+        background-color: var(--accent-color);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+
+      .primary-button:hover {
+        background-color: #005a9e;
+      }
+
+      .file-tree {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 8px 0;
+        min-height: 0;
+        background: var(--bg-secondary);
+      }
+
+      .file-tree::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .file-tree::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+      }
+
+      .file-tree::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 4px;
+      }
+
+      .file-tree::-webkit-scrollbar-thumb:hover {
+        background: var(--text-secondary);
+      }
+    </style>
+
+    <!-- REORDER STATUS BAR -->
+    <style id="reorder-status-bar">
+      .status-bar {
+        display: flex !important;
+        align-items: center !important;
+      }
+      .surgical-status-badge,
+      [class*="surgical"][class*="badge"],
+      [class*="surgical"][class*="status"],
+      [id*="surgical-status"] {
+        order: -10 !important;
+      }
+      [class*="backup"][class*="badge"],
+      [class*="backup"][class*="status"],
+      [class*="backup"][class*="indicator"],
+      [id*="backup-status"],
+      [id*="backup-indicator"] {
+        order: -9 !important;
+      }
+      .ide-script-mode-btn,
+      [class*="ide-script"],
+      [class*="mode-btn"] {
+        order: -5 !important;
+      }
+    </style>
+</head>
+  <body>
+    <div class="ide-layout">
+      <!-- Top Menu Bar -->
+      <div class="menu-bar">
+        <div class="menu-item" id="project-menu">Project</div>
+        <div class="menu-item">View</div>
+      </div>
+
+      <div class="main-container">
+        <!-- Left Sidebar: File Explorer -->
+        <div class="explorer-panel">
+          <div class="explorer-header">
+            <span>EXPLORER</span>
+            <div class="explorer-actions">
+              <button class="explorer-btn" id="new-file-btn" title="New File">📄</button>
+              <button class="explorer-btn" id="new-folder-btn" title="New Folder">📁</button>
+              <button class="explorer-btn" id="refresh-btn" title="Refresh">🔄</button>
+              <button class="explorer-btn" id="collapse-all-btn" title="Collapse All">📂</button>
+            </div>
+          </div>
+          <div class="file-tree" id="file-tree"></div>
+        </div>
+
+        <!-- Main Editor Area -->
+        <div class="editor-panel">
+          <div id="monaco-editor"></div>
+        </div>
+
+        <!-- Right Sidebar: AI Assistant -->
+        <div class="assistant-panel" id="assistant-panel">
+          <div class="assistant-header">
+            <div class="assistant-title">
+              <svg class="assistant-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="16 18 22 12 16 6"></polyline>
+                <polyline points="8 6 2 12 8 18"></polyline>
+              </svg>
+              AI Assistant
+            </div>
+            <div class="assistant-actions">
+              <button class="tool-button" id="assistant-new-chat" title="New Conversation"><span>📝</span></button>
+              <button class="tool-button" id="assistant-clear" title="Clear Conversation"><span>🗑️</span></button>
+              <button class="tool-button" id="assistant-settings" title="Assistant Settings"><span>⚙️</span></button>
+              <button class="tool-button" id="toggle-assistant" title="Toggle Panel"><span>◀</span></button>
+            </div>
+          </div>
+          <div class="ai-chat-container" id="ai-chat-container"></div>
+          <div class="chat-input-area">
+            <div class="chat-input-box">
+              <textarea id="ai-assistant-input" placeholder="Ask me anything..." rows="1"></textarea>
+              <div class="chat-input-actions">
+                <div class="input-tools">
+                  <button class="tool-button" id="analyze-code-btn" title="Analyze Current Code"><span>🔍</span></button>
+                  <button class="tool-button" id="assistant-upload" title="Upload File"><span>📎</span></button>
+                </div>
+                <button class="send-button" id="send-btn"><span>Send</span><span>↵</span></button>
+              </div>
+            </div>
+            <div class="quick-actions" id="quick-actions"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Terminal Panel -->
+      <div class="terminal-panel" id="terminal-panel">
+        <div id="terminal">
+          <div class="terminal-line">
+            <span class="prompt">$</span>
+            <span class="command-input" id="command-input" contenteditable="true">Type commands here...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <div class="status-item" id="branch-status">main</div>
+        <div class="status-item" id="language-status">TypeScript</div>
+        <div class="status-item" id="position-status">Ln 1, Col 1</div>
+        <div class="status-item right" id="encoding-status">UTF-8</div>
+        <div class="status-item right" id="indent-status">Spaces: 2</div>
+      </div>
+    </div>
+
+    <!-- Context Menu for File Explorer -->
+    <div id="context-menu" class="context-menu" style="display: none;">
+      <div class="context-menu-item" data-action="open-file">
+        <span class="menu-icon">📄</span>
+        <span>Open File</span>
+      </div>
+      <div class="context-menu-item" data-action="open-folder">
+        <span class="menu-icon">📂</span>
+        <span>Open in Explorer</span>
+      </div>
+      <div class="context-menu-separator"></div>
+      <div class="context-menu-item" data-action="new-file">
+        <span class="menu-icon">➕</span>
+        <span>New File</span>
+      </div>
+      <div class="context-menu-item" data-action="new-folder">
+        <span class="menu-icon">📁</span>
+        <span>New Folder</span>
+      </div>
+      <div class="context-menu-separator"></div>
+      <div class="context-menu-item" data-action="open-terminal">
+        <span class="menu-icon">💻</span>
+        <span>Open Terminal Here</span>
+      </div>
+      <div class="context-menu-item" data-action="reveal-explorer">
+        <span class="menu-icon">🔍</span>
+        <span>Reveal in File Explorer</span>
+      </div>
+      <div class="context-menu-separator"></div>
+      <div class="context-menu-item" data-action="copy-path">
+        <span class="menu-icon">📋</span>
+        <span>Copy Path</span>
+      </div>
+      <div class="context-menu-item" data-action="rename">
+        <span class="menu-icon">✏️</span>
+        <span>Rename</span>
+      </div>
+      <div class="context-menu-item" data-action="delete">
+        <span class="menu-icon">🗑️</span>
+        <span>Delete</span>
+      </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Settings</h2>
+          <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="settings-tabs">
+            <div class="settings-tab active" data-tab="general">General</div>
+            <div class="settings-tab" data-tab="editor">Editor</div>
+            <div class="settings-tab" data-tab="ai">AI Assistant</div>
+          </div>
+          <div class="settings-panel active" id="general-panel">
+            <div class="setting-group">
+              <h3>Appearance</h3>
+              <div class="setting-item">
+                <label for="theme-select">Theme</label>
+                <select id="theme-select">
+                  <option value="dark">Dark</option>
+                  <option value="light">Light</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="settings-panel" id="editor-panel">
+            <div class="setting-group">
+              <h3>Editor Settings</h3>
+              <div class="setting-item">
+                <label for="tab-size">Tab Size</label>
+                <input type="number" id="tab-size" min="1" max="8" value="2">
+              </div>
+              <div class="setting-item">
+                <label><input type="checkbox" id="word-wrap" checked> Word Wrap</label>
+              </div>
+            </div>
+          </div>
+          <div class="settings-panel" id="ai-panel">
+            <div class="setting-group">
+              <h3>AI Assistant Settings</h3>
+              <label for="api-key-input">Deepseek API Key</label>
+              <input type="password" id="api-key-input" placeholder="Enter your API key" />
+              <label for="api-base-url-input">API Base URL</label>
+              <input type="text" id="api-base-url-input" placeholder="https://api.deepseek.com/v1" value="https://api.deepseek.com/v1" />
+              <div class="setting-item">
+                <label for="model-select">AI Model</label>
+                <select id="model-select" class="form-control">
+                  <option value="deepseek-coder">Deepseek Coder</option>
+                  <option value="gpt-4">GPT-4</option>
+                  <option value="claude-3">Claude 3</option>
+                </select>
+              </div>
+              <div class="setting-item">
+                <label><input type="checkbox" id="auto-analyze"> Auto-analyze when files change</label>
+              </div>
+              <div class="setting-item">
+                <label><input type="checkbox" id="save-conversations" checked> Save conversation history</label>
+              </div>
+              <button id="save-api-settings" class="btn btn-primary">Save AI Settings</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Assistant Settings Modal -->
+    <div id="assistant-settings-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="modal-title">AI Assistant Settings</div>
+          <div class="close-modal">&times;</div>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="api-key">API Key</label>
+            <input type="password" id="api-key" class="form-control" placeholder="Enter your API key">
+          </div>
+          <div class="form-group">
+            <label for="api-base-url">API Base URL</label>
+            <input type="text" id="api-base-url" class="form-control" placeholder="Enter API base URL">
+          </div>
+          <div class="form-group">
+            <label for="model-select-popup">AI Model</label>
+            <select id="model-select-popup" class="form-control">
+              <option value="deepseek-coder">Deepseek Coder</option>
+              <option value="gpt-4">GPT-4</option>
+              <option value="claude-3">Claude 3</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Options</label>
+            <div class="checkbox-group">
+              <label><input type="checkbox" id="auto-analyze-popup"> Auto-analyze when files change</label>
+            </div>
+            <div class="checkbox-group">
+              <label><input type="checkbox" id="save-conversations-popup" checked> Save conversation history</label>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" id="cancel-settings-popup">Cancel</button>
+          <button class="btn btn-primary" id="save-settings-popup">Save Settings</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- File Name Modal -->
+    <div id="file-name-modal" class="modal">
+      <div class="modal-content small-modal">
+        <div class="modal-header">
+          <h2>Create New File</h2>
+          <span class="close-modal">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="setting-group">
+            <label for="file-name-input">File Name</label>
+            <input type="text" id="file-name-input" placeholder="example.ts" />
+          </div>
+          <div class="button-group">
+            <button id="confirm-file-name">Create</button>
+            <button id="cancel-file-name" class="secondary-button">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Context Menu Script for File Explorer -->
+    <script>
+    (function() {
+      'use strict';
+      document.addEventListener('DOMContentLoaded', function() {
+        var contextMenu = document.getElementById('context-menu');
+        if (!contextMenu) return;
+        
+        var currentPath = null;
+        
+        document.addEventListener('click', function() {
+          contextMenu.style.display = 'none';
+        });
+        
+        document.addEventListener('contextmenu', function(e) {
+          var fileTree = document.querySelector('.file-tree');
+          if (!fileTree || !fileTree.contains(e.target)) return;
+          
+          e.preventDefault();
+          var item = e.target.closest('[data-path]') || e.target.closest('span');
+          if (item) {
+            currentPath = item.getAttribute('data-path') || item.textContent;
+            contextMenu.style.left = e.pageX + 'px';
+            contextMenu.style.top = e.pageY + 'px';
+            contextMenu.style.display = 'block';
+          }
+        });
+        
+        contextMenu.addEventListener('click', async function(e) {
+          e.stopPropagation();
+          var menuItem = e.target.closest('.context-menu-item');
+          if (!menuItem) return;
+          
+          var action = menuItem.getAttribute('data-action');
+          contextMenu.style.display = 'none';
+          
+          switch(action) {
+            case 'open-file':
+              if (window.openFile) window.openFile(currentPath);
+              break;
+            case 'open-folder':
+            case 'reveal-explorer':
+              if (window.invoke) await window.invoke('reveal_in_explorer', { path: currentPath });
+              break;
+            case 'new-file':
+              var fileName = prompt('Enter file name:');
+              if (fileName && window.invoke) await window.invoke('create_file', { path: fileName, content: '' });
+              break;
+            case 'new-folder':
+              var folderName = prompt('Enter folder name:');
+              if (folderName && window.invoke) await window.invoke('create_directory', { path: folderName });
+              break;
+            case 'open-terminal':
+              if (window.invoke) await window.invoke('open_terminal', { path: currentPath });
+              break;
+            case 'copy-path':
+              if (navigator.clipboard) navigator.clipboard.writeText(currentPath);
+              break;
+            case 'rename':
+              var newName = prompt('Enter new name:', currentPath);
+              if (newName && newName !== currentPath) console.log('Rename:', currentPath, 'to', newName);
+              break;
+            case 'delete':
+              if (confirm('Delete "' + currentPath + '"?')) {
+                if (window.invoke) await window.invoke('delete_path', { path: currentPath });
+              }
+              break;
+          }
+        });
+      });
+    })();
+    </script>
+
+    <!-- Essential Tabs Fix - Split Panel Layout -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Run multiple times to catch late initialization
+      [500, 1500, 3000].forEach(function(delay) {
+        setTimeout(function() {
+          ensureEssentialTabs();
+        }, delay);
+      });
+      
+      function ensureEssentialTabs() {
+        var explorerTabs = document.querySelector('.explorer-tabs');
+        if (!explorerTabs) {
+          console.log('⚠️ Explorer tabs container not found yet');
+          return;
+        }
+        
+        // Check if FILES tab exists
+        var filesTab = document.querySelector('[data-tab-id="files"]');
+        if (!filesTab) {
+          console.log('📁 Adding missing FILES tab');
+          var newFilesTab = document.createElement('div');
+          newFilesTab.className = 'explorer-tab active';
+          newFilesTab.dataset.tabId = 'files';
+          newFilesTab.innerHTML = '<span class="tab-icon">📁</span><span class="tab-label">FILES</span>';
+          explorerTabs.insertBefore(newFilesTab, explorerTabs.firstChild);
+          // Note: Click handler will be added by layout.ts, don't add here to avoid duplicates
+        }
+        
+        console.log('✅ Explorer tabs fallback check complete');
+      }
+    });
+    </script>
+
+    <!-- Monaco Editor Scripts -->
+    <script>var require = { paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' } };</script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/editor/editor.main.nls.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/editor/editor.main.min.js"></script>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>

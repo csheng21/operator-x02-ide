@@ -1,0 +1,9 @@
+{
+  "id": "csharpSupport",
+  "name": "C# Language Support",
+  "version": "1.0.0",
+  "description": "Complete C# development support with project templates",
+  "author": "AI IDE Team",
+  "main": "index.js",
+  "category": "language-support"
+}

@@ -1,0 +1,257 @@
+/* ============================================================================ */
+/* AI MESSAGE AUTO-COLLAPSE STYLES                                              */
+/* Add this CSS to your main stylesheet or assistantUI styles                   */
+/* ============================================================================ */
+
+/* Collapsed AI Message State */
+.ai-message.ai-message-collapsed {
+  background: linear-gradient(135deg, #1a1f25 0%, #171b21 100%);
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 0;
+  margin-bottom: 8px;
+  transition: all 0.2s ease;
+}
+
+.ai-message.ai-message-collapsed:hover {
+  border-color: #58a6ff;
+  background: linear-gradient(135deg, #1e252d 0%, #1a1f25 100%);
+}
+
+/* Collapsed Header */
+.ai-message-collapsed-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+/* Collapse Indicator (Chevron) */
+.collapsed-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.collapsed-chevron {
+  color: #58a6ff;
+  transition: transform 0.2s ease;
+}
+
+.ai-message-collapsed:hover .collapsed-chevron {
+  transform: translateX(2px);
+}
+
+/* Preview Text */
+.collapsed-preview {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.collapsed-preview-text {
+  display: block;
+  font-size: 13px;
+  color: #8b949e;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
+}
+
+.ai-message-collapsed:hover .collapsed-preview-text {
+  color: #c9d1d9;
+}
+
+/* Collapsed Metadata */
+.collapsed-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.collapsed-provider {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.collapsed-time {
+  font-size: 11px;
+  color: #6e7681;
+}
+
+/* Animation for expanding */
+.ai-message.assistant-message:not(.ai-message-collapsed) {
+  animation: messageExpand 0.3s ease-out;
+}
+
+@keyframes messageExpand {
+  from {
+    opacity: 0.8;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ============================================================================ */
+/* LIGHT THEME VARIANT (Modern Fluent)                                          */
+/* ============================================================================ */
+
+.light-theme .ai-message.ai-message-collapsed,
+[data-theme="light"] .ai-message.ai-message-collapsed {
+  background: linear-gradient(135deg, #f8f9fa 0%, #f1f3f4 100%);
+  border-color: #e1e4e8;
+}
+
+.light-theme .ai-message.ai-message-collapsed:hover,
+[data-theme="light"] .ai-message.ai-message-collapsed:hover {
+  border-color: #0067c0;
+  background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+}
+
+.light-theme .collapsed-chevron,
+[data-theme="light"] .collapsed-chevron {
+  color: #0067c0;
+}
+
+.light-theme .collapsed-preview-text,
+[data-theme="light"] .collapsed-preview-text {
+  color: #57606a;
+}
+
+.light-theme .ai-message-collapsed:hover .collapsed-preview-text,
+[data-theme="light"] .ai-message-collapsed:hover .collapsed-preview-text {
+  color: #24292f;
+}
+
+.light-theme .collapsed-time,
+[data-theme="light"] .collapsed-time {
+  color: #8b949e;
+}
+
+/* ============================================================================ */
+/* ALTERNATIVE COMPACT STYLE                                                     */
+/* Uncomment this section if you prefer even more compact collapsed messages    */
+/* ============================================================================ */
+
+/*
+.ai-message.ai-message-collapsed.compact {
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+
+.ai-message-collapsed.compact .ai-message-collapsed-header {
+  padding: 6px 10px;
+  gap: 8px;
+}
+
+.ai-message-collapsed.compact .collapsed-indicator {
+  width: 16px;
+  height: 16px;
+}
+
+.ai-message-collapsed.compact .collapsed-chevron {
+  width: 12px;
+  height: 12px;
+}
+
+.ai-message-collapsed.compact .collapsed-preview-text {
+  font-size: 12px;
+}
+
+.ai-message-collapsed.compact .collapsed-provider,
+.ai-message-collapsed.compact .collapsed-time {
+  font-size: 10px;
+}
+*/
+
+/* ============================================================================ */
+/* TOGGLE BUTTON STYLES (for manual expand all / collapse all)                  */
+/* ============================================================================ */
+
+.collapse-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  font-size: 11px;
+  color: #8b949e;
+  background: transparent;
+  border: 1px solid #30363d;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.collapse-toggle-btn:hover {
+  color: #c9d1d9;
+  border-color: #58a6ff;
+  background: rgba(88, 166, 255, 0.1);
+}
+
+.collapse-toggle-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Light theme toggle button */
+.light-theme .collapse-toggle-btn,
+[data-theme="light"] .collapse-toggle-btn {
+  color: #57606a;
+  border-color: #d0d7de;
+}
+
+.light-theme .collapse-toggle-btn:hover,
+[data-theme="light"] .collapse-toggle-btn:hover {
+  color: #24292f;
+  border-color: #0067c0;
+  background: rgba(0, 103, 192, 0.1);
+}
+
+/* ============================================================================ */
+/* RESPONSIVE ADJUSTMENTS                                                        */
+/* ============================================================================ */
+
+@media (max-width: 600px) {
+  .ai-message-collapsed-header {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  
+  .collapsed-meta {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+  
+  .collapsed-preview-text {
+    font-size: 12px;
+  }
+}
+
+/* ============================================================================ */
+/* KEYBOARD FOCUS STYLES                                                         */
+/* ============================================================================ */
+
+.ai-message.ai-message-collapsed:focus-within {
+  outline: 2px solid #58a6ff;
+  outline-offset: 2px;
+}
+
+.ai-message-collapsed-header:focus {
+  outline: none;
+}
+
+.light-theme .ai-message.ai-message-collapsed:focus-within,
+[data-theme="light"] .ai-message.ai-message-collapsed:focus-within {
+  outline-color: #0067c0;
+}

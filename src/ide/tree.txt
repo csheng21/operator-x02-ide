@@ -1,0 +1,204 @@
+Folder PATH listing for volume System
+Volume serial number is 09C1-B27D
+C:.
+|   breadcrumb.css
+|   breadcrumb.ts
+|   clearFiles.ts
+|   explorerButtons.ts
+|   fileContextMenu.ts
+|   fileExplorer.ts
+|   initialize.ts
+|   layout.ts
+|   projectFolderContextMenu.ts
+|   projectHeaderMenuIcon.ts
+|   projectPersistence.ts
+|   projectState.ts
+|   readme.txt
+|   runButton.ts
+|   runMenu.ts
+|   terminal.ts
+|   tree.txt
+|   
++---aiAssistant
+|       aiAnalysisFeatures.ts
+|       aiAnalysisIntegration.ts
+|       aiChangesExplanation.ts
+|       aiChatFileIntegration.ts
+|       aiCodeAssistantPanel.ts
+|       aiDirectEditor.ts
+|       aiFileCreator.test.ts
+|       aiFileCreator.ts
+|       aiFileCreatorChatIntegration.ts
+|       aiFileCreatorUI.ts
+|       aiFileExplorer.ts
+|       aiStreamingEditor.ts
+|       apiProviderManager.ts
+|       applySettings_AI_Handler.ts
+|       assistantStyles.ts
+|       assistantUI.ts
+|       assistantUI_htmlviewer.ts
+|       assistantUI_simpleviewer.ts
+|       assistantUI_templateSelector.ts
+|       assistantUI_wysiwygEditor.ts
+|       clarificationKeyboardShortcut.ts
+|       clarificationManager.ts
+|       clarificationUI.ts
+|       codeAnalysisManager.ts
+|       codeAnalyzer.ts
+|       codeContextManager.ts
+|       codeInsertionManager.ts
+|       codeViewerHTML.ts
+|       contextIntegration.ts
+|       contextManager.ts
+|       contextStatusBar.ts
+|       contextUI.ts
+|       conversationDeleteFix.ts
+|       conversationListCompact.css
+|       conversationLoadFix.ts
+|       conversationLoadingFix.ts
+|       conversationManager.ts
+|       conversationUI.ts
+|       conversationUIFix.ts
+|       dateFormatUtils.ts
+|       developerPresets.ts
+|       editorContextCapture.ts
+|       editorManager.ts
+|       enhancedContextUI.ts
+|       extendedContextManager.ts
+|       fileClickHandlers.ts
+|       handleEnhancedSendMessage.ts
+|       htmlViewerGenerator.ts
+|       inlineAICodeWriter.ts
+|       instantClarificationShortcut.ts
+|       instantClarificationTrigger.ts
+|       intelligentAssistant.ts
+|       intelligentAssistantUI.ts
+|       intelligentContextCollector.ts
+|       iso26262Detector.ts
+|       messageCollapse.ts
+|       messageImportanceAnalyzer.ts
+|       messageImportanceAnalyzer_developer.ts
+|       messageQueueManager.ts
+|       messageUI.ts
+|       misraCommandParser.ts
+|       misraDetector.ts
+|       noteManager.ts
+|       notificationManager.ts
+|       notificationSystem.ts
+|       optimizationSettingsUI.ts
+|       professionalIcons.ts
+|       projectContextIntegration.ts
+|       projectCreator.ts
+|       projectExplorerLoader.ts
+|       projectScaffoldingAssistant.ts
+|       projectScaffoldingUI.ts
+|       pythonAutonomous.ts
+|       quickAICommand.ts
+|       quickSwitchEffects.ts
+|       selectionAIEditor.ts
+|       Simpleaihandler.ts
+|       storagesettingsmanager.ts
+|       storageSettingsUI.ts
+|       storageUtils.ts
+|       suggestedActionsShortcut.ts
+|       tree.txt
+|       typingIndicator.ts
+|       unifiedMarkdownProcessor.ts
+|       
++---camera
+|   |   aiPanelIntegration.ts
+|   |   apiIntegration.ts
+|   |   apiSettings.ts
+|   |   cameraDrag.ts
+|   |   cameraManager.ts
+|   |   cameraManager_vision.ts
+|   |   cameraProcessingAnimation.ts
+|   |   cameraQueueSystem.ts
+|   |   imageIntegration.ts
+|   |   integrationMenu.ts
+|   |   tree.txt
+|   |   
+|   \---New folder
++---fileExplorer
+|       explorerSearch.ts
+|       fileClickHandlers.ts
+|       fileIconUtils.ts
+|       fileLoader.ts
+|       fileTreeIntegration.ts
+|       fileTreeRenderer.ts
+|       index.ts
+|       readme.txt
+|       tree.txt
+|       types.ts
+|       
++---projectCreation
+|   |   index.ts
+|   |   projectOptions.ts
+|   |   readme.txt
+|   |   templates.ts
+|   |   types.ts
+|   |   
+|   +---ai
+|   |       aiProjectAdvisor.ts
+|   |       
+|   +---services
+|   |       fileUtils.ts
+|   |       mockFileSystem.ts
+|   |       projectGenerator.ts
+|   |       pythonGenerator.ts
+|   |       
+|   +---templates
+|   |       projectTemplates.ts
+|   |       
+|   \---ui
+|           formHandlers.ts
+|           menuHandlers.ts
+|           modalHandlers.ts
+|           modernModal.ts
+|           modernModalStyles.ts
+|           modernModalTemplates.ts
+|           projectSummary.ts
+|           templateUI.ts
+|           
++---svn
+|       aiFileAnalytics.ts
+|       diffAIAnalysis.css
+|       svn.css
+|       svnAICommitGenerator.ts
+|       svnAIDiffAnalyzer.ts
+|       svnAutoDetector.ts
+|       svnDashboard.css
+|       svnDashboard.ts
+|       svnDiffViewer.ts
+|       svnFileAnalytics-animated.ts
+|       svnFileAnalytics.ts
+|       svnFileExplorerDecorator.ts
+|       svnFileExplorerIntegration.ts
+|       svnHistoryManager.ts
+|       svnHistoryViewer.css
+|       svnHistoryViewer.ts
+|       svnIntegration.ts
+|       svnManager.ts
+|       svnStatusBar.ts
+|       svnUI.ts
+|       svnUIEnhanced.css
+|       svnUIEnhanced.ts
+|       svnUIEnhanced_events.ts
+|       svnUIEnhanced_helpers.ts
+|       tree.txt
+|       
+\---terminal
+        autoFormatErrors.ts
+        errorHighlighter.ts
+        errorParser.ts
+        index.ts
+        quickFixIntegration.ts
+        quickFixSuggestions.ts
+        quickFixTest.ts
+        terminal.css
+        terminalComponent.ts
+        terminalErrorIntegration.ts
+        terminalIndex.ts
+        terminalManager.ts
+        terminalToggle.ts
+        

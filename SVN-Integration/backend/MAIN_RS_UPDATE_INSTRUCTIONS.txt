@@ -1,0 +1,79 @@
+// =====================================
+// INSTRUCTIONS TO UPDATE main.rs
+// =====================================
+
+// Step 1: Add the SVN module import after line 16 (after build_commands)
+// Add these lines after "use build_commands::*;":
+
+mod svn_commands;
+use svn_commands::*;
+
+// Step 2: Add all SVN commands to the invoke_handler
+// In the .invoke_handler(tauri::generate_handler![...]) section,
+// Add these lines after the existing commands (around line 103, before closing bracket):
+
+            // SVN commands
+            svn_check_installed,
+            svn_status,
+            svn_info,
+            svn_commit,
+            svn_update,
+            svn_revert,
+            svn_add,
+            svn_delete,
+            svn_diff,
+            svn_log,
+            svn_resolve,
+            svn_cat,
+            open_tortoise_svn,
+            svn_cleanup,
+
+// Step 3: Update the setup message (around line 120)
+// Add this line after the "Terminal integration enabled" message:
+
+            println!("🔄 SVN integration enabled (TortoiseSVN compatible)");
+
+// =====================================
+// FINAL main.rs structure should look like:
+// =====================================
+
+/*
+mod build_commands;
+use build_commands::*;
+
+mod svn_commands;  // <-- ADD THIS
+use svn_commands::*;  // <-- ADD THIS
+
+pub fn run() {
+    tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        // ... other plugins
+        
+        .invoke_handler(tauri::generate_handler![
+            // ... all existing commands
+            
+            // SVN commands  <-- ADD THESE
+            svn_check_installed,
+            svn_status,
+            svn_info,
+            svn_commit,
+            svn_update,
+            svn_revert,
+            svn_add,
+            svn_delete,
+            svn_diff,
+            svn_log,
+            svn_resolve,
+            svn_cat,
+            open_tortoise_svn,
+            svn_cleanup,
+        ])
+        .setup(|_app| {
+            println!("🚀 AI Code IDE started successfully!");
+            // ... other messages
+            println!("🔄 SVN integration enabled (TortoiseSVN compatible)");  // <-- ADD THIS
+            Ok(())
+        })
+        // ...
+}
+*/

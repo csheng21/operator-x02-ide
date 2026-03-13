@@ -1,0 +1,19 @@
+﻿node_modules/
+dist/
+.vite/
+src-tauri/target/
+src-tauri/New folder/
+*.pdb
+*.rlib
+*.rmeta
+.env
+.env.*
+*.log
+logs/
+.DS_Store
+Thumbs.db
+src-tauri/gen/
+*.msi
+*.exe
+*.dmg
+*.AppImage

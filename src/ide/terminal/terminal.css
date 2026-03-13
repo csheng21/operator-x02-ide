@@ -1,0 +1,1269 @@
+/* src/ide/terminal/terminal.css - Optimized Compact Terminal Layout */
+
+/* ====================================
+   MAIN TERMINAL CONTAINER - FIXED HEIGHT
+   ==================================== */
+.ide-terminal {
+  font-family: 'JetBrains Mono', 'Consolas', 'Courier New', monospace;
+  font-size: 13px; /* Reduced from 14px */
+  background-color: #1e1e1e;
+  color: #f0f0f0;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #333;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  height: 100%;
+  width: 100%;
+  position: relative;
+}
+
+/* ====================================
+   INTEGRATED TERMINAL (Explorer Tab)
+   ==================================== */
+.integrated-terminal {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background-color: #1e1e1e;
+  font-family: 'JetBrains Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 12px; /* Reduced from 13px */
+  color: #f0f0f0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Terminal Header - Compact */
+.terminal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 8px; /* Reduced from 8px 12px */
+  background-color: rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid #333;
+  flex-shrink: 0;
+  height: 28px; /* Reduced from 36px */
+  min-height: 28px;
+  max-height: 28px;
+  box-sizing: border-box;
+}
+
+.terminal-title {
+  font-size: 11px; /* Reduced from 12px */
+  font-weight: 500;
+  color: #cccccc;
+  user-select: none;
+}
+
+.terminal-actions {
+  display: flex;
+  gap: 2px; /* Reduced from 4px */
+}
+
+.terminal-action {
+  width: 18px; /* Reduced from 20px */
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.7;
+  font-size: 11px; /* Reduced from 12px */
+  border: none;
+  background: transparent;
+  color: #cccccc;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.terminal-action:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+/* ====================================
+   TERMINAL OUTPUT - COMPACT SCROLLABLE AREA
+   ==================================== */
+.terminal-output {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 8px; /* Reduced from 8px 12px */
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  line-height: 1.2; /* Reduced from 1.5 for more compact display */
+  font-size: 12px; /* Reduced from 13px */
+  background-color: inherit;
+  color: inherit;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  scroll-behavior: smooth;
+  min-height: 0;
+  position: relative;
+}
+
+/* Enhanced Scrollbar */
+.terminal-output::-webkit-scrollbar {
+  width: 6px; /* Reduced from 8px */
+}
+
+.terminal-output::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px; /* Reduced from 4px */
+}
+
+.terminal-output::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.terminal-output::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.terminal-output::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* ====================================
+   TERMINAL INPUT LINE - COMPACT FIXED BOTTOM
+   ==================================== */
+.terminal-input-line {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px; /* Reduced from 8px 12px */
+  border-top: 1px solid #333;
+  background-color: rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  height: 28px; /* Reduced from 40px */
+  min-height: 28px;
+  max-height: 28px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 10;
+}
+
+.terminal-prompt {
+  color: #64dd17;
+  margin-right: 6px; /* Reduced from 8px */
+  font-weight: bold;
+  font-size: 12px; /* Reduced from 13px */
+  user-select: none;
+  white-space: nowrap;
+}
+
+.terminal-input {
+  flex: 1;
+  background-color: transparent;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  line-height: 1.2; /* Reduced from 1.4 */
+  height: 18px; /* Reduced from 20px */
+}
+
+.terminal-input::placeholder {
+  color: #666;
+  opacity: 0.7;
+}
+
+.terminal-input:focus {
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+/* ====================================
+   COMPACT TERMINAL CONTENT TYPES
+   ==================================== */
+.terminal-welcome {
+  color: #2196f3;
+  margin-bottom: 4px; /* Reduced from 8px */
+  font-style: italic;
+  opacity: 0.8;
+  font-size: 11px; /* Reduced */
+}
+
+.terminal-command {
+  color: #64dd17;
+  font-weight: 500;
+  margin-bottom: 2px; /* Reduced from 4px */
+  font-size: 12px;
+}
+
+.terminal-command-line {
+  margin-bottom: 2px; /* Reduced from 4px */
+  color: #64dd17;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.terminal-result {
+  margin-bottom: 4px; /* Reduced from 8px */
+  color: #f0f0f0;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  font-size: 12px;
+}
+
+.terminal-error {
+  color: #ff5252;
+  background-color: rgba(255, 82, 82, 0.1);
+  padding: 2px 6px; /* Reduced from 4px 8px */
+  border-radius: 3px; /* Reduced from 4px */
+  border-left: 2px solid #ff5252; /* Reduced from 3px */
+  margin: 2px 0; /* Reduced from 4px 0 */
+  word-wrap: break-word;
+  font-size: 12px;
+}
+
+.terminal-info {
+  color: #2196f3;
+  background-color: rgba(33, 150, 243, 0.1);
+  padding: 2px 6px; /* Reduced from 4px 8px */
+  border-radius: 3px;
+  border-left: 2px solid #2196f3; /* Reduced from 3px */
+  margin: 2px 0; /* Reduced from 4px 0 */
+  font-size: 12px;
+}
+
+.terminal-warning {
+  color: #ff9800;
+  background-color: rgba(255, 152, 0, 0.1);
+  padding: 2px 6px; /* Reduced from 4px 8px */
+  border-radius: 3px;
+  border-left: 2px solid #ff9800; /* Reduced from 3px */
+  margin: 2px 0; /* Reduced from 4px 0 */
+  font-size: 12px;
+}
+
+.terminal-success {
+  color: #4caf50;
+  background-color: rgba(76, 175, 80, 0.1);
+  padding: 2px 6px; /* Reduced from 4px 8px */
+  border-radius: 3px;
+  border-left: 2px solid #4caf50; /* Reduced from 3px */
+  margin: 2px 0; /* Reduced from 4px 0 */
+  font-size: 12px;
+}
+
+/* ====================================
+   COMPACT TERMINAL LINE STYLES
+   ==================================== */
+.terminal-line {
+  margin-bottom: 1px; /* Reduced from 3px */
+  word-break: break-word;
+  white-space: pre-wrap;
+  padding: 0; /* Removed 1px 0 padding */
+  overflow-wrap: break-word;
+  max-width: 100%;
+  line-height: 1.2; /* Added explicit line-height */
+  font-size: 12px;
+}
+
+.terminal-line:last-child {
+  margin-bottom: 0;
+}
+
+/* ====================================
+   COMPACT COMMAND EXECUTION OUTPUT
+   ==================================== */
+.cmd-response {
+  margin: 4px 0; /* Reduced from 8px 0 */
+  border: 1px solid #444;
+  border-radius: 4px; /* Reduced from 6px */
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.cmd-header {
+  display: flex;
+  padding: 3px 8px; /* Reduced from 6px 12px */
+  background-color: #2a2a2a;
+  border-bottom: 1px solid #444;
+  align-items: center;
+  font-size: 11px; /* Reduced from 12px */
+}
+
+.cmd-icon {
+  margin-right: 6px; /* Reduced from 8px */
+  color: #64dd17;
+  font-size: 11px;
+}
+
+.cmd-title {
+  flex-grow: 1;
+  font-weight: bold;
+  color: #b39ddb;
+  font-size: 11px;
+}
+
+.cmd-copy {
+  cursor: pointer;
+  opacity: 0.7;
+  padding: 2px 6px; /* Reduced from 4px 8px */
+  border-radius: 3px; /* Reduced from 4px */
+  transition: all 0.2s ease;
+  font-size: 10px; /* Reduced from 12px */
+}
+
+.cmd-copy:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.cmd-output {
+  padding: 6px; /* Reduced from 12px */
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-x: auto;
+  font-size: 11px; /* Reduced from 12px */
+  line-height: 1.2; /* Reduced from 1.4 */
+  max-height: 200px; /* Reduced from 300px */
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.cmd-output::-webkit-scrollbar {
+  width: 4px; /* Reduced from 6px */
+}
+
+.cmd-output::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 2px; /* Reduced from 3px */
+}
+
+/* ====================================
+   COMPACT TERMINAL CONTAINER LAYOUTS
+   ==================================== */
+.terminal-container {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  box-sizing: border-box;
+  background-color: #1e1e1e;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.terminal-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #1e1e1e;
+  border-top: 1px solid #333;
+  position: relative;
+}
+
+/* Terminal in Explorer Tab Content */
+#terminal-content {
+  display: flex;
+  flex-direction: column;
+  background-color: #1e1e1e;
+  height: 100%;
+  overflow: hidden;
+}
+
+#terminal-content .integrated-terminal {
+  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ====================================
+   COMPACT TERMINAL TABS
+   ==================================== */
+.terminal-tabs {
+  display: flex;
+  flex-grow: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  height: 100%;
+  scrollbar-width: none;
+}
+
+.terminal-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.terminal-tab {
+  padding: 3px 8px; /* Reduced from 6px 12px */
+  margin-right: 1px; /* Reduced from 2px */
+  background-color: #252525;
+  color: #ccc;
+  border-radius: 3px 3px 0 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  font-size: 11px; /* Reduced from 12px */
+  height: 100%;
+  box-sizing: border-box;
+  min-width: 80px; /* Reduced from 120px */
+  max-width: 120px; /* Reduced from 180px */
+  transition: all 0.2s ease;
+}
+
+.terminal-tab.active {
+  background-color: #1e1e1e;
+  color: #fff;
+  border-bottom: 2px solid #007acc;
+}
+
+.terminal-tab:hover {
+  background-color: #404040;
+}
+
+.terminal-tab-icon {
+  opacity: 0.7;
+  font-size: 12px; /* Reduced from 14px */
+  margin-right: 4px; /* Reduced from 6px */
+}
+
+.terminal-tab-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.terminal-tab-close {
+  margin-left: 4px; /* Reduced from 6px */
+  font-size: 12px; /* Reduced from 14px */
+  opacity: 0.5;
+  visibility: hidden;
+  cursor: pointer;
+  width: 14px; /* Reduced from 16px */
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.terminal-tab:hover .terminal-tab-close {
+  visibility: visible;
+  opacity: 0.7;
+}
+
+.terminal-tab-close:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
+}
+
+/* ====================================
+   COMPACT TERMINAL SUGGESTIONS/AUTOCOMPLETE
+   ==================================== */
+.terminal-suggestions {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  background-color: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 3px; /* Reduced from 4px */
+  max-height: 150px; /* Reduced from 200px */
+  overflow-y: auto;
+  z-index: 1001;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+  scrollbar-width: thin;
+}
+
+.terminal-suggestion {
+  padding: 4px 8px; /* Reduced from 8px 12px */
+  cursor: pointer;
+  font-size: 12px; /* Reduced from 13px */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s ease;
+  line-height: 1.2;
+}
+
+.terminal-suggestion:last-child {
+  border-bottom: none;
+}
+
+.terminal-suggestion:hover, 
+.terminal-suggestion.selected {
+  background-color: #3a3a3a;
+  transform: translateX(1px); /* Reduced from 2px */
+}
+
+/* ====================================
+   COMPACT SYNTAX HIGHLIGHTING
+   ==================================== */
+.cmd-keyword { color: #569cd6; font-weight: 500; font-size: 12px; }
+.cmd-string { color: #ce9178; font-size: 12px; }
+.cmd-number { color: #b5cea8; font-size: 12px; }
+.cmd-comment { color: #6a9955; font-style: italic; font-size: 12px; }
+.cmd-property { color: #9cdcfe; font-size: 12px; }
+.cmd-variable { color: #4fc1ff; font-size: 12px; }
+.cmd-type { color: #4ec9b0; font-size: 12px; }
+.cmd-function { color: #dcdcaa; font-size: 12px; }
+.cmd-operator { color: #d4d4d4; font-size: 12px; }
+.cmd-path { color: #f0f0f0; text-decoration: underline; font-size: 12px; }
+.cmd-timestamp { color: #888; font-size: 10px; } /* Reduced from 11px */
+
+/* ====================================
+   COMPACT TERMINAL CURSOR
+   ==================================== */
+.terminal-cursor {
+  display: inline-block;
+  width: 1px; /* Reduced from 2px */
+  height: 14px; /* Reduced from 16px */
+  background-color: #fff;
+  animation: blink 1s step-end infinite;
+  margin-left: 1px; /* Reduced from 2px */
+  vertical-align: text-bottom;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ====================================
+   COMPACT LOADING INDICATOR
+   ==================================== */
+.terminal-loading {
+  position: relative;
+}
+
+.terminal-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px; /* Reduced from 2px */
+  background: linear-gradient(90deg, #007acc, #64dd17, #007acc);
+  background-size: 200% 100%;
+  animation: loadingBar 1.5s linear infinite;
+}
+
+@keyframes loadingBar {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ====================================
+   COMPACT LIGHT THEME SUPPORT
+   ==================================== */
+.ide-terminal.theme-light,
+body.light-theme .integrated-terminal {
+  background-color: #f5f5f5;
+  color: #333;
+  border-color: #ddd;
+}
+
+.ide-terminal.theme-light .terminal-header,
+body.light-theme .terminal-header {
+  background-color: #e0e0e0;
+  border-bottom: 1px solid #ccc;
+}
+
+.ide-terminal.theme-light .terminal-input-line,
+body.light-theme .terminal-input-line {
+  border-top: 1px solid #ddd;
+  background-color: #eaeaea;
+}
+
+.ide-terminal.theme-light .terminal-prompt,
+body.light-theme .terminal-prompt {
+  color: #0d904f;
+}
+
+.ide-terminal.theme-light .terminal-output,
+body.light-theme .terminal-output {
+  color: #333;
+}
+
+.ide-terminal.theme-light .terminal-command,
+body.light-theme .terminal-command {
+  color: #0d904f;
+}
+
+.ide-terminal.theme-light .terminal-error,
+body.light-theme .terminal-error {
+  color: #d32f2f;
+  background-color: rgba(211, 47, 47, 0.1);
+  border-left-color: #d32f2f;
+}
+
+.ide-terminal.theme-light .terminal-info,
+body.light-theme .terminal-info {
+  color: #1976d2;
+  background-color: rgba(25, 118, 210, 0.1);
+  border-left-color: #1976d2;
+}
+
+.ide-terminal.theme-light .terminal-output::-webkit-scrollbar-track,
+body.light-theme .terminal-output::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.ide-terminal.theme-light .terminal-output::-webkit-scrollbar-thumb,
+body.light-theme .terminal-output::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ====================================
+   COMPACT RESPONSIVE DESIGN
+   ==================================== */
+@media (max-width: 768px) {
+  .terminal-tab {
+    min-width: 60px; /* Reduced from 80px */
+    max-width: 100px; /* Reduced from 120px */
+    padding: 2px 6px; /* Reduced from 4px 8px */
+    font-size: 10px; /* Reduced from 11px */
+  }
+  
+  .terminal-header {
+    height: 24px; /* Reduced from 32px */
+    min-height: 24px;
+    max-height: 24px;
+    padding: 3px 6px; /* Reduced from 6px 10px */
+  }
+  
+  .terminal-input-line {
+    height: 24px; /* Reduced from 36px */
+    min-height: 24px;
+    max-height: 24px;
+    padding: 3px 6px; /* Reduced from 6px 10px */
+  }
+  
+  .terminal-output {
+    padding: 3px 6px; /* Reduced from 6px 10px */
+    font-size: 11px; /* Reduced from 12px */
+  }
+  
+  .integrated-terminal {
+    font-size: 11px; /* Reduced from 12px */
+  }
+}
+
+@media (max-width: 576px) {
+  .ide-terminal,
+  .integrated-terminal {
+    font-size: 10px; /* Reduced from 11px */
+  }
+  
+  .terminal-tab {
+    min-width: 50px; /* Reduced from 60px */
+    max-width: 80px; /* Reduced from 100px */
+    padding: 2px 4px; /* Reduced from 3px 6px */
+    font-size: 9px; /* Reduced from 10px */
+  }
+  
+  .terminal-header {
+    height: 20px; /* Reduced from 28px */
+    min-height: 20px;
+    max-height: 20px;
+    padding: 2px 4px; /* Reduced from 4px 8px */
+  }
+  
+  .terminal-input-line {
+    height: 20px; /* Reduced from 32px */
+    min-height: 20px;
+    max-height: 20px;
+    padding: 2px 4px; /* Reduced from 4px 8px */
+  }
+  
+  .terminal-output {
+    padding: 2px 4px; /* Reduced from 4px 8px */
+    font-size: 10px; /* Reduced from 11px */
+  }
+}
+
+/* ====================================
+   COMPACT ACCESSIBILITY ENHANCEMENTS
+   ==================================== */
+@media (prefers-contrast: high) {
+  .ide-terminal,
+  .integrated-terminal {
+    border: 2px solid #ffffff;
+  }
+  
+  .terminal-input-line {
+    border-top: 2px solid #ffffff;
+  }
+  
+  .terminal-tab.active {
+    border-bottom: 3px solid #00ffff;
+  }
+  
+  .terminal-error {
+    border-left: 3px solid #ff0000; /* Reduced from 4px */
+    background-color: rgba(255, 0, 0, 0.2);
+  }
+  
+  .terminal-success {
+    border-left: 3px solid #00ff00; /* Reduced from 4px */
+    background-color: rgba(0, 255, 0, 0.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .terminal-cursor,
+  .terminal-loading::after {
+    animation: none;
+  }
+  
+  .terminal-tab,
+  .terminal-action,
+  .terminal-suggestion {
+    transition: none;
+  }
+}
+
+/* ====================================
+   COMPACT FOCUS MANAGEMENT
+   ==================================== */
+.terminal-input:focus {
+  outline: none;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.integrated-terminal:focus-within .terminal-input-line {
+  border-top-color: #007acc;
+  background-color: rgba(0, 122, 204, 0.1);
+}
+
+/* ====================================
+   PERFORMANCE OPTIMIZATIONS
+   ==================================== */
+.terminal-tab,
+.terminal-action,
+.terminal-suggestion {
+  will-change: transform, background-color;
+  transform: translateZ(0);
+}
+
+.terminal-output {
+  contain: layout style paint;
+}
+
+/* ====================================
+   COMPACT PRINT STYLES
+   ==================================== */
+@media print {
+  .terminal-input-line,
+  .terminal-actions,
+  .terminal-tab-close {
+    display: none !important;
+  }
+  
+  .ide-terminal,
+  .integrated-terminal {
+    background: white !important;
+    color: black !important;
+    border: 1px solid black !important;
+  }
+  
+  .terminal-output {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* ====================================
+   SCREEN READER SUPPORT
+   ==================================== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.terminal-tab[aria-selected="true"] {
+  background-color: #1e1e1e;
+  color: #fff;
+  border-bottom: 2px solid #007acc;
+}
+
+/* ====================================
+   SMOOTH TRANSITIONS
+   ==================================== */
+.ide-terminal,
+.integrated-terminal,
+.terminal-tab,
+.terminal-input-line,
+.terminal-output,
+.cmd-response {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ====================================
+   AUTO-SCROLL TO BOTTOM
+   ==================================== */
+.terminal-output.auto-scroll {
+  scroll-behavior: smooth;
+}
+
+.terminal-output.auto-scroll:last-child {
+  scroll-snap-align: end;
+}
+
+/* ====================================
+   COMPACT TERMINAL STATUS INDICATOR
+   ==================================== */
+.terminal-status {
+  position: absolute;
+  top: 2px; /* Reduced from 4px */
+  right: 4px; /* Reduced from 8px */
+  font-size: 9px; /* Reduced from 10px */
+  color: #888;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ====================================
+   COMPACT RESIZABLE PANEL ENHANCEMENTS
+   ==================================== */
+.explorer-panel {
+  width: 400px;
+  min-width: 300px;
+  max-width: 800px;
+  position: relative;
+  transition: width 0.2s ease;
+}
+
+.assistant-panel {
+  width: 400px;
+  min-width: 350px;
+  max-width: 800px;
+  position: relative;
+  transition: width 0.2s ease;
+}
+
+/* Enhanced Horizontal Resizer - Compact */
+.resizer-h {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 3px; /* Reduced from 4px */
+  height: 100%;
+  background: transparent;
+  cursor: col-resize;
+  z-index: 100;
+  transition: all 0.2s ease;
+  border-right: 1px solid transparent;
+}
+
+.resizer-h:hover {
+  background: rgba(100, 221, 23, 0.3);
+  border-right: 1px solid #64dd17;
+  width: 4px; /* Reduced from 6px */
+}
+
+.resizer-h:active {
+  background: rgba(100, 221, 23, 0.5);
+  border-right: 2px solid #64dd17;
+  width: 4px;
+}
+
+/* Visual resize indicator - Compact */
+.resizer-h::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px; /* Reduced from 2px */
+  height: 15px; /* Reduced from 20px */
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 1px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.resizer-h:hover::before {
+  opacity: 1;
+}
+
+/* Resize cursor for entire body when resizing */
+body.resizing {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+body.resizing * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+/* Visual feedback during resize */
+.panel-resizing {
+  box-shadow: 0 0 10px rgba(100, 221, 23, 0.3);
+  border-right: 2px solid #64dd17;
+}
+
+/* Resize helper overlay */
+.resize-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.1);
+  z-index: 9999;
+  cursor: col-resize;
+  display: none;
+}
+
+.resize-overlay.active {
+  display: block;
+}
+
+/* Assistant panel left resizer */
+.assistant-panel .resizer-h {
+  right: auto;
+  left: 0;
+}
+
+/* Terminal width adjustment hint - Compact */
+.terminal-width-hint {
+  position: absolute;
+  top: 6px; /* Reduced from 10px */
+  right: 6px; /* Reduced from 10px */
+  background: rgba(33, 150, 243, 0.1);
+  border: 1px solid #2196F3;
+  padding: 2px 4px; /* Reduced from 4px 8px */
+  border-radius: 2px; /* Reduced from 3px */
+  font-size: 9px; /* Reduced from 10px */
+  color: #2196F3;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 200;
+}
+
+.explorer-panel:hover .terminal-width-hint {
+  opacity: 1;
+}
+
+/* Compact responsive behavior */
+@media (max-width: 1200px) {
+  .explorer-panel {
+    max-width: 600px;
+  }
+  
+  .assistant-panel {
+    max-width: 600px;
+  }
+}
+
+@media (max-width: 900px) {
+  .explorer-panel {
+    max-width: 400px;
+  }
+  
+  .assistant-panel {
+    max-width: 400px;
+  }
+}
+
+/* Double-click to auto-resize */
+.resizer-h.double-click-hint {
+  animation: pulse 0.5s ease-in-out;
+}
+
+@keyframes pulse {
+  0% { background: transparent; }
+  50% { background: rgba(100, 221, 23, 0.5); }
+  100% { background: transparent; }
+}
+/* Ultra Compact Terminal CSS - Add to your terminal.css */
+
+/* ====================================
+   ULTRA COMPACT TERMINAL SPACING
+   ==================================== */
+
+/* Reduce header size */
+.terminal-header {
+  height: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+  padding: 2px 6px !important;
+}
+
+.terminal-title {
+  font-size: 10px !important;
+}
+
+/* Ultra compact terminal output */
+.terminal-output {
+  padding: 2px 6px !important;
+  line-height: 1.0 !important;
+  font-size: 11px !important;
+}
+
+/* Minimize input container */
+.terminal-input-container {
+  height: 22px !important;
+  min-height: 22px !important;
+  padding: 2px 6px !important;
+}
+
+.terminal-input {
+  height: 16px !important;
+  font-size: 11px !important;
+  line-height: 1.0 !important;
+}
+
+.cmd-indicator {
+  font-size: 10px !important;
+  margin-right: 4px !important;
+}
+
+/* Ultra compact message types */
+.terminal-welcome,
+.terminal-info,
+.terminal-command,
+.terminal-result,
+.terminal-error {
+  margin-bottom: 0px !important;
+  padding: 0px !important;
+  line-height: 1.0 !important;
+  font-size: 11px !important;
+}
+
+/* Extra compact for info messages */
+.terminal-info {
+  font-size: 10px !important;
+  margin: 0 !important;
+  padding: 1px 0 !important;
+}
+
+/* Remove spacing from terminal lines */
+.terminal-line {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.0 !important;
+  font-size: 11px !important;
+}
+
+/* Compact command responses */
+.cmd-response {
+  margin: 1px 0 !important;
+}
+
+.cmd-header {
+  padding: 1px 4px !important;
+  font-size: 9px !important;
+}
+
+.cmd-output {
+  padding: 2px !important;
+  font-size: 10px !important;
+  line-height: 1.0 !important;
+  max-height: 120px !important;
+}
+
+/* Ultra compact status display */
+.terminal-status {
+  font-size: 8px !important;
+  top: 1px !important;
+  right: 2px !important;
+}
+
+/* Compact toggle button */
+.terminal-toggle {
+  width: 16px !important;
+  height: 16px !important;
+  font-size: 10px !important;
+}
+
+/* Remove extra spacing from welcome content */
+.terminal-welcome-compact {
+  line-height: 1.0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Compact scrollbar */
+.terminal-output::-webkit-scrollbar {
+  width: 3px !important;
+}
+
+/* Ultra compact responsive */
+@media (max-width: 768px) {
+  .terminal-header {
+    height: 18px !important;
+    padding: 1px 4px !important;
+  }
+  
+  .terminal-input-container {
+    height: 18px !important;
+    padding: 1px 4px !important;
+  }
+  
+  .terminal-output {
+    font-size: 10px !important;
+    padding: 1px 4px !important;
+  }
+}
+
+/* Force minimal spacing everywhere */
+.terminal-container * {
+  margin: 0 !important;
+}
+
+.terminal-container .terminal-line,
+.terminal-container .terminal-info,
+.terminal-container .terminal-command,
+.terminal-container .terminal-result {
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+/* Ultra Compact Terminal - Add to terminal.css */
+
+/* Reduce all vertical spacing */
+.terminal-output {
+  padding: 2px 6px !important;
+  line-height: 1.0 !important;
+  font-size: 11px !important;
+}
+
+/* Compact command lines */
+.compact-command-line {
+  margin: 0 !important;
+  padding: 1px 0 !important;
+  line-height: 1.0 !important;
+  gap: 4px !important;
+}
+
+/* Compact result containers */
+.compact-result {
+  margin: 0 0 1px 12px !important;
+  padding: 2px 4px !important;
+  line-height: 1.0 !important;
+  font-size: 11px !important;
+}
+
+/* Remove spacing from status indicators */
+.compact-result .status-indicator {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.0 !important;
+}
+
+/* Compact all terminal elements */
+.terminal-output > div {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1.0 !important;
+}
+
+/* Ultra compact font sizes */
+.terminal-output * {
+  font-size: 11px !important;
+  line-height: 1.0 !important;
+}
+
+/* Compact timestamps */
+.terminal-output .timestamp {
+  font-size: 9px !important;
+  line-height: 1.0 !important;
+}
+
+/* Compact copy buttons */
+.copy-btn {
+  font-size: 7px !important;
+  padding: 0px 2px !important;
+  margin: 0 !important;
+  line-height: 1.0 !important;
+}
+/* Error Highlighting Styles */
+.formatted-error {
+  border-left: 3px solid #ff5252;
+  padding: 8px;
+  margin: 8px 0;
+  background: rgba(255, 82, 82, 0.05);
+  border-radius: 4px;
+}
+
+.formatted-error.warning-container {
+  border-left-color: #ffa726;
+  background: rgba(255, 167, 38, 0.05);
+}
+
+.error-line {
+  color: #ff8a80 !important;
+}
+
+.warning-line {
+  color: #ffd54f !important;
+}
+
+.file-path-link {
+  transition: background-color 0.2s ease;
+  padding: 0 2px;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.file-path-link:hover {
+  background-color: rgba(66, 165, 245, 0.1);
+}
+
+.stack-frame {
+  transition: background-color 0.2s ease;
+}
+
+.stack-frame:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.error-line-highlight {
+  background: rgba(255, 82, 82, 0.2) !important;
+  border-left: 3px solid #ff5252;
+}
+
+.error-glyph {
+  background: #ff5252;
+  width: 3px !important;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}==============================
+   End of Compact Terminal Styles
+   ====================================*/

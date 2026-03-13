@@ -1,0 +1,392 @@
+/* conversationListCompact.css */
+/* ============================================================================
+   COMPACT PROFESSIONAL CONVERSATION LIST
+   ============================================================================
+   Import this in conversationUI.ts or main.ts:
+   import './conversationListCompact.css';
+   ============================================================================ */
+
+/* ============================================================================
+   CONVERSATION ITEM - Horizontal Compact Layout
+   ============================================================================ */
+
+.conversation-item {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 10px 14px !important;
+  margin: 0 !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 6px !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: unset !important;
+}
+
+.conversation-item:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.conversation-item.current,
+.conversation-item.active,
+.conversation-item[data-current="true"] {
+  background: rgba(14, 99, 156, 0.15) !important;
+  border-color: rgba(14, 99, 156, 0.4) !important;
+}
+
+.conversation-item.selected {
+  background: rgba(14, 99, 156, 0.1) !important;
+  border-color: rgba(14, 99, 156, 0.3) !important;
+}
+
+/* ============================================================================
+   ICON - Small Inline
+   ============================================================================ */
+
+.conversation-item .item-icon,
+.conversation-item .conversation-icon {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-radius: 6px !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.conversation-item.current .item-icon,
+.conversation-item.current .conversation-icon,
+.conversation-item.active .item-icon,
+.conversation-item.active .conversation-icon {
+  background: rgba(14, 99, 156, 0.3) !important;
+  color: #4fc3f7 !important;
+}
+
+.conversation-item .item-icon svg,
+.conversation-item .conversation-icon svg {
+  width: 16px !important;
+  height: 16px !important;
+  opacity: 0.6;
+}
+
+/* ============================================================================
+   CONTENT AREA - Flex Grow
+   ============================================================================ */
+
+.conversation-item .item-content,
+.conversation-item .conversation-content {
+  flex: 1 !important;
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Title Row */
+.conversation-item .item-title-row,
+.conversation-item .conversation-title-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin: 0 !important;
+}
+
+.conversation-item .item-title,
+.conversation-item .conversation-title {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #e0e0e0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+}
+
+.conversation-item.current .item-title,
+.conversation-item.current .conversation-title {
+  color: #ffffff !important;
+}
+
+/* Current Badge */
+.conversation-item .current-badge {
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  padding: 2px 6px !important;
+  background: #0e639c !important;
+  color: #ffffff !important;
+  border-radius: 4px !important;
+  flex-shrink: 0 !important;
+  line-height: 1.2 !important;
+}
+
+/* Preview */
+.conversation-item .item-preview,
+.conversation-item .conversation-preview {
+  font-size: 11px !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.3 !important;
+  margin: 0 !important;
+}
+
+/* ============================================================================
+   METADATA ROW - Inline Stats
+   ============================================================================ */
+
+.conversation-item .item-metadata,
+.conversation-item .conversation-meta {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.conversation-item .meta-item {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  font-size: 10px !important;
+  color: rgba(255, 255, 255, 0.35) !important;
+  white-space: nowrap !important;
+}
+
+.conversation-item .meta-item svg {
+  width: 10px !important;
+  height: 10px !important;
+  opacity: 0.5 !important;
+}
+
+/* ============================================================================
+   DELETE BUTTON - Right Side
+   ============================================================================ */
+
+.conversation-item .item-delete-btn,
+.conversation-item .conv-action-btn {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 28px !important;
+  height: 28px !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 4px !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  opacity: 0 !important;
+  flex-shrink: 0 !important;
+  margin-left: auto !important;
+}
+
+.conversation-item:hover .item-delete-btn,
+.conversation-item:hover .conv-action-btn {
+  opacity: 1 !important;
+}
+
+.conversation-item .item-delete-btn:hover,
+.conversation-item .conv-action-btn:hover {
+  background: rgba(244, 67, 54, 0.2) !important;
+  color: #f44336 !important;
+}
+
+.conversation-item .item-delete-btn svg,
+.conversation-item .conv-action-btn svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+
+/* ============================================================================
+   CHECKBOX - Selection Mode
+   ============================================================================ */
+
+.conversation-item .item-checkbox,
+.conversation-item .conv-checkbox-wrapper {
+  display: none;
+  flex-shrink: 0 !important;
+  margin-right: 4px !important;
+}
+
+.conversation-item.selectable .item-checkbox,
+.conversation-item.selectable .conv-checkbox-wrapper,
+.selection-mode .conversation-item .item-checkbox,
+.selection-mode .conversation-item .conv-checkbox-wrapper {
+  display: flex !important;
+}
+
+.conversation-item .conv-checkbox {
+  width: 16px !important;
+  height: 16px !important;
+  accent-color: #0e639c !important;
+  cursor: pointer !important;
+}
+
+/* ============================================================================
+   CONVERSATION LIST CONTAINER
+   ============================================================================ */
+
+.conversation-list,
+#conversation-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding: 8px 12px !important;
+  overflow-y: auto !important;
+}
+
+/* ============================================================================
+   STATS BAR - More Compact
+   ============================================================================ */
+
+.storage-stats,
+.stats-bar {
+  display: flex !important;
+  justify-content: space-around !important;
+  padding: 10px 16px !important;
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  gap: 8px !important;
+}
+
+.storage-stats .stat-item,
+.stats-bar .stat-item,
+.stat-compact {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 2px !important;
+  flex: 1 !important;
+}
+
+.storage-stats .stat-label,
+.stats-bar .stat-label,
+.stat-compact .stat-label {
+  font-size: 9px !important;
+  font-weight: 500 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+.storage-stats .stat-value,
+.stats-bar .stat-value,
+.stat-compact .stat-value {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #4fc3f7 !important;
+}
+
+/* ============================================================================
+   TOOLBAR
+   ============================================================================ */
+
+.list-toolbar,
+.toolbar-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 8px 12px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.list-toolbar .count-label {
+  font-size: 12px !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+/* ============================================================================
+   SEARCH BAR
+   ============================================================================ */
+
+.search-container,
+.modal-search {
+  padding: 8px 12px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.search-container input,
+.modal-search input {
+  width: 100% !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 6px !important;
+  padding: 8px 12px !important;
+  font-size: 13px !important;
+  color: #e0e0e0 !important;
+  outline: none !important;
+}
+
+.search-container input:focus,
+.modal-search input:focus {
+  border-color: rgba(14, 99, 156, 0.5) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.search-container input::placeholder,
+.modal-search input::placeholder {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* ============================================================================
+   MODAL STYLING
+   ============================================================================ */
+
+#conversation-list-modal .modal-content,
+.conversation-modal-content {
+  max-width: 500px !important;
+  background: #1e1e1e !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.modal-header {
+  padding: 14px 16px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.modal-header h2,
+.modal-header .modal-title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+}
+
+/* ============================================================================
+   SCROLLBAR
+   ============================================================================ */
+
+.conversation-list::-webkit-scrollbar,
+#conversation-list::-webkit-scrollbar {
+  width: 6px !important;
+}
+
+.conversation-list::-webkit-scrollbar-track,
+#conversation-list::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.conversation-list::-webkit-scrollbar-thumb,
+#conversation-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 3px !important;
+}
+
+.conversation-list::-webkit-scrollbar-thumb:hover,
+#conversation-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}

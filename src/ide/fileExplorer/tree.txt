@@ -1,0 +1,16 @@
+Folder PATH listing for volume System
+Volume serial number is 09C1-B27D
+C:.
+    explorerSearch.ts
+    fileClickHandlers.ts
+    fileIconUtils.ts
+    fileLoader.ts
+    fileModificationTracker.ts
+    fileTreeRenderer.ts
+    index.ts
+    readme.txt
+    tree.txt
+    types.ts
+    
+No subfolders exist 
+

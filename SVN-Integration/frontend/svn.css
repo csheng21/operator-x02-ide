@@ -1,0 +1,593 @@
+/* src/ide/svn/svn.css */
+/* SVN Integration Styles */
+
+/* SVN Panel */
+.svn-panel {
+    display: none;
+    flex-direction: column;
+    height: 100%;
+    background: #1e1e1e;
+    color: #cccccc;
+    overflow: hidden;
+}
+
+.svn-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+/* SVN Header */
+.svn-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid #3e3e42;
+    background: #252526;
+}
+
+.svn-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #cccccc;
+}
+
+.svn-title svg {
+    color: #007acc;
+}
+
+.svn-actions {
+    display: flex;
+    gap: 4px;
+}
+
+/* Repository Info */
+.svn-info {
+    padding: 12px 16px;
+    border-bottom: 1px solid #3e3e42;
+    background: #252526;
+    font-size: 12px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.info-item:last-child {
+    margin-bottom: 0;
+}
+
+.info-label {
+    color: #858585;
+    margin-right: 8px;
+}
+
+.info-value {
+    color: #cccccc;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.info-loading, .info-error {
+    color: #858585;
+    font-style: italic;
+}
+
+.info-error {
+    color: #f48771;
+}
+
+/* Commit Section */
+.svn-commit-section {
+    padding: 12px 16px;
+    border-bottom: 1px solid #3e3e42;
+    background: #1e1e1e;
+}
+
+.commit-message {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #3e3e42;
+    background: #252526;
+    color: #cccccc;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 60px;
+    border-radius: 3px;
+}
+
+.commit-message:focus {
+    outline: none;
+    border-color: #007acc;
+}
+
+.commit-message::placeholder {
+    color: #6a6a6a;
+}
+
+.commit-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+/* Changes Section */
+.svn-changes {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.changes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 16px;
+    background: #252526;
+    border-bottom: 1px solid #3e3e42;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.changes-title {
+    color: #cccccc;
+}
+
+.changes-count {
+    background: #007acc;
+    color: #ffffff;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.changes-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 0;
+}
+
+.change-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.change-item:hover {
+    background: #2a2d2e;
+}
+
+.status-icon {
+    margin-right: 8px;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.change-path {
+    flex: 1;
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.change-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.change-item:hover .change-actions {
+    opacity: 1;
+}
+
+.empty-state {
+    padding: 32px 16px;
+    text-align: center;
+    color: #6a6a6a;
+    font-size: 13px;
+}
+
+/* Conflicts Section */
+.svn-conflicts {
+    border-top: 1px solid #3e3e42;
+}
+
+.conflicts-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #3e2a1b;
+    border-bottom: 1px solid #3e3e42;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffc107;
+}
+
+.conflicts-header svg {
+    color: #ffc107;
+}
+
+.conflicts-count {
+    background: #ffc107;
+    color: #1e1e1e;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.conflicts-list {
+    padding: 4px 0;
+}
+
+.conflict-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: #2a2d2e;
+    margin-bottom: 1px;
+}
+
+.conflict-path {
+    flex: 1;
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 8px;
+}
+
+.conflict-actions {
+    display: flex;
+    gap: 4px;
+}
+
+/* Unversioned Section */
+.svn-unversioned {
+    border-top: 1px solid #3e3e42;
+}
+
+.unversioned-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #252526;
+    border-bottom: 1px solid #3e3e42;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.unversioned-header:hover {
+    background: #2a2d2e;
+}
+
+.unversioned-header svg {
+    color: #6c757d;
+}
+
+.unversioned-title {
+    flex: 1;
+    color: #cccccc;
+}
+
+.unversioned-count {
+    background: #6c757d;
+    color: #ffffff;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.collapse-icon {
+    color: #858585;
+    font-size: 10px;
+    transition: transform 0.15s;
+}
+
+.unversioned-list {
+    padding: 4px 0;
+}
+
+.unversioned-item {
+    display: flex;
+    align-items: center;
+    padding: 6px 16px;
+    transition: background 0.15s;
+}
+
+.unversioned-item:hover {
+    background: #2a2d2e;
+}
+
+.unversioned-path {
+    flex: 1;
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.unversioned-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.unversioned-item:hover .unversioned-actions {
+    opacity: 1;
+}
+
+/* Buttons */
+.btn {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+}
+
+.btn-primary {
+    background: #007acc;
+    color: #ffffff;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: #005a9e;
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-secondary {
+    background: #3e3e42;
+    color: #cccccc;
+}
+
+.btn-secondary:hover {
+    background: #505050;
+}
+
+.btn-small {
+    padding: 4px 8px;
+    font-size: 11px;
+    background: #3e3e42;
+    color: #cccccc;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.btn-small:hover {
+    background: #505050;
+}
+
+.icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: #cccccc;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: background 0.15s;
+}
+
+.icon-button:hover {
+    background: #3e3e42;
+}
+
+.icon-button svg {
+    width: 16px;
+    height: 16px;
+}
+
+/* Spinning animation for refresh button */
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
+/* Context Menu */
+.context-menu {
+    background: #252526;
+    border: 1px solid #3e3e42;
+    border-radius: 3px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    padding: 4px 0;
+    min-width: 180px;
+}
+
+.menu-item {
+    padding: 6px 16px;
+    font-size: 13px;
+    color: #cccccc;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.menu-item:hover {
+    background: #2a2d2e;
+}
+
+.menu-separator {
+    height: 1px;
+    background: #3e3e42;
+    margin: 4px 0;
+}
+
+/* ========================= */
+/* SVN Diff Viewer */
+/* ========================= */
+
+.svn-diff-viewer {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #1e1e1e;
+    z-index: 9999;
+    flex-direction: column;
+}
+
+.diff-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #252526;
+    border-bottom: 1px solid #3e3e42;
+}
+
+.diff-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #cccccc;
+}
+
+.diff-title svg {
+    color: #007acc;
+}
+
+.diff-file-name {
+    color: #cccccc;
+}
+
+.diff-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.diff-editor-container {
+    flex: 1;
+    overflow: hidden;
+}
+
+/* File Explorer SVN Status Indicators */
+.file-item .svn-status {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-left: 4px;
+    flex-shrink: 0;
+}
+
+.file-item .svn-status.modified {
+    background: #007acc;
+}
+
+.file-item .svn-status.added {
+    background: #28a745;
+}
+
+.file-item .svn-status.deleted {
+    background: #dc3545;
+}
+
+.file-item .svn-status.conflicted {
+    background: #ffc107;
+}
+
+.file-item .svn-status.unversioned {
+    background: #6c757d;
+}
+
+/* Status Bar SVN Info */
+.status-bar-svn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 12px;
+    font-size: 12px;
+    color: #cccccc;
+    border-right: 1px solid #3e3e42;
+}
+
+.status-bar-svn svg {
+    width: 14px;
+    height: 14px;
+    color: #007acc;
+}
+
+.svn-branch {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.svn-changes-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    background: #007acc;
+    border-radius: 10px;
+    font-size: 11px;
+}
+
+.svn-changes-indicator.has-conflicts {
+    background: #ffc107;
+    color: #1e1e1e;
+}
+
+/* Responsive adjustments */
+@media (max-width: 800px) {
+    .svn-header {
+        padding: 8px 12px;
+    }
+
+    .commit-actions {
+        flex-direction: column;
+    }
+
+    .commit-actions .btn {
+        width: 100%;
+    }
+}

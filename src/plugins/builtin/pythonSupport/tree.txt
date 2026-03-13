@@ -1,0 +1,22 @@
+Folder PATH listing for volume System
+Volume serial number is 09C1-B27D
+C:.
+|   index.ts
+|   manifest.json
+|   tree.txt
+|   
+\---src
+    |   formatter.ts
+    |   
+    +---completion
+    |       completionProvider.ts
+    |       
+    +---formatting
+    +---hover
+    |       completionProvider.ts
+    |       
+    +---linting
+    |       linter.ts
+    |       
+    +---typeChecking
+    \---utils

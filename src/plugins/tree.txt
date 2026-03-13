@@ -1,0 +1,34 @@
+Folder PATH listing for volume System
+Volume serial number is 09C1-B27D
+C:.
+|   tree.txt
+|   
++---api
+|       editorApi.ts
+|       fileSystemApi.ts
+|       index.ts
+|       terminalApi.ts
+|       uiApi.ts
+|       
++---builtin
+|   |   errorAnalyzer.ts
+|   |   syntaxHighlighter.ts
+|   |   
+|   \---fletAssistant
+|       |   index.ts
+|       |   manifest.json
+|       |   
+|       \---src
+|               colorFixer.ts
+|               componentsPanel.ts
+|               errorDetector.ts
+|               snippets.ts
+|               
+\---core
+        extensionPoints.ts
+        pluginApi.ts
+        pluginInterface.ts
+        pluginLoader.ts
+        pluginManager.ts
+        pluginSandbox.ts
+        

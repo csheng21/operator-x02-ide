@@ -1,0 +1,8 @@
+{
+  "id": "deepseek.python-support",
+  "name": "Python Language Support",
+  "version": "1.0.0",
+  "description": "Enhanced Python language features for Deepseek IDE",
+  "author": "Deepseek IDE",
+  "main": "index.js"
+}

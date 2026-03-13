@@ -1,0 +1,39 @@
+Folder PATH listing for volume System
+Volume serial number is 09C1-B27D
+C:.
+|   aiFileAnalytics.ts
+|   diffAIAnalysis.css
+|   svn.css
+|   svnAICommitGenerator.ts
+|   svnAIDiffAnalyzer.ts
+|   svnAutoDetector.ts
+|   svnDashboard.css
+|   svnDashboard.ts
+|   svnDiffViewer.ts
+|   svnFileAnalytics-animated.ts
+|   svnFileAnalytics.ts
+|   svnFileExplorerDecorator.ts
+|   svnFileExplorerIntegration.ts
+|   svnHistoryManager.ts
+|   svnHistoryViewer.css
+|   svnHistoryViewer.ts
+|   svnIntegration.ts
+|   svnManager.ts
+|   svnStatusBar.ts
+|   svnUI.ts
+|   svnUIEnhanced.css
+|   svnUIEnhanced.ts
+|   tree.txt
+|   
+\---New folder
+        svnUIEnhanced.ts
+        svnUIEnhanced_aiAnalysis.ts
+        svnUIEnhanced_commit.ts
+        svnUIEnhanced_dashboard.ts
+        svnUIEnhanced_diff.ts
+        svnUIEnhanced_events.ts
+        svnUIEnhanced_fileList.ts
+        svnUIEnhanced_history.ts
+        svnUIEnhanced_panels.ts
+        svnUIEnhanced_utils.ts
+        
