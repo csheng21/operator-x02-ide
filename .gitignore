@@ -17,3 +17,5 @@ src-tauri/gen/
 *.exe
 *.dmg
 *.AppImage
+
+src-tauri/src/operator-x02-core/
