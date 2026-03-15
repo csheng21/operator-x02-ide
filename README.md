@@ -5,7 +5,7 @@
 ### AI-Powered IDE for Embedded & Edge AI Developers
 
 Built with **Tauri v2** · **Rust** · **TypeScript** · **Monaco Editor**
-
+<img width="1008" height="818" alt="borderless-memory" src="https://github.com/user-attachments/assets/b70f32d3-a6b2-41d2-a3ec-42aa3dbdc728" />
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tauri](https://img.shields.io/badge/Tauri-2.x-blue)](https://tauri.app)
 [![Rust](https://img.shields.io/badge/Rust-2021-orange)](https://www.rust-lang.org)
@@ -32,6 +32,9 @@ Operator X02 is a **lightweight, AI-native IDE** built specifically for **embedd
 | Search (10K files) | **45ms** | 120ms | — |
 | Binary size | **~100 MB** | ~300 MB | ~400 MB |
 
+
+
+<img width="1674" height="998" alt="main_interface" src="https://github.com/user-attachments/assets/224b0d26-2cec-432b-b318-13b0507ee3de" />
 ---
 
 ## ⬇️ How to Get Operator X02
