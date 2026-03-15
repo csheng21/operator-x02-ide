@@ -1,4 +1,4 @@
-// src/ide/fileContextMenu.ts
+﻿// src/ide/fileContextMenu.ts
 // Professional Animated File/Folder Context Menu
 // Modern UI with glassmorphism and smooth animations
 // ✅ UPDATED: Added SVN Integration
@@ -679,6 +679,16 @@ function createSvnSubmenu(filePath: string, isDirectory: boolean): HTMLElement {
       const divider = document.createElement('div');
       divider.className = 'file-menu-divider';
       submenu.appendChild(divider);
+  // X02 FIX: Smooth pop-in
+  menu.style.opacity = "0";
+  menu.style.transform = "translateY(-6px) scale(0.97)";
+  menu.style.transition = "opacity 0.13s ease, transform 0.13s cubic-bezier(0.22,1,0.36,1)";
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      menu.style.opacity = "1";
+      menu.style.transform = "translateY(0) scale(1)";
+    });
+  });
     } else {
       const menuItem = document.createElement('div');
       menuItem.className = 'svn-submenu-item';
@@ -1242,6 +1252,11 @@ export function initializeFileContextMenu(): void {
     defaultMenu.style.display = 'none';
   }
   
+  // DISABLED: fileClickHandlers.ts setupContextMenu() is the correct handler
+  // It shows the full menu: Open/Create/Rename/Delete + AI Analysis submenu
+  console.log('? [FileContextMenu] Skipping - fileClickHandlers handles context menu');
+  return;
+
   document.addEventListener('contextmenu', (e) => {
     const target = e.target as HTMLElement;
     const fileItem = target.closest('[data-path]') as HTMLElement;
@@ -1268,12 +1283,13 @@ export function initializeFileContextMenu(): void {
     document.body.appendChild(menu);
     
     const closeHandler = (ev: MouseEvent) => {
+      if (ev.button === 2) return; // FIX: ignore right-clicks (they open new context menu)
       if (!menu.contains(ev.target as Node)) {
         closeMenu(menu);
         document.removeEventListener('click', closeHandler);
       }
     };
-    setTimeout(() => document.addEventListener('click', closeHandler), 10);
+    setTimeout(() => document.addEventListener('click', closeHandler), 300); // FIX: was 10ms, too fast - right-click chain fires click within 10ms
     
     const escHandler = (ev: KeyboardEvent) => {
       if (ev.key === 'Escape') {

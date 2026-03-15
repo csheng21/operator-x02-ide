@@ -2586,6 +2586,10 @@ function addAIAnalysisSubmenu(menu: HTMLElement, path: string, fileName: string,
  * Professional UI with animations
  */
 function showEnhancedContextMenu(x: number, y: number, path: string, isDirectory: boolean): void {
+  // Debounce: prevent double-fire within 300ms
+  const __now = Date.now();
+  if ((window as any).__menuLastShown && __now - (window as any).__menuLastShown < 300) { console.log('[Menu] Debounced double-fire'); return; }
+  (window as any).__menuLastShown = __now;
   // Close any existing menus (both old and new)
   const existingMenu = document.querySelector('.file-context-menu');
   if (existingMenu) {
@@ -2850,6 +2854,7 @@ function showEnhancedContextMenu(x: number, y: number, path: string, isDirectory
   // Close handlers
   setTimeout(() => {
     const closeMenu = (e: MouseEvent) => {
+      if (e.button === 2) return; // ignore right-clicks
       if (!menu.contains(e.target as Node)) {
         closeContextMenu(menu);
         document.removeEventListener('click', closeMenu);
@@ -2864,7 +2869,7 @@ function showEnhancedContextMenu(x: number, y: number, path: string, isDirectory
       }
     };
     document.addEventListener('keydown', closeOnEscape);
-  }, 10);
+  }, 800);
   
   console.log('Context menu displayed at:', { x, y });
 }

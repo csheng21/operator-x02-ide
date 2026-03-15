@@ -389,6 +389,38 @@ export async function surgicalApplySmartUpdate(
     return { success: false, message: 'Surgical mode not available' };
   }
 
+  // X02: Content sanity check â€” reject patches that look like docs/marketing not code
+  const getFileExt = (p: string) => p.split('.').pop()?.toLowerCase() || '';
+  const isSuspiciousContent = (code: string, ext: string): boolean => {
+    if (!code || code.length < 10) return false;
+    const lines = code.split('\n');
+    // Count lines that look like ASCII art / marketing (stars, boxes, centered text)
+    const suspiciousLines = lines.filter((l: string) => {
+      const t = l.trim();
+      return t.startsWith('*') || t.startsWith('|') || t.startsWith('+') ||
+             t.includes('OPERATOR X02') || t.includes('AI-Powered') ||
+             t.includes('Coding is Art') || t.includes('www.operator');
+    }).length;
+    const ratio = suspiciousLines / Math.max(lines.length, 1);
+    if (ratio > 0.4) return true; // more than 40% suspicious lines
+    // For CSS files â€” must have at least one real CSS rule
+    if (ext === 'css' || ext === 'scss') {
+      const hasCSSRule = /[a-zA-Z#\.][^{]*\{[^}]*\}/.test(code);
+      const onlyComments = lines.every((l: string) => l.trim().startsWith('*') || l.trim().startsWith('/*') || l.trim().startsWith('//') || l.trim() === '');
+      if (onlyComments) return true;
+      if (!hasCSSRule && code.length > 100) return true;
+    }
+    return false;
+  };
+  const currentFile = (window as any).tabManager?.getCurrentFile?.() || '';
+  const fileExt = getFileExt(currentFile || filePath || '');
+  if (isSuspiciousContent(newCode, fileExt)) {
+    console.warn(`\u26A0\uFE0F [X02 ContentGuard] Rejected patch for ${currentFile} â€” content looks like documentation/marketing, not ${fileExt} code`);
+    return { success: false, message: 'X02 ContentGuard: patch rejected â€” content does not look like valid code for this file type' };
+  }
+  // X02: end content sanity check
+
+
   const invoke = getInvoke()!;
   const filePath = getFilePath()!;
   const fileName = getFileName();

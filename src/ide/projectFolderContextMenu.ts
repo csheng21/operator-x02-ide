@@ -708,6 +708,7 @@ function formatStructure(node: FolderNode, indent: string = ''): string {
 // ============================================================================
 
 async function quickAnalyzeProject(projectPath: string): Promise<void> {
+  (window as any).__analysisMode = true; // X02: block AutoApply during analysis
   console.log('🚀 [Quick] Starting quick analysis:', projectPath);
   
   const container = document.querySelector('.ai-chat-container');
@@ -1157,7 +1158,9 @@ Use rich Markdown formatting with **bold**, tables, and \`code\` references. Be 
     setTimeout(() => userDiv.remove(), 500);
 
     loadingDiv.innerHTML = '';
+    collapsible.setAttribute("data-analysis-result", "true"); // X02: prevent AutoApply
     loadingDiv.appendChild(collapsible);
+    setTimeout(() => { (window as any).__analysisMode = false; }, 500); // X02: delayed reset - MutationObserver sees true, blocks AutoApply
 
     clearInterval(timerInterval);
     const totalTime = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -1619,6 +1622,7 @@ Use **bold**, *italic*, \`code\`, tables, bullet points, and code blocks for pro
     setTimeout(() => userDiv.remove(), 500);
 
     loadingDiv.innerHTML = '';
+    collapsible.setAttribute("data-analysis-result", "true"); // X02: prevent AutoApply (deep)
     loadingDiv.appendChild(collapsible);
 
     clearInterval(deepTimerInterval);
@@ -1649,6 +1653,7 @@ function showHtmlView(rawResponse: string, formattedHtml: string, projectName?: 
   
   const overlay = document.createElement('div');
   overlay.className = 'html-view-overlay';
+  overlay.setAttribute("data-analysis-result", "true"); // X02: prevent AutoApply
   
   overlay.innerHTML = `
     <div class="html-view-modal">

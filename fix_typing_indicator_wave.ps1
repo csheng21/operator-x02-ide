@@ -1,4 +1,9 @@
-﻿// typingIndicator.ts - Spinner + Wave Background (X02 v2)
+# fix_typing_indicator_wave.ps1
+$f = (Get-ChildItem -Path "src" -Recurse -Filter "typingIndicator.ts" | Select-Object -First 1).FullName
+Write-Host "Patching: $f" -ForegroundColor Cyan
+
+$newContent = @'
+// typingIndicator.ts - Spinner + Wave Background (X02 v2)
 // ============================================================================
 
 let typingElement: HTMLElement | null = null;
@@ -12,30 +17,30 @@ const providerColors: Record<string, string> = {
   'deepseek': '#0066ff',
   'cohere': '#ff6b6b',
   'ollama': '#aaaaaa',
-  'operator_x02': '#1d9e75',
+  'operator_x02': '#3b82f6',
   'custom': '#9c27b0'
 };
 
 function getAccentColor(): string {
   try {
     const cfg = JSON.parse(localStorage.getItem('aiApiConfig') || '{}');
-    return providerColors[cfg.provider] || '#1d9e75';
+    return providerColors[cfg.provider] || '#3b82f6';
   } catch {
-    return '#1d9e75';
+    return '#3b82f6';
   }
 }
 
 const STATUS_MESSAGES = [
-  'AI is thinking...',
   'Reading project files...',
   'Analyzing context...',
+  'AI is thinking...',
   'Preparing response...',
   'Almost ready...'
 ];
 
 function injectWaveStyles(color: string): void {
   const id = 'x02-typing-styles';
-  document.getElementById(id)?.remove();
+  if (document.getElementById(id)) return;
   const s = document.createElement('style');
   s.id = id;
   s.textContent = `
@@ -52,24 +57,24 @@ function injectWaveStyles(color: string): void {
     }
     .x02-typing-wrap {
       position: relative;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 9px;
-      padding: 7px 12px;
+      padding: 8px 14px;
       border-radius: 8px;
-      border: 1px solid rgba(15,110,86,0.25);
+      border: 1px solid rgba(59,130,246,0.25);
       overflow: hidden;
       animation: x02-fade-in 0.2s ease;
-      width: auto;
+      min-width: 180px;
     }
     .x02-wave-bg {
       position: absolute;
       inset: 0;
       background: linear-gradient(90deg,
         transparent 0%,
-        rgba(15,110,86,0.07) 25%,
-        rgba(15,110,86,0.18) 50%,
-        rgba(15,110,86,0.07) 75%,
+        rgba(59,130,246,0.08) 25%,
+        rgba(59,130,246,0.18) 50%,
+        rgba(59,130,246,0.08) 75%,
         transparent 100%);
       background-size: 200% 100%;
       animation: x02-wave-bg 2s ease-in-out infinite;
@@ -77,8 +82,8 @@ function injectWaveStyles(color: string): void {
     .x02-spinner {
       width: 13px;
       height: 13px;
-      border: 1.5px solid rgba(15,110,86,0.25);
-      border-top-color: #1d9e75;
+      border: 1.5px solid rgba(59,130,246,0.3);
+      border-top-color: ${color};
       border-radius: 50%;
       animation: x02-spin 0.75s linear infinite;
       flex-shrink: 0;
@@ -87,12 +92,12 @@ function injectWaveStyles(color: string): void {
     }
     .x02-status-text {
       font-size: 12px;
-      color: #5bb89a;
+      color: #8b9dc3;
       position: relative;
       z-index: 1;
       transition: opacity 0.3s ease;
     }
-  `.replace('#1d9e75', color);
+  `;
   document.head.appendChild(s);
 }
 
@@ -104,46 +109,40 @@ export function showTypingIndicator(): void {
 
   const color = getAccentColor();
   injectWaveStyles(color);
-  // X02: inject spinner keyframe directly into head
-  if (!document.getElementById('x02-spin-kf')) {
-    const kf = document.createElement('style');
-    kf.id = 'x02-spin-kf';
-    kf.textContent = '@keyframes x02-s{to{transform:rotate(360deg)}} .x02-spin-el{width:13px;height:13px;border:2px solid rgba(255,255,255,0.2);border-top:2px solid rgba(255,255,255,0.9);border-radius:50%;animation:x02-s .75s linear infinite;flex-shrink:0;position:relative;z-index:1}';
-    document.head.appendChild(kf);
-  }
 
   typingElement = document.createElement('div');
   typingElement.id = 'ai-typing-indicator';
   typingElement.className = 'ai-message assistant-message';
-  typingElement.style.cssText = 'padding: 10px 16px; display: flex; justify-content: flex-start;';
+  typingElement.style.cssText = 'padding: 10px 16px; display: flex; align-items: center;';
 
   typingElement.innerHTML = `
     <div class="x02-typing-wrap">
       <div class="x02-wave-bg"></div>
-      <svg id="x02si" width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0;position:relative;z-index:10;animation:x02-s 0.75s linear infinite"><circle cx="8" cy="8" r="6" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/><path d="M8 2 A6 6 0 0 1 14 8" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      <div class="x02-spinner"></div>
       <span class="x02-status-text">AI is thinking...</span>
     </div>
   `;
 
   chatContainer.appendChild(typingElement);
-  (chatContainer as HTMLElement).scrollTop = (chatContainer as HTMLElement).scrollHeight;
+  chatContainer.scrollTop = chatContainer.scrollHeight;
 
+  // Cycle status messages
   let idx = 0;
   statusInterval = window.setInterval(() => {
-    const el = typingElement?.querySelector('.x02-status-text') as HTMLElement | null;
+    const el = typingElement?.querySelector('.x02-status-text');
     if (el) {
-      el.style.opacity = '0';
+      (el as HTMLElement).style.opacity = '0';
       setTimeout(() => {
         idx = (idx + 1) % STATUS_MESSAGES.length;
         if (el) {
           el.textContent = STATUS_MESSAGES[idx];
-          el.style.opacity = '1';
+          (el as HTMLElement).style.opacity = '1';
         }
       }, 300);
     }
   }, 2500);
 
-  console.log('[ðŸŽ¨ AssistantUI] Typing indicator shown');
+  console.log('[🎨 AssistantUI] Typing indicator shown');
 }
 
 export async function hideTypingIndicator(): Promise<void> {
@@ -165,6 +164,9 @@ if (typeof window !== 'undefined') {
   (window as any).showTypingIndicator = showTypingIndicator;
   (window as any).hideTypingIndicator = hideTypingIndicator;
 }
+'@
 
-
-export function updateTypingIndicatorProvider(provider: string): void {}
+$newContent | Set-Content $f -NoNewline -Encoding UTF8
+Write-Host "Saved: $((Get-Item $f).Length) bytes" -ForegroundColor Green
+Write-Host "Lines: $((Get-Content $f -Encoding UTF8).Length)" -ForegroundColor Cyan
+Write-Host "Done! Refresh X02 to see wave typing indicator." -ForegroundColor Green

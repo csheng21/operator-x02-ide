@@ -274,7 +274,8 @@ import { registerGitMenuHandlers } from './ide/vsc/gitMenuHandlers';
 import { initGitMenuFix } from './ide/vsc/gitMenuFix';
 import { initAICommitMessage } from './ide/vsc/gitAICommitMessage';
 import { initFastContextMenu } from './ide/fileExplorer/fastContextMenu';
-import './ide/fileExplorer/instantContextMenuInit';
+import './ide/fileContextMenu'; // CORRECT context menu - professional SVN-aware menu
+// import './ide/fileExplorer/instantContextMenuInit'; // DISABLED: was blocking fileContextMenu
 import { initializeFileHandling } from './eventHandlers/fileHandlers';
 //import { initializePdfHandler } from './aiAssistant/pdfFileHandler';
 //import { initializePdfHandler } from './aiAssistant/pdfHandler';
@@ -5826,7 +5827,7 @@ console.log('✅ AI File Creator initialized');
 
 initializePreviewTab();  // ← ADD THIS LINE
 
-initializeProjectFolderContextMenu();
+// // initializeProjectFolderContextMenu(); // REMOVED: duplicate call // REMOVED: duplicate
     // Clean up any existing duplicates before initialization
     cleanupDuplicates();
 
@@ -5904,7 +5905,7 @@ initializeProjectFolderContextMenu();
     registerGitMenuHandlers();
     initGitMenuFix();
     initAICommitMessage();
-    initFastContextMenu();
+    // // initFastContextMenu(); // DISABLED: was overriding correct context menu // DISABLED: was overriding correct context menu
     setTimeout(() => setupGitMenu(), 500);
      // ❌ DISABLED: Using messageUI.ts collapse system instead (prevents duplicate buttons)
      // initMessageCollapse();

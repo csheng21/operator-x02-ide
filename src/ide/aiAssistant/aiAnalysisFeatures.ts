@@ -1,4 +1,4 @@
-﻿// src/ide/aiAssistant/aiAnalysisFeatures.ts
+// src/ide/aiAssistant/aiAnalysisFeatures.ts
 // ALL-IN-ONE: Auto-send + Cache + Menu Badges
 // DEBUG VERSION - with logging
 
@@ -424,6 +424,7 @@ let menuFileHash: string | null = null;
 let badgesAdded = false;
 
 function addMenuBadges(): void {
+  return; // DISABLED
   if (badgesAdded) return;
   
   console.log(`[MenuBadge] Adding badges. Content hash: ${menuFileHash}`);
@@ -468,49 +469,51 @@ function addMenuBadges(): void {
 }
 
 // Get file content on right-click
-document.addEventListener('contextmenu', async (e) => {
-  badgesAdded = false;
-  document.querySelectorAll('.ai-cache-badge').forEach(b => b.remove());
-  
-  const target = e.target as HTMLElement;
-  const fileEl = target.closest('[data-path]');
-  
-  console.log('[MenuBadge] Right-click detected');
-  console.log('[MenuBadge] File element:', fileEl);
-  
-  if (fileEl) {
-    const path = fileEl.getAttribute('data-path') || '';
-    console.log('[MenuBadge] File path:', path);
-    
-    if (path && (window as any).__TAURI__) {
-      try {
-        const { invoke } = await import('@tauri-apps/api/core');
-        menuFileContent = await invoke('read_file_content', { path }) as string;
-        menuFileHash = hashContent(menuFileContent);
-        console.log(`[MenuBadge] Got file content, hash: ${menuFileHash}, length: ${menuFileContent.length}`);
-      } catch (e) { 
-        console.error('[MenuBadge] Error reading file:', e);
-        menuFileContent = null; 
-        menuFileHash = null;
-      }
-    }
-  }
-  
+  // DISABLED: fileClickHandlers.ts handles context menu (full menu with AI Analysis submenu)
+  // Original listener disabled to prevent AI-only popup from appearing
+  // [DISABLED] const __disabledListener = async (e: MouseEvent) => { return; }; // was: document.addEventListener('contextmenu', async (e) => {
+  // [DISABLED] badgesAdded = false;
+  // [DISABLED] document.querySelectorAll('.ai-cache-badge').forEach(b => b.remove());
+  // [DISABLED] 
+  // [DISABLED] const target = e.target as HTMLElement;
+  // [DISABLED] const fileEl = target.closest('[data-path]');
+  // [DISABLED] 
+  // [DISABLED] console.log('[MenuBadge] Right-click detected');
+  // [DISABLED] console.log('[MenuBadge] File element:', fileEl);
+  // [DISABLED] 
+  // [DISABLED] if (fileEl) {
+  // [DISABLED] const path = fileEl.getAttribute('data-path') || '';
+  // [DISABLED] console.log('[MenuBadge] File path:', path);
+  // [DISABLED] 
+  // [DISABLED] if (path && (window as any).__TAURI__) {
+  // [DISABLED] try {
+  // [DISABLED] const { invoke } = await import('@tauri-apps/api/core');
+  // [DISABLED] menuFileContent = await invoke('read_file_content', { path }) as string;
+  // [DISABLED] menuFileHash = hashContent(menuFileContent);
+  // [DISABLED] console.log(`[MenuBadge] Got file content, hash: ${menuFileHash}, length: ${menuFileContent.length}`);
+  // [DISABLED] } catch (e) { 
+  // [DISABLED] console.error('[MenuBadge] Error reading file:', e);
+  // [DISABLED] menuFileContent = null; 
+  // [DISABLED] menuFileHash = null;
+  // [DISABLED] }
+  // [DISABLED] }
+  // [DISABLED] }
+  // [DISABLED] 
   // Fallback to editor
-  if (!menuFileContent) {
-    try {
-      const editor = (window as any).monaco?.editor?.getEditors()?.[0];
-      if (editor?.getModel()) {
-        menuFileContent = editor.getModel().getValue();
-        menuFileHash = hashContent(menuFileContent);
-        console.log(`[MenuBadge] Got editor content, hash: ${menuFileHash}, length: ${menuFileContent.length}`);
-      }
-    } catch {}
-  }
-  
-  setTimeout(addMenuBadges, 100);
-  setTimeout(addMenuBadges, 250);
-}, true);
+  // [DISABLED] if (!menuFileContent) {
+  // [DISABLED] try {
+  // [DISABLED] const editor = (window as any).monaco?.editor?.getEditors()?.[0];
+  // [DISABLED] if (editor?.getModel()) {
+  // [DISABLED] menuFileContent = editor.getModel().getValue();
+  // [DISABLED] menuFileHash = hashContent(menuFileContent);
+  // [DISABLED] console.log(`[MenuBadge] Got editor content, hash: ${menuFileHash}, length: ${menuFileContent.length}`);
+  // [DISABLED] }
+  // [DISABLED] } catch {}
+  // [DISABLED] }
+  // [DISABLED] 
+  // [DISABLED] setTimeout(addMenuBadges, 100);
+  // [DISABLED] setTimeout(addMenuBadges, 250);
+  // }, true); // DISABLED - was closing the contextmenu listener
 
 // ============================================================================
 // GLOBAL API

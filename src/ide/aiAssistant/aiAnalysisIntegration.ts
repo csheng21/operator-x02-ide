@@ -1,4 +1,4 @@
-﻿// src/ide/fileExplorer/aiAnalysisIntegration.ts
+// src/ide/fileExplorer/aiAnalysisIntegration.ts
 // Simple integration patch - Add this to make AI Analysis auto-send
 
 import { invoke } from '@tauri-apps/api/core';
@@ -88,13 +88,13 @@ function getLanguage(fileName: string): string {
 
 function buildPrompt(type: string, fileName: string, content: string, lang: string): string {
   const prompts: Record<string, string> = {
-    'explain': `Explain this ${lang} file in detail:\n\n**File:** \`${fileName}\`\n\n\`\`\`${lang}\n${content}\n\`\`\`\n\nProvide:\n1. Purpose\n2. Key Components\n3. Dependencies\n4. Usage\n5. Notable Features`,
+    'explain': `IMPORTANT: Do NOT wrap the original file content in a code block in your response - only provide your analysis as plain text and markdown.`n`nExplain this ${lang} file in detail:\n\n**File:** \`${fileName}\`\n\n\`\`\`${lang}\n${content}\n\`\`\`\n\nProvide:\n1. Purpose\n2. Key Components\n3. Dependencies\n4. Usage\n5. Notable Features`,
     
-    'summary': `Give a high-level summary of:\n\n**File:** \`${fileName}\`\n\n\`\`\`${lang}\n${content}\n\`\`\`\n\nConcise 2-3 paragraphs covering main purpose, key exports, and typical usage.`,
+    'summary': `IMPORTANT: Do NOT wrap the original file content in a code block in your response - only provide your analysis as plain text and markdown.`n`nGive a high-level summary of:\n\n**File:** \`${fileName}\`\n\n\`\`\`${lang}\n${content}\n\`\`\`\n\nConcise 2-3 paragraphs covering main purpose, key exports, and typical usage.`,
     
-    'architecture': `Analyze the architecture:\n\n**File:** \`${fileName}\`\n\n\`\`\`${lang}\n${content}\n\`\`\`\n\nDescribe design patterns, structure, data flow, and architectural improvements.`,
+    'architecture': `IMPORTANT: Do NOT wrap the original file content in a code block in your response - only provide your analysis as plain text and markdown.`n`nAnalyze the architecture:\n\n**File:** \`${fileName}\`\n\n\`\`\`${lang}\n${content}\n\`\`\`\n\nDescribe design patterns, structure, data flow, and architectural improvements.`,
     
-    'dependencies': `List all dependencies:\n\n**File:** \`${fileName}\`\n\n\`\`\`${lang}\n${content}\n\`\`\`\n\nFor each import: what is it, why needed, what's used from it.`,
+    'dependencies': `IMPORTANT: Do NOT wrap the original file content in a code block in your response - only provide your analysis as plain text and markdown.`n`nList all dependencies:\n\n**File:** \`${fileName}\`\n\n\`\`\`${lang}\n${content}\n\`\`\`\n\nFor each import: what is it, why needed, what's used from it.`,
     
     'improvements': `Suggest improvements:\n\n**File:** \`${fileName}\`\n\n\`\`\`${lang}\n${content}\n\`\`\`\n\nAnalyze code quality, performance, best practices, error handling, refactoring opportunities.`,
     

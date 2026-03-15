@@ -3447,7 +3447,7 @@ private showAIAnalysisMenu(e: MouseEvent, filePath: string, fileItem: HTMLElemen
     </div>
   `;
   
-  document.body.appendChild(menu);
+  // DISABLED: fileClickHandlers.ts handles AI Analysis menu // document.body.appendChild(menu); return;
   
   // Hover effects
   menu.querySelectorAll('.menu-item').forEach(item => {

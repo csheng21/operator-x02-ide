@@ -2688,7 +2688,8 @@ function addAIAnalysisSubmenu(menu: HTMLElement, path: string, fileName: string,
           }
           
           // Send to AI - use collapsible response handler
-          await sendToAIWithCollapsibleResponse(prompt, fileName, opt.type, opt.label);
+      (window as any).__analysisMode = true; // disable auto-apply during analysis
+          (window as any).__analysisMode = true; await sendToAIWithCollapsibleResponse(prompt, fileName, opt.type, opt.label);
           
         } else {
           // For FOLDERS - generate tree and show analysis dialog
@@ -2742,7 +2743,7 @@ function addAIAnalysisSubmenu(menu: HTMLElement, path: string, fileName: string,
     
     // Adjust if going off bottom
     if (top + submenuRect.height > window.innerHeight - 10) {
-      top = window.innerHeight - submenuRect.height - 10;
+      top = rect.bottom - submenuRect.height; if (top < 10) { top = 10; }
     }
     
     submenu.style.left = `${left}px`;
@@ -2787,7 +2788,7 @@ function addAIAnalysisSubmenu(menu: HTMLElement, path: string, fileName: string,
       document.removeEventListener('click', removeOnClick);
     }
   };
-  setTimeout(() => document.addEventListener('click', removeOnClick), 100);
+  setTimeout(() => document.addEventListener("click", (e) => { if (e.button !== 2) removeOnClick(e); }, { once: true }), 100);
   
   menu.appendChild(aiMenuItem);
 }
@@ -2801,7 +2802,7 @@ function showEnhancedContextMenu(x: number, y: number, path: string, isDirectory
   const existingMenu = document.querySelector('.file-context-menu');
   if (existingMenu) {
     existingMenu.classList.add('closing');
-    setTimeout(() => existingMenu.remove(), 150);
+    existingMenu.remove();
   }
   
   // Hide old HTML context menu if visible
@@ -3343,8 +3344,46 @@ function showEnhancedContextMenu(x: number, y: number, path: string, isDirectory
   menu.style.left = '0px';
   menu.style.top = '0px';
   
-  document.body.appendChild(menu);
+  // X02: Pop-in animation (visibility restored after positioning rAF)
+  menu.style.opacity = "0";
+  menu.style.transform = "translateY(-6px) scale(0.97)";
+  menu.style.transition = "opacity 0.13s ease, transform 0.13s cubic-bezier(0.22,1,0.36,1)";
+
+  // X02: Stop propagation so item clicks dont trigger outside handler
+  menu.addEventListener("click", (ev) => ev.stopPropagation());
+
+  // X02: Click-outside closes menu (uses click not mousedown - safe for item actions)
+  const __menuOutsideClick = (_ev: MouseEvent) => {
+    if (!menu) return;
+    menu.style.opacity = "0";
+    menu.style.transform = "translateY(-4px) scale(0.97)";
+    menu.style.transition = "opacity 0.12s ease, transform 0.12s ease";
+    setTimeout(() => { menu?.remove(); }, 120);
+    document.removeEventListener("click", __menuOutsideClick);
+    document.removeEventListener("keydown", __menuKeyHandler, true);
+  };
+  // X02: Escape key + arrow navigation
+  const __menuKeyHandler = (ev: KeyboardEvent) => {
+    if (ev.key === "Escape") {
+      ev.preventDefault();
+      __menuOutsideClick(ev as any);
+    }
+    if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
+      ev.preventDefault();
+      const items = Array.from(menu.querySelectorAll(".ctx-item, [data-action]")) as HTMLElement[];
+      const cur = items.findIndex(el => el === document.activeElement);
+      const nxt = ev.key === "ArrowDown" ? Math.min(cur+1, items.length-1) : Math.max(cur-1, 0);
+      items[nxt]?.focus();
+    }
+  };
+  // 80ms delay so the right-click that opened menu doesnt immediately close it
+  setTimeout(() => {
+    document.addEventListener("click", __menuOutsideClick);
+    document.addEventListener("keydown", __menuKeyHandler, true);
+  }, 80);
   
+  document.body.appendChild(menu);
+
   // Wait for render to get accurate measurements
   requestAnimationFrame(() => {
     const menuRect = menu.getBoundingClientRect();
@@ -3415,6 +3454,8 @@ function showEnhancedContextMenu(x: number, y: number, path: string, isDirectory
     menu.style.left = `${finalX}px`;
     menu.style.top = `${finalY}px`;
     menu.style.visibility = 'visible';
+      menu.style.opacity = "1";
+      menu.style.transform = "translateY(0) scale(1)";
     
     // Update scroll indicators
     setTimeout(() => {
@@ -3427,6 +3468,7 @@ function showEnhancedContextMenu(x: number, y: number, path: string, isDirectory
   // Close handlers
   setTimeout(() => {
     const closeMenu = (e: MouseEvent) => {
+      if (e.button === 2) return; // ignore right-click
       if (!menu.contains(e.target as Node)) {
         closeContextMenu(menu);
         document.removeEventListener('click', closeMenu);
@@ -3441,7 +3483,7 @@ function showEnhancedContextMenu(x: number, y: number, path: string, isDirectory
       }
     };
     document.addEventListener('keydown', closeOnEscape);
-  }, 10);
+  }, 10000);
   
   console.log('Context menu displayed at:', { x, y });
 }
@@ -6022,8 +6064,8 @@ async function addSvnSubmenu(menu: HTMLElement, path: string, fileName: string, 
       // Close menu
       const contextMenu = document.querySelector('.file-context-menu');
       if (contextMenu) {
-        contextMenu.classList.add('closing');
-        setTimeout(() => contextMenu.remove(), 150);
+    // contextMenu.classList.add('closing');
+    existingMenu.remove(); // instant remove
       }
       // Execute action
       if (opt.action) {
@@ -6117,8 +6159,8 @@ async function addSvnSubmenu(menu: HTMLElement, path: string, fileName: string, 
 
 // Close menu with animation
 function closeContextMenu(menu: HTMLElement): void {
-  menu.classList.add('closing');
-  setTimeout(() => menu.remove(), 150);
+    // menu.classList.add('closing');
+    menu?.remove(); document.querySelectorAll('.file-context-menu').forEach(m => m.remove()); // instant remove
 }
 
 // SVG Icons for context menu

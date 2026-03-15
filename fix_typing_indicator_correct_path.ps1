@@ -1,4 +1,9 @@
-﻿// typingIndicator.ts - Spinner + Wave Background (X02 v2)
+# fix_typing_indicator_correct_path.ps1
+$f = (Get-ChildItem -Path "src" -Recurse -Filter "typingIndicator.ts" | Sort-Object Length -Descending | Select-Object -First 1).FullName
+Write-Host "Writing to: $f" -ForegroundColor Cyan
+
+$content = @'
+// typingIndicator.ts - Spinner + Wave Background (X02 v2)
 // ============================================================================
 
 let typingElement: HTMLElement | null = null;
@@ -12,16 +17,16 @@ const providerColors: Record<string, string> = {
   'deepseek': '#0066ff',
   'cohere': '#ff6b6b',
   'ollama': '#aaaaaa',
-  'operator_x02': '#1d9e75',
+  'operator_x02': '#3b82f6',
   'custom': '#9c27b0'
 };
 
 function getAccentColor(): string {
   try {
     const cfg = JSON.parse(localStorage.getItem('aiApiConfig') || '{}');
-    return providerColors[cfg.provider] || '#1d9e75';
+    return providerColors[cfg.provider] || '#3b82f6';
   } catch {
-    return '#1d9e75';
+    return '#3b82f6';
   }
 }
 
@@ -35,7 +40,7 @@ const STATUS_MESSAGES = [
 
 function injectWaveStyles(color: string): void {
   const id = 'x02-typing-styles';
-  document.getElementById(id)?.remove();
+  if (document.getElementById(id)) return;
   const s = document.createElement('style');
   s.id = id;
   s.textContent = `
@@ -52,24 +57,24 @@ function injectWaveStyles(color: string): void {
     }
     .x02-typing-wrap {
       position: relative;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 9px;
-      padding: 7px 12px;
+      padding: 8px 14px;
       border-radius: 8px;
-      border: 1px solid rgba(15,110,86,0.25);
+      border: 1px solid rgba(59,130,246,0.25);
       overflow: hidden;
       animation: x02-fade-in 0.2s ease;
-      width: auto;
+      min-width: 180px;
     }
     .x02-wave-bg {
       position: absolute;
       inset: 0;
       background: linear-gradient(90deg,
         transparent 0%,
-        rgba(15,110,86,0.07) 25%,
-        rgba(15,110,86,0.18) 50%,
-        rgba(15,110,86,0.07) 75%,
+        rgba(59,130,246,0.07) 25%,
+        rgba(59,130,246,0.18) 50%,
+        rgba(59,130,246,0.07) 75%,
         transparent 100%);
       background-size: 200% 100%;
       animation: x02-wave-bg 2s ease-in-out infinite;
@@ -77,8 +82,8 @@ function injectWaveStyles(color: string): void {
     .x02-spinner {
       width: 13px;
       height: 13px;
-      border: 1.5px solid rgba(15,110,86,0.25);
-      border-top-color: #1d9e75;
+      border: 1.5px solid rgba(59,130,246,0.25);
+      border-top-color: ACCENT_COLOR;
       border-radius: 50%;
       animation: x02-spin 0.75s linear infinite;
       flex-shrink: 0;
@@ -87,12 +92,12 @@ function injectWaveStyles(color: string): void {
     }
     .x02-status-text {
       font-size: 12px;
-      color: #5bb89a;
+      color: #8b9dc3;
       position: relative;
       z-index: 1;
       transition: opacity 0.3s ease;
     }
-  `.replace('#1d9e75', color);
+  `.replace('ACCENT_COLOR', color);
   document.head.appendChild(s);
 }
 
@@ -104,23 +109,16 @@ export function showTypingIndicator(): void {
 
   const color = getAccentColor();
   injectWaveStyles(color);
-  // X02: inject spinner keyframe directly into head
-  if (!document.getElementById('x02-spin-kf')) {
-    const kf = document.createElement('style');
-    kf.id = 'x02-spin-kf';
-    kf.textContent = '@keyframes x02-s{to{transform:rotate(360deg)}} .x02-spin-el{width:13px;height:13px;border:2px solid rgba(255,255,255,0.2);border-top:2px solid rgba(255,255,255,0.9);border-radius:50%;animation:x02-s .75s linear infinite;flex-shrink:0;position:relative;z-index:1}';
-    document.head.appendChild(kf);
-  }
 
   typingElement = document.createElement('div');
   typingElement.id = 'ai-typing-indicator';
   typingElement.className = 'ai-message assistant-message';
-  typingElement.style.cssText = 'padding: 10px 16px; display: flex; justify-content: flex-start;';
+  typingElement.style.cssText = 'padding: 10px 16px; display: flex; align-items: center;';
 
   typingElement.innerHTML = `
     <div class="x02-typing-wrap">
       <div class="x02-wave-bg"></div>
-      <svg id="x02si" width="16" height="16" viewBox="0 0 16 16" style="flex-shrink:0;position:relative;z-index:10;animation:x02-s 0.75s linear infinite"><circle cx="8" cy="8" r="6" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="2"/><path d="M8 2 A6 6 0 0 1 14 8" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"/></svg>
+      <div class="x02-spinner"></div>
       <span class="x02-status-text">AI is thinking...</span>
     </div>
   `;
@@ -143,7 +141,7 @@ export function showTypingIndicator(): void {
     }
   }, 2500);
 
-  console.log('[ðŸŽ¨ AssistantUI] Typing indicator shown');
+  console.log('[🎨 AssistantUI] Typing indicator shown');
 }
 
 export async function hideTypingIndicator(): Promise<void> {
@@ -166,5 +164,9 @@ if (typeof window !== 'undefined') {
   (window as any).hideTypingIndicator = hideTypingIndicator;
 }
 
+'@
 
-export function updateTypingIndicatorProvider(provider: string): void {}
+$content | Set-Content $f -NoNewline -Encoding UTF8
+$lineCount = (Get-Content $f -Encoding UTF8).Length
+Write-Host "Saved: $((Get-Item $f).Length) bytes | $lineCount lines" -ForegroundColor Green
+Write-Host "Line 1: $((Get-Content $f -Encoding UTF8)[0])" -ForegroundColor Cyan

@@ -856,6 +856,12 @@ import {
 // Import storage settings manager for save fix
 import { storageSettingsManager } from './storageSettingsManager';
 
+// X02: expose typing indicator to window for DevTools testing
+if (typeof window !== 'undefined') {
+  (window as any).showTypingIndicator = showTypingIndicator;
+  (window as any).hideTypingIndicator = hideTypingIndicator;
+}
+
 // Initialize notification system
 initializeNotificationSystem();
 
@@ -3352,6 +3358,9 @@ async function handleEnhancedSendMessage(): Promise<void> {
  * Initialize the AI Assistant UI
  */
 export function initializeAssistantUI(): void {
+  // X02: expose typing indicator to window
+  (window as any).showTypingIndicator = showTypingIndicator;
+  (window as any).hideTypingIndicator = hideTypingIndicator;
   console.log('🚀 Initializing AI Assistant UI...');
 
   // ================================================================

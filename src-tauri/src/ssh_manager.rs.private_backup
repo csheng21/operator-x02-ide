@@ -1,0 +1,995 @@
+﻿// =============================================================================
+// Operator X02 - Phase 2: SSH Connection Manager for Jetson Remote Deployment
+// =============================================================================
+// Provides SSH connection, SCP file transfer, remote command execution,
+// and live tegrastats monitoring via Tauri commands and events.
+// Dependency: ssh2 = "0.9" in Cargo.toml
+// =============================================================================
+
+use serde::{Deserialize, Serialize};
+use ssh2::Session;
+use std::collections::HashMap;
+use std::io::{BufRead, BufReader, Read, Write};
+use std::net::TcpStream;
+use std::path::Path;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
+use tauri::{AppHandle, Emitter, Manager, State};
+
+// ---------------------------------------------------------------------------
+// Data Structures
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JetsonProfile {
+    pub id: String,
+    pub name: String,
+    pub host: String,
+    pub port: u16,
+    pub username: String,
+    /// "password" | "key"
+    pub auth_method: String,
+    /// Only stored in memory during session, never persisted to disk
+    #[serde(skip_serializing, default)]
+    pub password: Option<String>,
+    /// Path to SSH private key file
+    pub key_path: Option<String>,
+    pub last_connected: Option<String>,
+    pub jetpack_version: Option<String>,
+    pub device_model: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ConnectionStatus {
+    pub connected: bool,
+    pub profile_id: Option<String>,
+    pub profile_name: Option<String>,
+    pub host: Option<String>,
+    pub uptime: Option<String>,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoteExecutionResult {
+    pub exit_code: i32,
+    pub stdout: String,
+    pub stderr: String,
+    pub duration_ms: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeployResult {
+    pub transferred: bool,
+    pub compiled: bool,
+    pub executed: bool,
+    pub transfer_time_ms: u64,
+    pub compile_output: String,
+    pub run_output: String,
+    pub run_exit_code: i32,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TegrastatsData {
+    pub timestamp: String,
+    pub ram_used_mb: u32,
+    pub ram_total_mb: u32,
+    pub swap_used_mb: u32,
+    pub swap_total_mb: u32,
+    pub cpu_usage: Vec<CpuCore>,
+    pub gpu_percent: u32,
+    pub gpu_freq_mhz: u32,
+    pub temp_cpu: f32,
+    pub temp_gpu: f32,
+    pub temp_soc: f32,
+    pub power_current_mw: u32,
+    pub power_average_mw: u32,
+    pub emc_percent: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CpuCore {
+    pub id: u32,
+    pub usage_percent: u32,
+    pub freq_mhz: u32,
+    pub online: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JetsonDeviceInfo {
+    pub model: String,
+    pub jetpack_version: String,
+    pub l4t_version: String,
+    pub cuda_version: String,
+    pub ram_total_mb: u32,
+    pub storage_total_gb: f32,
+    pub storage_used_gb: f32,
+    pub nvcc_available: bool,
+    pub tegrastats_available: bool,
+    pub cpu_cores: u32,
+    pub arch: String,
+}
+
+// ---------------------------------------------------------------------------
+// Shared State
+// ---------------------------------------------------------------------------
+
+pub struct SshState {
+    sessions: Mutex<HashMap<String, SshSessionWrapper>>,
+    profiles: Mutex<Vec<JetsonProfile>>,
+    active_profile: Mutex<Option<String>>,
+    monitoring: Arc<Mutex<bool>>,
+}
+
+struct SshSessionWrapper {
+    session: Session,
+    _stream: TcpStream,
+    connected_at: Instant,
+}
+
+impl SshState {
+    pub fn new() -> Self {
+        Self {
+            sessions: Mutex::new(HashMap::new()),
+            profiles: Mutex::new(Vec::new()),
+            active_profile: Mutex::new(None),
+            monitoring: Arc::new(Mutex::new(false)),
+        }
+    }
+}
+
+impl Default for SshState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Profile Management Commands
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+pub fn jetson_save_profile(
+    state: State<'_, SshState>,
+    profile: JetsonProfile,
+) -> Result<Vec<JetsonProfile>, String> {
+    let mut profiles = state.profiles.lock().map_err(|e| e.to_string())?;
+
+    // Update existing or add new
+    if let Some(existing) = profiles.iter_mut().find(|p| p.id == profile.id) {
+        *existing = profile;
+    } else {
+        profiles.push(profile);
+    }
+
+    Ok(profiles.clone())
+}
+
+#[tauri::command]
+pub fn jetson_delete_profile(
+    state: State<'_, SshState>,
+    profile_id: String,
+) -> Result<Vec<JetsonProfile>, String> {
+    let mut profiles = state.profiles.lock().map_err(|e| e.to_string())?;
+    profiles.retain(|p| p.id != profile_id);
+    Ok(profiles.clone())
+}
+
+#[tauri::command]
+pub fn jetson_list_profiles(
+    state: State<'_, SshState>,
+) -> Result<Vec<JetsonProfile>, String> {
+    let profiles = state.profiles.lock().map_err(|e| e.to_string())?;
+    Ok(profiles.clone())
+}
+
+#[tauri::command]
+pub fn jetson_load_profiles(
+    state: State<'_, SshState>,
+    app: AppHandle,
+) -> Result<Vec<JetsonProfile>, String> {
+    let config_dir = app
+        .path()
+        .app_config_dir()
+        .map_err(|e| e.to_string())?;
+    let profiles_path = config_dir.join("jetson_profiles.json");
+
+    if profiles_path.exists() {
+        let data = std::fs::read_to_string(&profiles_path).map_err(|e| e.to_string())?;
+        let loaded: Vec<JetsonProfile> = serde_json::from_str(&data).map_err(|e| e.to_string())?;
+        let mut profiles = state.profiles.lock().map_err(|e| e.to_string())?;
+        *profiles = loaded.clone();
+        Ok(loaded)
+    } else {
+        Ok(Vec::new())
+    }
+}
+
+#[tauri::command]
+pub fn jetson_persist_profiles(
+    state: State<'_, SshState>,
+    app: AppHandle,
+) -> Result<(), String> {
+    let config_dir = app
+        .path()
+        .app_config_dir()
+        .map_err(|e| e.to_string())?;
+    std::fs::create_dir_all(&config_dir).map_err(|e| e.to_string())?;
+
+    let profiles = state.profiles.lock().map_err(|e| e.to_string())?;
+    let json = serde_json::to_string_pretty(&*profiles).map_err(|e| e.to_string())?;
+    std::fs::write(config_dir.join("jetson_profiles.json"), json).map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// SSH Connection Commands
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+pub fn jetson_connect(
+    state: State<'_, SshState>,
+    host: String,
+    port: u16,
+    username: String,
+    auth_method: String,
+    password: Option<String>,
+    key_path: Option<String>,
+    profile_id: Option<String>,
+) -> Result<ConnectionStatus, String> {
+    // Establish TCP connection with timeout
+    let addr = format!("{}:{}", host, port);
+    let tcp = TcpStream::connect_timeout(
+        &addr.parse().map_err(|e: std::net::AddrParseError| e.to_string())?,
+        Duration::from_secs(10),
+    )
+    .map_err(|e| format!("TCP connection failed: {}. Check IP address and that Jetson is powered on.", e))?;
+
+    tcp.set_read_timeout(Some(Duration::from_secs(30)))
+        .map_err(|e| e.to_string())?;
+
+    // Create SSH session
+    let mut session = Session::new().map_err(|e| format!("SSH session creation failed: {}", e))?;
+    session.set_tcp_stream(tcp.try_clone().map_err(|e| e.to_string())?);
+    session.handshake().map_err(|e| format!("SSH handshake failed: {}", e))?;
+
+    // Authenticate
+    match auth_method.as_str() {
+        "password" => {
+            let pwd = password.ok_or("Password required for password authentication")?;
+            session
+                .userauth_password(&username, &pwd)
+                .map_err(|e| format!("Password authentication failed: {}", e))?;
+        }
+        "key" => {
+            let kp = key_path.ok_or("Key path required for key authentication")?;
+            let key = Path::new(&kp);
+            session
+                .userauth_pubkey_file(&username, None, key, password.as_deref())
+                .map_err(|e| format!("Key authentication failed: {}", e))?;
+        }
+        _ => return Err(format!("Unknown auth method: {}", auth_method)),
+    }
+
+    if !session.authenticated() {
+        return Err("Authentication failed".into());
+    }
+
+    let conn_id = profile_id.unwrap_or_else(|| format!("{}@{}", username, host));
+
+    // Store session
+    let mut sessions = state.sessions.lock().map_err(|e| e.to_string())?;
+    sessions.insert(
+        conn_id.clone(),
+        SshSessionWrapper {
+            session,
+            _stream: tcp,
+            connected_at: Instant::now(),
+        },
+    );
+
+    // Set active profile
+    let mut active = state.active_profile.lock().map_err(|e| e.to_string())?;
+    *active = Some(conn_id.clone());
+
+    Ok(ConnectionStatus {
+        connected: true,
+        profile_id: Some(conn_id),
+        profile_name: None,
+        host: Some(host),
+        uptime: Some("0s".to_string()),
+        error: None,
+    })
+}
+
+#[tauri::command]
+pub fn jetson_disconnect(
+    state: State<'_, SshState>,
+    profile_id: Option<String>,
+) -> Result<ConnectionStatus, String> {
+    // Stop monitoring if active
+    let mut mon = state.monitoring.lock().map_err(|e| e.to_string())?;
+    *mon = false;
+    drop(mon);
+
+    let mut sessions = state.sessions.lock().map_err(|e| e.to_string())?;
+    let mut active = state.active_profile.lock().map_err(|e| e.to_string())?;
+
+    let id = profile_id.or_else(|| active.clone());
+    if let Some(ref conn_id) = id {
+        sessions.remove(conn_id);
+        if active.as_ref() == Some(conn_id) {
+            *active = None;
+        }
+    }
+
+    Ok(ConnectionStatus {
+        connected: false,
+        profile_id: None,
+        profile_name: None,
+        host: None,
+        uptime: None,
+        error: None,
+    })
+}
+
+#[tauri::command]
+pub fn jetson_connection_status(
+    state: State<'_, SshState>,
+) -> Result<ConnectionStatus, String> {
+    let sessions = state.sessions.lock().map_err(|e| e.to_string())?;
+    let active = state.active_profile.lock().map_err(|e| e.to_string())?;
+
+    if let Some(ref conn_id) = *active {
+        if let Some(wrapper) = sessions.get(conn_id) {
+            let elapsed = wrapper.connected_at.elapsed();
+            let uptime = if elapsed.as_secs() < 60 {
+                format!("{}s", elapsed.as_secs())
+            } else if elapsed.as_secs() < 3600 {
+                format!("{}m", elapsed.as_secs() / 60)
+            } else {
+                format!("{}h {}m", elapsed.as_secs() / 3600, (elapsed.as_secs() % 3600) / 60)
+            };
+
+            return Ok(ConnectionStatus {
+                connected: true,
+                profile_id: Some(conn_id.clone()),
+                profile_name: None,
+                host: None,
+                uptime: Some(uptime),
+                error: None,
+            });
+        }
+    }
+
+    Ok(ConnectionStatus {
+        connected: false,
+        profile_id: None,
+        profile_name: None,
+        host: None,
+        uptime: None,
+        error: None,
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Remote Execution Commands
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+pub fn jetson_execute(
+    state: State<'_, SshState>,
+    command: String,
+) -> Result<RemoteExecutionResult, String> {
+    let sessions = state.sessions.lock().map_err(|e| e.to_string())?;
+    let active = state.active_profile.lock().map_err(|e| e.to_string())?;
+
+    let conn_id = active
+        .as_ref()
+        .ok_or("No active Jetson connection")?;
+
+    let wrapper = sessions
+        .get(conn_id)
+        .ok_or("Session not found for active connection")?;
+
+    let start = Instant::now();
+    let mut channel = wrapper
+        .session
+        .channel_session()
+        .map_err(|e| format!("Failed to open channel: {}", e))?;
+
+    channel
+        .exec(&command)
+        .map_err(|e| format!("Failed to execute command: {}", e))?;
+
+    let mut stdout = String::new();
+    channel
+        .read_to_string(&mut stdout)
+        .map_err(|e| format!("Failed to read stdout: {}", e))?;
+
+    let mut stderr = String::new();
+    channel
+        .stderr()
+        .read_to_string(&mut stderr)
+        .map_err(|e| format!("Failed to read stderr: {}", e))?;
+
+    channel.wait_close().ok();
+    let exit_code = channel.exit_status().unwrap_or(-1);
+
+    Ok(RemoteExecutionResult {
+        exit_code,
+        stdout,
+        stderr,
+        duration_ms: start.elapsed().as_millis() as u64,
+    })
+}
+
+#[tauri::command]
+pub fn jetson_device_info(
+    state: State<'_, SshState>,
+) -> Result<JetsonDeviceInfo, String> {
+    let sessions = state.sessions.lock().map_err(|e| e.to_string())?;
+    let active = state.active_profile.lock().map_err(|e| e.to_string())?;
+
+    let conn_id = active.as_ref().ok_or("No active Jetson connection")?;
+    let wrapper = sessions.get(conn_id).ok_or("Session not found")?;
+
+    // Gather device info via multiple commands
+    let info_script = r#"
+echo "===MODEL==="
+cat /proc/device-tree/model 2>/dev/null || echo "Unknown"
+echo ""
+echo "===JETPACK==="
+cat /etc/nv_tegra_release 2>/dev/null | head -1 || echo "Unknown"
+echo ""
+echo "===L4T==="
+dpkg-query --showformat='${Version}' --show nvidia-l4t-core 2>/dev/null || echo "Unknown"
+echo ""
+echo "===CUDA==="
+export PATH=/usr/local/cuda/bin:$PATH; nvcc --version 2>/dev/null | grep "release" | sed 's/.*release //' | sed 's/,.*//' || echo "None"
+echo ""
+echo "===RAM==="
+grep MemTotal /proc/meminfo | awk '{print int($2/1024)}'
+echo ""
+echo "===DISK==="
+df -BG / | tail -1 | awk '{gsub("G",""); print $2,$3}'
+echo ""
+echo "===NVCC==="
+export PATH=/usr/local/cuda/bin:$PATH; which nvcc >/dev/null 2>&1 && echo "yes" || echo "no"
+echo ""
+echo "===TEGRA==="
+which tegrastats >/dev/null 2>&1 && echo "yes" || echo "no"
+echo ""
+echo "===CPUCORES==="
+nproc 2>/dev/null || echo "0"
+echo ""
+echo "===ARCH==="
+uname -m 2>/dev/null || echo "ARM"
+"#;
+
+    let mut channel = wrapper.session.channel_session().map_err(|e| e.to_string())?;
+    channel.exec(info_script).map_err(|e| e.to_string())?;
+
+    let mut output = String::new();
+    channel.read_to_string(&mut output).map_err(|e| e.to_string())?;
+    channel.wait_close().ok();
+
+    // Parse sections
+    let get_section = |tag: &str| -> String {
+        output
+            .split(&format!("==={}===", tag))
+            .nth(1)
+            .and_then(|s| s.split("===").next())
+            .map(|s| s.trim().to_string())
+            .unwrap_or_else(|| "Unknown".to_string())
+    };
+
+    let ram_str = get_section("RAM");
+    let ram_total = ram_str.parse::<u32>().unwrap_or(0);
+
+    let disk_str = get_section("DISK");
+    let disk_parts: Vec<&str> = disk_str.split_whitespace().collect();
+    let storage_total = disk_parts.first().and_then(|s| s.parse::<f32>().ok()).unwrap_or(0.0);
+    let storage_used = disk_parts.get(1).and_then(|s| s.parse::<f32>().ok()).unwrap_or(0.0);
+
+    Ok(JetsonDeviceInfo {
+        model: get_section("MODEL"),
+        jetpack_version: get_section("JETPACK"),
+        l4t_version: get_section("L4T"),
+        cuda_version: get_section("CUDA"),
+        ram_total_mb: ram_total,
+        storage_total_gb: storage_total,
+        storage_used_gb: storage_used,
+        nvcc_available: get_section("NVCC") == "yes",
+        tegrastats_available: get_section("TEGRA") == "yes",
+        cpu_cores: get_section("CPUCORES").parse::<u32>().unwrap_or(0),
+        arch: get_section("ARCH"),
+    })
+}
+
+// ---------------------------------------------------------------------------
+// SCP File Transfer Commands
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+pub fn jetson_upload_file(
+    state: State<'_, SshState>,
+    local_path: String,
+    remote_path: String,
+) -> Result<u64, String> {
+    let sessions = state.sessions.lock().map_err(|e| e.to_string())?;
+    let active = state.active_profile.lock().map_err(|e| e.to_string())?;
+
+    let conn_id = active.as_ref().ok_or("No active Jetson connection")?;
+    let wrapper = sessions.get(conn_id).ok_or("Session not found")?;
+
+    let local = Path::new(&local_path);
+    if !local.exists() {
+        return Err(format!("Local file not found: {}", local_path));
+    }
+
+    let metadata = std::fs::metadata(local).map_err(|e| e.to_string())?;
+    let file_size = metadata.len();
+    let contents = std::fs::read(local).map_err(|e| e.to_string())?;
+
+    let mut remote_file = wrapper
+        .session
+        .scp_send(Path::new(&remote_path), 0o644, file_size, None)
+        .map_err(|e| format!("SCP send failed: {}", e))?;
+
+    remote_file
+        .write_all(&contents)
+        .map_err(|e| format!("Failed to write file data: {}", e))?;
+
+    remote_file
+        .send_eof()
+        .map_err(|e| format!("Failed to send EOF: {}", e))?;
+
+    remote_file
+        .wait_eof()
+        .map_err(|e| format!("Failed to wait EOF: {}", e))?;
+
+    remote_file
+        .close()
+        .map_err(|e| format!("Failed to close channel: {}", e))?;
+
+    remote_file
+        .wait_close()
+        .map_err(|e| format!("Failed to wait close: {}", e))?;
+
+    Ok(file_size)
+}
+
+#[tauri::command]
+pub fn jetson_upload_directory(
+    state: State<'_, SshState>,
+    local_dir: String,
+    remote_dir: String,
+) -> Result<Vec<String>, String> {
+    // First, create the remote directory
+    let sessions = state.sessions.lock().map_err(|e| e.to_string())?;
+    let active = state.active_profile.lock().map_err(|e| e.to_string())?;
+    let conn_id = active.as_ref().ok_or("No active Jetson connection")?;
+    let wrapper = sessions.get(conn_id).ok_or("Session not found")?;
+
+    // Create remote dir via sftp or exec
+    let mut ch = wrapper.session.channel_session().map_err(|e| e.to_string())?;
+    ch.exec(&format!("mkdir -p '{}'", remote_dir))
+        .map_err(|e| e.to_string())?;
+    ch.wait_close().ok();
+
+    drop(sessions);
+    drop(active);
+
+    // Collect files to transfer
+    let local_path = Path::new(&local_dir);
+    if !local_path.is_dir() {
+        return Err(format!("Not a directory: {}", local_dir));
+    }
+
+    let mut transferred = Vec::new();
+    for entry in std::fs::read_dir(local_path).map_err(|e| e.to_string())? {
+        let entry = entry.map_err(|e| e.to_string())?;
+        let path = entry.path();
+        if path.is_file() {
+            let file_name = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .ok_or("Invalid filename")?;
+            let remote_file_path = format!("{}/{}", remote_dir, file_name);
+
+            // Re-acquire locks for each file transfer
+            jetson_upload_file(
+                state.clone(),
+                path.to_string_lossy().to_string(),
+                remote_file_path.clone(),
+            )?;
+
+            transferred.push(remote_file_path);
+        }
+    }
+
+    Ok(transferred)
+}
+
+// ---------------------------------------------------------------------------
+// Deploy & Run Command
+// ---------------------------------------------------------------------------
+
+#[tauri::command]
+pub fn jetson_deploy_and_run(
+    state: State<'_, SshState>,
+    app: AppHandle,
+    local_path: String,
+    remote_dir: String,
+    compile_command: Option<String>,
+    run_command: String,
+) -> Result<DeployResult, String> {
+    let start = Instant::now();
+
+    // Step 1: Upload file
+    let file_name = Path::new(&local_path)
+        .file_name()
+        .and_then(|n| n.to_str())
+        .ok_or("Invalid filename")?
+        .to_string();
+    let remote_path = format!("{}/{}", remote_dir, file_name);
+
+    app.emit("jetson-deploy-status", "Uploading file...").ok();
+
+    // Ensure remote directory exists
+    let mkdir_result = jetson_execute(
+        state.clone(),
+        format!("mkdir -p '{}'", remote_dir),
+    )?;
+
+    let transfer_start = Instant::now();
+    jetson_upload_file(state.clone(), local_path, remote_path.clone())?;
+    let transfer_time = transfer_start.elapsed().as_millis() as u64;
+
+    app.emit("jetson-deploy-status", "File uploaded").ok();
+
+    // Step 2: Compile (if applicable)
+    let mut compile_output = String::new();
+    let mut compiled = true;
+
+    if let Some(ref cmd) = compile_command {
+        app.emit("jetson-deploy-status", "Compiling...").ok();
+
+        let compile_cmd = cmd
+            .replace("{FILE}", &remote_path)
+            .replace("{DIR}", &remote_dir)
+            .replace("{NAME}", &file_name.replace(".cu", "").replace(".cpp", "").replace(".c", ""));
+
+        let result = jetson_execute(state.clone(), compile_cmd)?;
+        compile_output = format!("{}{}", result.stdout, result.stderr);
+        compiled = result.exit_code == 0;
+
+        if !compiled {
+            return Ok(DeployResult {
+                transferred: true,
+                compiled: false,
+                executed: false,
+                transfer_time_ms: transfer_time,
+                compile_output,
+                run_output: String::new(),
+                run_exit_code: -1,
+                error: Some("Compilation failed".into()),
+            });
+        }
+
+        app.emit("jetson-deploy-status", "Compiled successfully").ok();
+    }
+
+    // Step 3: Run
+    app.emit("jetson-deploy-status", "Running...").ok();
+
+    let run_cmd = run_command
+        .replace("{FILE}", &remote_path)
+        .replace("{DIR}", &remote_dir)
+        .replace("{NAME}", &file_name.replace(".cu", "").replace(".cpp", "").replace(".c", ""));
+
+    let run_result = jetson_execute(state.clone(), format!("cd '{}' && {}", remote_dir, run_cmd))?;
+
+    app.emit("jetson-deploy-status", "Complete").ok();
+
+    Ok(DeployResult {
+        transferred: true,
+        compiled,
+        executed: run_result.exit_code == 0,
+        transfer_time_ms: transfer_time,
+        compile_output,
+        run_output: format!("{}{}", run_result.stdout, run_result.stderr),
+        run_exit_code: run_result.exit_code,
+        error: if run_result.exit_code != 0 {
+            Some(format!("Process exited with code {}", run_result.exit_code))
+        } else {
+            None
+        },
+    })
+}
+
+// ---------------------------------------------------------------------------
+// Live Tegrastats Monitor
+// ---------------------------------------------------------------------------
+
+/// Parse a single line of tegrastats output into structured data.
+/// Example line:
+/// RAM 3456/7620MB (lfb 107x4MB) SWAP 0/3810MB ... CPU [42%@1510,31%@1510,...] ... GR3D_FREQ 55% ... gpu@42C cpu@38.5C soc2@40C ... VDD_IN 5600mW/5200mW
+fn parse_tegrastats_line(line: &str) -> Option<TegrastatsData> {
+    let now = chrono::Local::now().format("%H:%M:%S").to_string();
+
+    // RAM: "RAM 3456/7620MB"
+    let (ram_used, ram_total) = {
+        let ram_re = line.find("RAM ").map(|i| {
+            let sub = &line[i + 4..];
+            let end = sub.find("MB").unwrap_or(sub.len());
+            let parts: Vec<&str> = sub[..end].split('/').collect();
+            (
+                parts.first().and_then(|s| s.parse::<u32>().ok()).unwrap_or(0),
+                parts.get(1).and_then(|s| s.parse::<u32>().ok()).unwrap_or(0),
+            )
+        });
+        ram_re.unwrap_or((0, 0))
+    };
+
+    // SWAP: "SWAP 0/3810MB"
+    let (swap_used, swap_total) = {
+        let swap_re = line.find("SWAP ").map(|i| {
+            let sub = &line[i + 5..];
+            let end = sub.find("MB").unwrap_or(sub.len());
+            let parts: Vec<&str> = sub[..end].split('/').collect();
+            (
+                parts.first().and_then(|s| s.parse::<u32>().ok()).unwrap_or(0),
+                parts.get(1).and_then(|s| s.parse::<u32>().ok()).unwrap_or(0),
+            )
+        });
+        swap_re.unwrap_or((0, 0))
+    };
+
+    // CPU: "CPU [42%@1510,31%@1510,off,off,25%@1510,30%@1510]"
+    let cpu_usage = {
+        let mut cores = Vec::new();
+        if let Some(start) = line.find("CPU [") {
+            let sub = &line[start + 5..];
+            if let Some(end) = sub.find(']') {
+                let cpu_str = &sub[..end];
+                for (id, core) in cpu_str.split(',').enumerate() {
+                    let core = core.trim();
+                    if core == "off" {
+                        cores.push(CpuCore {
+                            id: id as u32,
+                            usage_percent: 0,
+                            freq_mhz: 0,
+                            online: false,
+                        });
+                    } else if let Some(at_pos) = core.find('@') {
+                        let usage = core[..at_pos]
+                            .replace('%', "")
+                            .parse::<u32>()
+                            .unwrap_or(0);
+                        let freq = core[at_pos + 1..]
+                            .parse::<u32>()
+                            .unwrap_or(0);
+                        cores.push(CpuCore {
+                            id: id as u32,
+                            usage_percent: usage,
+                            freq_mhz: freq,
+                            online: true,
+                        });
+                    }
+                }
+            }
+        }
+        cores
+    };
+
+    // GPU: "GR3D_FREQ 55%" or "GR3D_FREQ 55%@921"
+    let (gpu_percent, gpu_freq) = {
+        if let Some(start) = line.find("GR3D_FREQ ") {
+            let sub = &line[start + 10..];
+            let end = sub.find(|c: char| c == ' ' || c == '\n').unwrap_or(sub.len());
+            let gpu_str = &sub[..end];
+            if let Some(at_pos) = gpu_str.find('@') {
+                let pct = gpu_str[..at_pos].replace('%', "").parse::<u32>().unwrap_or(0);
+                let freq = gpu_str[at_pos + 1..].parse::<u32>().unwrap_or(0);
+                (pct, freq)
+            } else {
+                let pct = gpu_str.replace('%', "").parse::<u32>().unwrap_or(0);
+                (pct, 0)
+            }
+        } else {
+            (0, 0)
+        }
+    };
+
+    // Temperatures: "GPU@51.9C" "CPU@52.2C" "SOC2@50.5C" (case-insensitive)
+    let line_lower = line.to_lowercase();
+    let parse_temp = |tag: &str| -> f32 {
+        let search = format!("{}@", tag.to_lowercase());
+        line_lower.find(&search)
+            .map(|i| {
+                let sub = &line_lower[i + search.len()..];
+                let end = sub.find('c').unwrap_or(sub.len());
+                let val = sub[..end].parse::<f32>().unwrap_or(0.0);
+                if val < -200.0 { 0.0 } else { val }
+            })
+            .unwrap_or(0.0)
+    };
+    let temp_cpu = parse_temp("cpu");
+    let temp_gpu = parse_temp("gpu");
+    let temp_soc = parse_temp("soc2").max(parse_temp("soc0")).max(parse_temp("soc1")).max(parse_temp("soc"));
+
+    // Power: "VDD_IN 5600mW/5200mW" or "VDD_IN 5600/5200"
+    let (power_current, power_average) = {
+        if let Some(start) = line.find("VDD_IN ") {
+            let sub = &line[start + 7..];
+            let clean = sub.replace("mW", "");
+            let end = clean.find(|c: char| c == ' ' || c == '\n').unwrap_or(clean.len());
+            let parts: Vec<&str> = clean[..end].split('/').collect();
+            (
+                parts.first().and_then(|s| s.trim().parse::<u32>().ok()).unwrap_or(0),
+                parts.get(1).and_then(|s| s.trim().parse::<u32>().ok()).unwrap_or(0),
+            )
+        } else {
+            (0, 0)
+        }
+    };
+
+    // EMC: "EMC_FREQ 42%" or "EMC_FREQ 42%@2133"
+    let emc_percent = {
+        if let Some(start) = line.find("EMC_FREQ ") {
+            let sub = &line[start + 9..];
+            let end = sub.find(|c: char| c == '%' || c == ' ').unwrap_or(sub.len());
+            sub[..end].parse::<u32>().unwrap_or(0)
+        } else {
+            0
+        }
+    };
+
+    Some(TegrastatsData {
+        timestamp: now,
+        ram_used_mb: ram_used,
+        ram_total_mb: ram_total,
+        swap_used_mb: swap_used,
+        swap_total_mb: swap_total,
+        cpu_usage,
+        gpu_percent,
+        gpu_freq_mhz: gpu_freq,
+        temp_cpu,
+        temp_gpu,
+        temp_soc,
+        power_current_mw: power_current,
+        power_average_mw: power_average,
+        emc_percent,
+    })
+}
+
+#[tauri::command]
+pub fn jetson_start_monitoring(
+    state: State<'_, SshState>,
+    app: AppHandle,
+    interval_ms: Option<u32>,
+) -> Result<(), String> {
+    let mut monitoring = state.monitoring.lock().map_err(|e| e.to_string())?;
+    if *monitoring {
+        return Ok(()); // Already monitoring
+    }
+    *monitoring = true;
+    drop(monitoring);
+
+    let sessions = state.sessions.lock().map_err(|e| e.to_string())?;
+    let active = state.active_profile.lock().map_err(|e| e.to_string())?;
+    let conn_id = active.as_ref().ok_or("No active Jetson connection")?.clone();
+    let wrapper = sessions.get(&conn_id).ok_or("Session not found")?;
+
+    let interval = interval_ms.unwrap_or(1000);
+    let tegra_cmd = format!("stdbuf -oL tegrastats --interval {}", interval);
+
+    let mut channel = wrapper
+        .session
+        .channel_session()
+        .map_err(|e| format!("Failed to open channel: {}", e))?;
+    channel
+        .exec(&tegra_cmd)
+        .map_err(|e| format!("Failed to start tegrastats: {}", e))?;
+
+    // Clone the shared monitoring flag for the thread
+    let flag_clone = Arc::clone(&state.monitoring);
+
+    // Spawn thread to read tegrastats output and emit events
+    let app_clone = app.clone();
+    std::thread::spawn(move || {
+        let reader = BufReader::new(&mut channel);
+        for line in reader.lines() {
+            // Check if we should stop
+            if let Ok(flag) = flag_clone.lock() {
+                if !*flag {
+                    break;
+                }
+            }
+
+            match line {
+                Ok(text) => {
+                    if let Some(data) = parse_tegrastats_line(&text) {
+                        app_clone.emit("jetson-tegrastats", &data).ok();
+                    }
+                }
+                Err(_) => break,
+            }
+        }
+
+        // Cleanup
+        channel.send_eof().ok();
+        channel.wait_close().ok();
+    });
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn jetson_stop_monitoring(
+    state: State<'_, SshState>,
+) -> Result<(), String> {
+    let mut monitoring = state.monitoring.lock().map_err(|e| e.to_string())?;
+    *monitoring = false;
+    Ok(())
+}
+
+/// Single tegrastats snapshot (non-streaming)
+#[tauri::command]
+pub fn jetson_tegrastats_snapshot(
+    state: State<'_, SshState>,
+) -> Result<TegrastatsData, String> {
+    // Try --count first (newer JetPack), fallback to timeout (universal)
+    let result = jetson_execute(state, "stdbuf -oL tegrastats --interval 500 | head -1".to_string())?;
+
+    if result.exit_code != 0 {
+        return Err(format!("tegrastats failed: {}", result.stderr));
+    }
+
+    // timeout/fallback may return multiple lines - use last non-empty line
+    let line = result.stdout
+        .lines()
+        .filter(|l| l.contains("RAM ") || l.contains("CPU ["))
+        .last()
+        .unwrap_or(&result.stdout);
+
+    parse_tegrastats_line(line.trim())
+        .ok_or_else(|| format!("Failed to parse tegrastats output: {}", result.stdout.chars().take(200).collect::<String>()))
+}
+
+// ---------------------------------------------------------------------------
+// Registration Helper
+// ---------------------------------------------------------------------------
+
+/// Call this from main.rs to register all SSH-related Tauri commands.
+/// Usage in main.rs:
+///   .manage(ssh_manager::SshState::new())
+///   .invoke_handler(tauri::generate_handler![
+///       ssh_manager::jetson_connect,
+///       ssh_manager::jetson_disconnect,
+///       ssh_manager::jetson_connection_status,
+///       ssh_manager::jetson_execute,
+///       ssh_manager::jetson_device_info,
+///       ssh_manager::jetson_upload_file,
+///       ssh_manager::jetson_upload_directory,
+///       ssh_manager::jetson_deploy_and_run,
+///       ssh_manager::jetson_start_monitoring,
+///       ssh_manager::jetson_stop_monitoring,
+///       ssh_manager::jetson_tegrastats_snapshot,
+///       ssh_manager::jetson_save_profile,
+///       ssh_manager::jetson_delete_profile,
+///       ssh_manager::jetson_list_profiles,
+///       ssh_manager::jetson_load_profiles,
+///       ssh_manager::jetson_persist_profiles,
+///   ])
+pub fn get_command_list() -> &'static str {
+    "jetson_connect, jetson_disconnect, jetson_connection_status, \
+     jetson_execute, jetson_device_info, \
+     jetson_upload_file, jetson_upload_directory, jetson_deploy_and_run, \
+     jetson_start_monitoring, jetson_stop_monitoring, jetson_tegrastats_snapshot, \
+     jetson_save_profile, jetson_delete_profile, jetson_list_profiles, \
+     jetson_load_profiles, jetson_persist_profiles"
+}

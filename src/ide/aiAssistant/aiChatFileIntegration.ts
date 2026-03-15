@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // FILE: src/ide/aiAssistant/aiChatFileIntegration.ts
 // PURPOSE: Enhanced AI Chat → Complete Project Creator
 // ============================================================================
@@ -251,11 +251,27 @@ Format each file like this:
     }
 
     console.log(`📄 Found ${codeBlocks.length} code block(s)`);
+    // X02: Skip documentation/diagram blocks â€” not real code to write to disk
+    const isDocBlock = (content: string): boolean => {
+      if (!content) return true;
+      if (content.includes('\u251C\u2500\u2500') || content.includes('\u2514\u2500\u2500') || content.includes('\u2502')) return true; // file tree chars
+      if (content.includes('Direct Imports:') || content.includes('Runtime Dependencies:')) return true; // dependency analysis
+      if (content.includes('Dependency Analysis') || content.includes('Import Graph')) return true;
+      const lines = content.split('\n').filter((l: string) => l.trim()).length;
+      if (lines < 4 && content.length < 200) return true; // too short to be real code
+      return false;
+    };
+    const realCodeBlocks = codeBlocks.filter((b: any) => !isDocBlock(b.content || b.code || String(b)));
+    if (realCodeBlocks.length === 0) {
+      console.log('\u26A0\uFE0F [X02 Doc Guard] All blocks are documentation/diagrams, skipping file creation');
+      return;
+    }
+    // X02: end doc guard
 
     // NEW: Check if we should create a project folder
     let projectFolder: string | null = null;
     
-    if (codeBlocks.length >= 2) {  // Multiple files = project
+    if (realCodeBlocks.length >= 2) {  // Multiple files = project
       const projectName = this.inferProjectName(userMessage);
       
       if (projectName) {
@@ -270,10 +286,10 @@ Format each file like this:
     }
 
     // Determine file names and content
-    const files = this.determineFileNamesAndContent(codeBlocks, userMessage, projectFolder);
+    const files = this.determineFileNamesAndContent(realCodeBlocks, userMessage, projectFolder);
 
     if (files.length === 0) {
-      await this.promptUserForFileCreation(codeBlocks[0]);
+      await this.promptUserForFileCreation(realCodeBlocks[0]);
       return;
     }
 

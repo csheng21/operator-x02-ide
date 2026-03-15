@@ -3802,6 +3802,7 @@ async function processMultiFileApply(): Promise<void> {
             surgicalPipeline.enter(7, 'Applied successfully');
             surgicalPipeline.complete(7, result.message);
             surgicalPipeline.end(true);
+      setTimeout(() => { const d = document.getElementById("ai-status-dialog"); if (d) { d.style.transition = "opacity 0.4s"; d.style.opacity = "0"; setTimeout(() => d.remove(), 420); } }, 3000); // X02: auto-dismiss
           }
           console.log(`✅ [Apply] Applied to ${item.fileName}: ${result.message}`);
           addStatusLog(`Applied: ${result.message}`, 'success');
@@ -6474,6 +6475,13 @@ function applyCodeInstant(code: string, mode: 'replace' | 'insert' | 'append'): 
 // ============================================================================
 
 async function autoApplyNewCodeBlock(block: HTMLElement | null = null): Promise<void> {
+  // X02: Skip if block is inside an analysis result (Quick/Deep Analyze output)
+  if (block && block.closest("[data-analysis-result]")) {
+    console.log("[AutoApply] Skipped - inside analysis result");
+    return;
+  }
+  if ((window as any).__analysisMode) { console.log('[AutoApply] Skipped - analysis mode'); return; }
+  if ((window as any).__analysisMode) { console.log('[AutoApply] Skipped - analysis mode'); return; }
   if (!autoApplyEnabled) {
     return; // Disabled
   }
@@ -6704,6 +6712,7 @@ async function doApplyCode(targetBlock: HTMLElement, code: string, blockId: stri
     surgicalPipeline.enter(7, 'Accept / Reject prompt');
     surgicalPipeline.complete(7, result.message);
     surgicalPipeline.end(true);
+      setTimeout(() => { const d = document.getElementById("ai-status-dialog"); if (d) { d.style.transition = "opacity 0.4s"; d.style.opacity = "0"; setTimeout(() => d.remove(), 420); } }, 3000); // X02: auto-dismiss
     
     // Mark block with green badge showing changes in header
     const blockId = targetBlock.getAttribute('data-muf-id') || targetBlock.getAttribute('data-block-id') || '';
@@ -7867,6 +7876,7 @@ class SurgicalPipelineTracker {
     document.body.appendChild(el);
     this.overlayEl = el;
     this.updateOverlay();
+  if ((window as any).__analysisMode) { console.log('[PipelineUI] Skipped - analysis mode'); return; }
     console.log('🔬 [PipelineUI] ✅ Overlay SHOWN INSTANTLY (Pipeline #' + this.runCount + ')');
   }
 
@@ -8274,6 +8284,7 @@ export function initAutoCodeApply(): void {
       });
     }
     
+    newBlocks = newBlocks.filter(b => !b.closest("[data-analysis-result]")); // X02: skip analysis output
     if (newBlocks.length > 0 && autoApplyEnabled && !isProcessingMultiFile) {
       setTimeout(() => {
         processAutoApplyCodeBlocks();
@@ -8347,7 +8358,8 @@ export function initAutoCodeApply(): void {
     if (autoApplyEnabled && !isTypingInProgress) {
       // Only check for unprocessed blocks - don't clear processedBlockIds here
       // The clear happens in autoApplyNewCodeBlock when truly new messages arrive
-      const unprocessed = getUnprocessedCodeBlocks();
+      let unprocessed = getUnprocessedCodeBlocks();
+      unprocessed = unprocessed.filter(b => !b.closest("[data-analysis-result]")); // X02: skip analysis
       if (unprocessed.length > 0 && hasNewMessage()) {
         autoApplyNewCodeBlock(null);
       }
