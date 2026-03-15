@@ -19,3 +19,9 @@ src-tauri/gen/
 *.AppImage
 
 src-tauri/src/operator-x02-core/
+
+*.private_backup
+fix_*.ps1
+scan_*.ps1
+fix_*.py
+diagnose_*.ps1
