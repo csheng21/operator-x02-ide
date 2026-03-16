@@ -14,56 +14,48 @@ tauri-build = { version = "2.0", features = [] }
 
 [dependencies]
 base64 = "0.22"
-
-# Core Tauri
-# ✅ Added "devtools" feature to enable DevTools in production builds
+# Core Tauri - lock to compatible version
+# âœ… Added "devtools" feature to enable DevTools in production builds
 tauri = { version = "2.6", features = ["devtools"] }
-
-# ✅ Pure Rust SSH — replaces ssh2 { features = ["vendored-openssl"] }
-#    No C compilation, no openssl-sys, dramatically faster clean builds.
-russh       = "0.44"
-russh-keys  = "0.44"
-russh-sftp  = "2.0"
-async-trait = "0.1"
-
+ssh2 = { version = "0.9", features = ["vendored-openssl"] }
 chrono = "0.4"
 
 # Serialization
-serde      = { version = "1.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
 # System utilities
-dirs     = "5.0.1"
+dirs = "5.0.1"
 hostname = "0.3.1"
 
 # Process management for build system
 lazy_static = "1.4"
 
-# HTTP client for AI API calls (already using rustls-tls — no OpenSSL)
+# HTTP client for AI API calls
 reqwest = { version = "0.11", features = ["json", "rustls-tls"], default-features = false }
-tokio   = { version = "1.0", features = ["full"] }
+tokio = { version = "1.0", features = ["full"] }
 
-# Arduino Integration — Serial port communication
+# Arduino Integration - Serial port communication
 serialport = "4.3"
 
-# Tauri plugins — compatible with tauri 2.6
-tauri-plugin-fs            = "2.0"
-tauri-plugin-shell         = "2.0"
-tauri-plugin-dialog        = "2.0"
-tauri-plugin-http          = "2.0"
-tauri-plugin-opener        = "2.0"
-tauri-plugin-deep-link     = "2.0"
+# Tauri plugins - compatible with tauri 2.6
+tauri-plugin-fs = "2.0"
+tauri-plugin-shell = "2.0"
+tauri-plugin-dialog = "2.0"
+tauri-plugin-http = "2.0"
+tauri-plugin-opener = "2.0"
+tauri-plugin-deep-link = "2.0"
 
-# Single instance plugin — prevents multiple windows
+# Single instance plugin - prevents multiple windows
 tauri-plugin-single-instance = "2"
 
 [features]
-default          = ["custom-protocol"]
-custom-protocol  = ["tauri/custom-protocol"]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
 
 [profile.release]
-opt-level     = "s"
-lto           = true
+opt-level = "s"
+lto = true
 codegen-units = 1
 
 [profile.dev]
