@@ -1,20 +1,18 @@
-<div align="center">
-
 # ⚡ Operator X02 Code IDE
 
 ### AI-Powered IDE for Embedded & Edge AI Developers
 
 Built with **Tauri v2** · **Rust** · **TypeScript** · **Monaco Editor**
 <img width="1008" height="818" alt="borderless-memory" src="https://github.com/user-attachments/assets/b70f32d3-a6b2-41d2-a3ec-42aa3dbdc728" />
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Tauri](https://img.shields.io/badge/Tauri-2.x-blue)](https://tauri.app)
 [![Rust](https://img.shields.io/badge/Rust-2021-orange)](https://www.rust-lang.org)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)](https://www.typescriptlang.org)
 [![Version](https://img.shields.io/badge/version-1.5.0--beta-green)](https://github.com/csheng21/operator-x02-ide/releases)
+[![Open Source](https://img.shields.io/badge/Open%20Source-100%25-brightgreen)](https://github.com/csheng21/operator-x02-ide)
 
 [Website](https://operatorx02.com) · [YouTube](https://youtube.com/@csh3003) · [Report Bug](https://github.com/csheng21/operator-x02-ide/issues) · [Request Feature](https://github.com/csheng21/operator-x02-ide/issues)
-
-</div>
 
 ---
 
@@ -22,39 +20,33 @@ Built with **Tauri v2** · **Rust** · **TypeScript** · **Monaco Editor**
 
 Operator X02 is a **lightweight, AI-native IDE** built specifically for **embedded systems** and **edge AI developers**. Unlike VS Code or Cursor which bolt AI on as an extension, Operator X02 is designed AI-first from the ground up — with deep hardware integration for NVIDIA Jetson, Arduino, Raspberry Pi, and Android.
 
+> *"Coding is Art. Feel it. Enjoy it."*
+
 ### Performance Comparison
 
 | Metric | Operator X02 | VS Code | Cursor |
-|---|---|---|---|
+|--------|-------------|---------|--------|
 | Memory (idle) | **~95 MB** | ~280 MB | ~400 MB |
 | Cold start | **~1.8s** | ~3.2s | ~4s |
 | File open (1000 lines) | **12ms** | 25ms | — |
 | Search (10K files) | **45ms** | 120ms | — |
 | Binary size | **~100 MB** | ~300 MB | ~400 MB |
 
-
-
 <img width="1674" height="998" alt="main_interface" src="https://github.com/user-attachments/assets/224b0d26-2cec-432b-b318-13b0507ee3de" />
 ---
 
 ## ⬇️ How to Get Operator X02
-
-There are **two ways** to get Operator X02. Please read carefully — they are different:
-
----
 
 ### ✅ Option 1 — Download Installer (Recommended)
 
 **All features fully working — no build required.**
 
 👉 Go to [Releases](https://github.com/csheng21/operator-x02-ide/releases) and download:
+
 - `Operator-X02_1.5.0_x64-setup.exe` — Windows installer
 - `Operator-X02_1.5.0_x64_en-US.msi` — Windows MSI package
 
 > ⚠️ **Windows 10 / 11 (64-bit) only.** macOS and Linux support coming in v1.6.x.
-
-The installer is compiled by the author using the complete private codebase.
-All features including Surgical Edit Engine, Jetson, SSH, and Backup Manager are **fully functional**.
 
 ```
 Download .exe → Install → Run → All features work ✅
@@ -62,9 +54,9 @@ Download .exe → Install → Run → All features work ✅
 
 ---
 
-### ⚠️ Option 2 — Build from Source Code
+### 🛠️ Option 2 — Build from Source
 
-**For developers who want to study, modify, or contribute to the codebase.**
+**100% open source — full source code included, no hidden modules.**
 
 ```bash
 git clone https://github.com/csheng21/operator-x02-ide.git
@@ -73,28 +65,23 @@ npm install
 npm run tauri dev
 ```
 
-> **Important:** When building from source, the following 4 modules are **community stubs**
-> and will not be functional. All other features work normally.
-
 | Module | Build from Source | Download Installer |
-|---|---|---|
+|--------|------------------|-------------------|
 | All IDE features (Git, SVN, Arduino, Android, etc.) | ✅ Full | ✅ Full |
 | AI Assistant (all providers) | ✅ Full | ✅ Full |
 | IDE Script Auto Mode (12 commands) | ✅ Full | ✅ Full |
 | Raspberry Pi remote deploy | ✅ Full | ✅ Full |
-| **Surgical Edit Engine** (8-stage AI pipeline) | ⚠️ Stub | ✅ Full |
-| **NVIDIA Jetson Integration** | ⚠️ Stub | ✅ Full |
-| **SSH Remote Manager** | ⚠️ Stub | ✅ Full |
-| **Surgical Backup Manager** | ⚠️ Stub | ✅ Full |
-
-> These 4 modules contain proprietary core logic. The source code for these modules
-> is not included in this repository. The compiled installer includes the full implementation.
+| Surgical Edit Engine (8-stage AI pipeline) | ✅ Full | ✅ Full |
+| NVIDIA Jetson Integration | ✅ Full | ✅ Full |
+| SSH Remote Manager | ✅ Full | ✅ Full |
+| Surgical Backup Manager | ✅ Full | ✅ Full |
 
 ---
 
 ## ✨ Full Feature List
 
 ### 🤖 AI Assistant
+
 - **Multi-Provider Routing** — Claude (Anthropic), OpenAI, Groq, Deepseek, Gemini, Ollama (local/offline)
 - **Conversation History Context** — AI remembers past sessions; auto-detects references like "what did we discuss yesterday?" and injects relevant history
 - **AI History Search** — intelligent conversation memory with multi-factor relevance scoring (keyword 40% + topic 30% + phrase 20% + recency 10%)
@@ -140,6 +127,7 @@ npm run tauri dev
 - SVN dashboard with analytics
 
 ### 🔌 Arduino Integration
+
 - Build and flash sketches directly from IDE
 - Serial monitor with real-time data
 - Arduino pin visualizer — visual board layout
@@ -147,11 +135,13 @@ npm run tauri dev
 - AI assistance for sketch generation
 
 ### 🍓 Raspberry Pi Integration
+
 - Remote deploy over SSH
 - Run commands on Pi from IDE terminal
 - File browser — browse Pi filesystem remotely
 
 ### 📱 Android Integration
+
 - **28 ADB commands** — device management, logcat, app install/uninstall/launch
 - **ADB Auto-Installer** — downloads Platform Tools automatically
 - 4-tab panel: Devices | Logcat | Build | IoT Bridge
@@ -159,17 +149,36 @@ npm run tauri dev
 - Gradle build — Debug / Release / Clean / Build+Install+Run in one click
 - **Arduino IoT Bridge** — Android ↔ Arduino data pipeline
 
+### 🟢 NVIDIA Jetson Integration
+
+- Live GPU / RAM / CPU dashboard with real-time tegrastats streaming
+- Jetson terminal with hardware-aware command suggestions
+- Multi-device management panel
+- Power mode manager
+- Performance graph with historical data
+- File browser over SSH
+
+### 🔑 SSH Remote Manager
+
+- Connect to any remote device over SSH
+- Remote terminal directly in IDE
+- File operations on remote filesystem
+- Persistent session management
+
 ### 🔍 AI File Search
+
 - **Standard search** — fast filename filtering
 - **AI-Enhanced search** — natural language queries
 - **Content search** — search inside file contents across entire project
 
 ### 🎮 Game Development
+
 - Android game project scaffolding
 - Phaser.js HTML5 game templates
 - AI game code generator
 
 ### 🧩 Plugin System
+
 - Built-in plugins: Python, C#, Android/Kotlin, Flet
 - External plugin loader with sandbox
 
@@ -177,38 +186,41 @@ npm run tauri dev
 
 ## 🛠️ Build from Source — Prerequisites
 
-> Only needed if you choose **Option 2** above.
-
-> ⚠️ **Platform Support: Windows Only (for now)**
-> Operator X02 currently supports **Windows 10 / 11 (64-bit) only**.
-> macOS and Linux builds are planned for a future release (v1.6.x).
-> The codebase contains Windows-specific implementations (process flags, file paths, TortoiseSVN)
-> that need to be refactored before cross-platform support is possible.
+> ⚠️ **Platform: Windows 10 / 11 (64-bit) only.**
+> macOS and Linux builds are planned for v1.6.x. The codebase contains Windows-specific
+> implementations (process flags, file paths, TortoiseSVN) that will be refactored
+> before cross-platform support is possible.
 
 ### 1. Node.js v18+
+
 Download: https://nodejs.org
-```bash
+
+```
 node --version    # v18.x or higher
 ```
 
 ### 2. Rust + Cargo
-```bash
+
+```powershell
 # Run in PowerShell
 winget install Rustlang.Rustup
 ```
+
 Or download from: https://www.rust-lang.org/tools/install
-```bash
+
+```
 rustc --version   # 1.70 or higher
 ```
 
 ### 3. Windows Requirements
+
 - [Visual Studio C++ Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/) → select **"Desktop development with C++"**
 - [WebView2](https://developer.microsoft.com/microsoft-edge/webview2/) — usually pre-installed on Windows 10/11
 
 ### 4. Optional Hardware Tools
 
 | Tool | Required For | Auto-installed? |
-|---|---|---|
+|------|-------------|-----------------|
 | [arduino-cli](https://arduino.github.io/arduino-cli/) | Arduino features | No |
 | ADB (Android Platform Tools) | Android features | **Yes — IDE installs automatically** |
 | [TortoiseSVN](https://tortoisesvn.net/) (with CLI tools) | SVN features | No |
@@ -221,8 +233,6 @@ On first launch, app folders are created automatically:
 
 ```
 Windows:  C:\Users\{you}\OperatorX02\
-macOS:    ~/OperatorX02/
-Linux:    ~/OperatorX02/
 
 ├── config/          ← API keys, settings
 ├── conversations/   ← AI chat history (local, private)
@@ -237,7 +247,7 @@ Linux:    ~/OperatorX02/
 Settings → AI Providers:
 
 | Provider | Free Tier | Link |
-|---|---|---|
+|----------|-----------|------|
 | Ollama | ✅ Free (local) | https://ollama.ai |
 | Groq | ✅ Free tier | https://console.groq.com |
 | Deepseek | Paid | https://platform.deepseek.com |
@@ -265,7 +275,8 @@ Check API key in Settings → AI Providers. For offline use, install Ollama.
 
 **IDE slow on large projects**
 Open DevTools console (F12) and run:
-```javascript
+
+```js
 window.X02Perf.throttle(5)   // reduce background load
 window.X02Perf.restore()     // back to normal
 ```
@@ -282,50 +293,51 @@ window.X02Perf.restore()     // back to normal
 
 Please use [Conventional Commits](https://www.conventionalcommits.org/) format.
 
-> **Note:** Contributions to the 4 stub modules will not be accepted as these contain
-> proprietary implementations. Contributions to all other modules are warmly welcome!
+All contributions are welcome — the entire codebase is open source.
 
 ---
 
 ## 🗺️ Roadmap
 
 **v1.5.x (Current)**
-- [x] Multi-provider AI routing
-- [x] AI conversation history search
-- [x] Inline autocomplete
-- [x] IDE Script Auto Mode (12 commands)
-- [x] Git + SVN dual VCS
-- [x] Arduino + serial monitor + pin visualizer
-- [x] Android panel (28 ADB commands + Gradle + IoT Bridge)
-- [x] Raspberry Pi remote deploy
-- [x] Camera + vision AI
-- [x] AI file search (natural language)
-- [x] Plugin system
+- ✅ Multi-provider AI routing
+- ✅ AI conversation history search
+- ✅ Inline autocomplete
+- ✅ IDE Script Auto Mode (12 commands)
+- ✅ Git + SVN dual VCS
+- ✅ Arduino + serial monitor + pin visualizer
+- ✅ Android panel (28 ADB commands + Gradle + IoT Bridge)
+- ✅ Raspberry Pi remote deploy
+- ✅ NVIDIA Jetson live dashboard (GPU/RAM/CPU)
+- ✅ SSH Remote Manager (russh 0.44 — pure Rust)
+- ✅ Camera + vision AI
+- ✅ AI file search (natural language)
+- ✅ Plugin system
+- ✅ Full open source release
 
 **v1.6.x (Coming)**
-- [ ] Integrated debugger
-- [ ] Remote development over SSH/WSL
-- [ ] Database explorer
-- [ ] Docker integration
-- [ ] macOS + Linux cross-platform support
+- Integrated debugger
+- Remote development over SSH/WSL
+- Database explorer
+- Docker integration
+- macOS + Linux cross-platform support
 
 ---
 
 ## 📄 License
 
-MIT License — see [LICENSE](LICENSE) for details.
+MIT License — see [LICENSE](https://github.com/csheng21/operator-x02-ide/blob/main/LICENSE) for details.
 
-> The Surgical Edit Engine, NVIDIA Jetson Integration, SSH Remote Manager,
-> and Surgical Backup Manager modules are proprietary components.
-> Community stubs are provided in their place in this repository.
-> The compiled installer at [Releases](https://github.com/csheng21/operator-x02-ide/releases)
-> includes the full implementation of all features.
+Full source code is open source under MIT License.
+Build from source to get 100% of all features.
 
 ---
 
 ## 👨‍💻 About
 
-Operator X02 is developed and maintained by a small independent dev team passionate about embedded systems and edge AI development.
+Operator X02 is built by **ChangSong Heng**, an automotive embedded engineer with 18+ years of experience in E/E architecture, ADAS systems, and edge computing. This is a personal passion project — built in spare time with the belief that developers working on embedded and edge AI deserve a better, purpose-built tool.
+
+> *"Coding is Art. Feel it. Enjoy it."*
 
 - GitHub: [@csheng21](https://github.com/csheng21)
 - YouTube: [@csh3003](https://youtube.com/@csh3003)
@@ -333,8 +345,4 @@ Operator X02 is developed and maintained by a small independent dev team passion
 
 ---
 
-<div align="center">
-
 ⭐ **If Operator X02 helps your workflow, please star the repo!**
-
-</div>
