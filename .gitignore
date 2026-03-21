@@ -36,3 +36,6 @@ fix_remaining_*/
 inject_*.ps1
 find_*.ps1
 *.bak
+
+fix_*/
+backup_*.ts
