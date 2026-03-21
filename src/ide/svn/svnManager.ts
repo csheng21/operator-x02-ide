@@ -1,4 +1,4 @@
-// src/ide/svn/svnManager.ts
+﻿// src/ide/svn/svnManager.ts
 // Core SVN management and operations
 // ✅ UPDATED: Added isWorkingCopy() method for context menu integration
 
@@ -41,6 +41,7 @@ export class SvnManager {
     private notSvnCache: Set<string> = new Set();
     private static readonly NOT_SVN_CACHE_DURATION = 60000; // 1 minute
     private notSvnCacheTimestamps: Map<string, number> = new Map();
+    private checkInFlight: Set<string> = new Set(); // [X02Fix 4] in-flight guard
 
     private constructor() {
         this.checkSvnInstalled();
@@ -139,6 +140,9 @@ export class SvnManager {
         }
         
         // ✅ CHECK CACHE FIRST - Skip if already known to be not-SVN
+        // [X02Fix 4] In-flight guard - prevent race condition
+        if (this.checkInFlight.has(targetPath)) return [];
+        this.checkInFlight.add(targetPath);
         if (this.isPathCachedAsNotSvn(targetPath)) {
             return [];
         }
@@ -158,10 +162,12 @@ export class SvnManager {
             // Notify listeners
             this.notifyStatusListeners(statuses);
 
+        this.checkInFlight.delete(targetPath); // [X02Fix 4]
             return statuses;
         } catch (error) {
             // ✅ Mark as not-SVN to prevent repeated checks
             this.markPathAsNotSvn(targetPath);
+        this.checkInFlight.delete(targetPath); // [X02Fix 4] release
             return [];
         }
     }

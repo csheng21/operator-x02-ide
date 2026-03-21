@@ -383,6 +383,17 @@ export function parseIdeScriptCalls(aiResponse: string): IdeScriptCall[] {
  * Resolves relative paths and refreshes file explorer for FS-changing ops.
  */
 export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
+      // BYPASS_MUTEX_READ - fast path for readFile
+      if ((command === 'readFile' || command === 'ide_read_file') && args) {
+        try {
+          const fp = args.file_path || args.filePath || args.path || '';
+          const fs = (window as any).fileSystem;
+          if (fp && fs && typeof fs.readFile === 'function') {
+            const txt = await fs.readFile(fp);
+            return { success: true, content: txt, source: 'bypass' };
+          }
+        } catch (_e) {}
+      }
   const startTime = Date.now();
 
   // Resolve relative file paths to absolute (auto-patched)

@@ -2508,6 +2508,10 @@ function restructureInputArea(): void {
  * Upgrade existing chat input icons from emoji to SVG
  */
 export function upgradeChatInputIcons(): void {
+  // [X02Fix 1] Debounce: icon upgrade runs max once per 200ms
+  if ((window as any).__x02IconUpgradePending) return;
+  (window as any).__x02IconUpgradePending = true;
+  setTimeout(function() { delete (window as any).__x02IconUpgradePending; }, 200);
   console.log('🎨 Upgrading chat input icons to SVG...');
   
   const emojiToIcon: Record<string, { icon: string; tooltip: string }> = {

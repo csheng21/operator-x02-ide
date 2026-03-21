@@ -763,7 +763,7 @@ async function getProjectScripts(): Promise<Record<string, string> | null> {
     if (fileSystem?.readFile) {
       // Check for Gradle wrapper or build files — strictly in projectPath only, no parent walk
       let hasGradle = false;
-      try { await fileSystem.readFile(`${projectPath}/gradlew.bat`); hasGradle = true; } catch {}
+      try { const _g = await fileSystem.readFile(`${projectPath}/gradlew.bat`); hasGradle = !!_g; } catch { hasGradle = false; } // [X02Fix 3] silent
       if (!hasGradle) try { await fileSystem.readFile(`${projectPath}/build.gradle.kts`); hasGradle = true; } catch {}
       if (!hasGradle) try { await fileSystem.readFile(`${projectPath}/build.gradle`); hasGradle = true; } catch {}
       

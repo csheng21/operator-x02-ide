@@ -2563,7 +2563,7 @@ function executeTerminalCommand(command: string): void {
   const commandLine = document.createElement('div');
   commandLine.className = 'compact-command-line';
   
-  commandLine.innerHTML = `<span style="color:#8b949e;font-size:12px;font-weight:500;flex-shrink:0;">></span><span style="color:#c9d1d9;flex:1;font-size:12px;">${escapeHtml(command)}</span><span style="color:#484f58;font-size:9px;flex-shrink:0;">${timeString}</span><button class="copy-btn" data-copy="${escapeHtml(command)}" title="Copy">📋</button>`;
+  commandLine.innerHTML = "<span style='color:#4ec9b0;font-size:13px;font-weight:700;flex-shrink:0;padding-right:4px;'>></span><span style='color:#9cdcfe;flex:1;font-size:12px;font-family:Consolas,monospace;'>${escapeHtml(command)}</span><span style='color:#4e5255;font-size:9px;flex-shrink:0;'>${timeString}</span><button class='copy-btn' data-copy='${escapeHtml(command)}' title='Copy'>&#128203;</button>";
   
   output.appendChild(commandLine);
   
@@ -2610,6 +2610,44 @@ function executeTerminalCommand(command: string): void {
   
   console.log(`💻 [${timeString}] Executed command: ${command} | Success: ${commandResult.success}`);
 }
+async function executeCommandAsync(psCmd: string, st: number): Promise<void> {
+  const termEl = document.getElementById('integrated-terminal-output');
+  const uid = 'ps' + Date.now();
+  if (!document.getElementById('ps-ide-css')) {
+    const s = document.createElement('style'); s.id='ps-ide-css';
+    s.textContent = '.ps-ide-out{font-family:Consolas,monospace;font-size:12px;color:#d4d4d4;white-space:pre;line-height:1.6;padding:2px 0 2px 12px;border-left:2px solid #2d5a27;margin:1px 0;overflow-x:auto;}' + '.ps-ide-err{font-family:Consolas,monospace;font-size:12px;color:#f48771;white-space:pre;line-height:1.6;padding:2px 0 2px 12px;border-left:2px solid #6e2020;margin:1px 0;}' + '.ps-ide-meta{font-family:Consolas,monospace;font-size:10px;color:#3d4142;padding:0 0 4px 14px;}' + '.ps-ide-running{font-family:Consolas,monospace;font-size:12px;color:#608b4e;padding:2px 0 2px 12px;line-height:1.5;position:relative;border-left:2px solid #1e3a1e;margin:1px 0;}' + '@keyframes ps-scan2{0%{width:0%;opacity:1}70%{width:100%;opacity:1}100%{width:100%;opacity:0}}' + '.ps-scanline2{display:block;height:1px;background:#4ec9b0;animation:ps-scan2 1.4s ease-in-out infinite;margin-top:3px;opacity:0.5;}';
+    document.head.appendChild(s);
+  }
+  if (termEl) {
+    const ph = document.createElement('div'); ph.id = uid; ph.className = 'ps-ide-running';
+    ph.innerHTML = '<span style="color:#608b4e">// running...</span><span class="ps-scanline2"></span>';
+    termEl.appendChild(ph); termEl.scrollTop = termEl.scrollHeight;
+  }
+  try {
+    const tauri = (window as any).__TAURI__;
+    const inv = tauri?.core?.invoke || tauri?.invoke;
+    if (!inv) throw new Error('Tauri not available');
+    const raw = await inv('execute_command', { command: psCmd, isPowershell: true, workingDir: (window as any).currentProjectPath || '.' });
+    let parsed: any = raw;
+    if (typeof raw === 'string') { try { parsed = JSON.parse(raw); } catch(e) { parsed = { stdout: raw, stderr: '' }; } }
+    const stdout = typeof parsed === 'string' ? parsed : (parsed?.stdout || '');
+    const stderr = typeof parsed === 'string' ? '' : (parsed?.stderr || '');
+    const ms = Math.round(performance.now() - st);
+    const el = document.getElementById(uid);
+    if (el) {
+      if (stderr && stderr.trim()) {
+        el.className = ''; el.innerHTML = '<div class="ps-ide-err">' + stderr.trim() + '</div><div class="ps-ide-meta">// ' + ms + 'ms | exit 1</div>';
+      } else {
+        el.className = ''; el.innerHTML = '<div class="ps-ide-out">' + (stdout.trim() || '(done)') + '</div><div class="ps-ide-meta">// ' + ms + 'ms</div>';
+      }
+    }
+  } catch (err: any) {
+    const el = document.getElementById(uid);
+    if (el) { el.className = ''; el.innerHTML = '<div class="ps-ide-err">// Error: ' + (err?.message || String(err)) + '</div>'; }
+  }
+  const t2 = document.getElementById('integrated-terminal-output'); if (t2) t2.scrollTop = t2.scrollHeight;
+}
+
 
 function executeCommand(command: string): { output: string; success: boolean; executionTime: number } {
   const startTime = performance.now();
@@ -2635,6 +2673,43 @@ function executeCommand(command: string): { output: string; success: boolean; ex
       case 'tips':
         showDeveloperTips();
         return { output: 'Developer tips panel opened! Click any tip to run that command.', success: true, executionTime: Math.round(performance.now() - startTime) };
+
+      case 'analyse':
+      case 'analyze': {
+        const _proj = (window as any).currentProjectPath || (window as any).fileSystem?.currentPath || '.';
+        const _cmd1 = `Get-ChildItem "${_proj}" -Recurse | Where-Object {-not $_.PSIsContainer} | Group-Object Extension | Sort-Object Count -Descending | Format-Table -AutoSize`;
+        return executeCommandAsync(_cmd1, startTime);
+      }
+
+      case 'todos': {
+        const _proj = (window as any).currentProjectPath || (window as any).fileSystem?.currentPath || '.';
+        const _cmd2 = `Get-ChildItem "${_proj}/src" -Recurse -Include '*.ts','*.tsx','*.js','*.jsx' -ErrorAction SilentlyContinue | Select-String -Pattern 'TODO|FIXME|HACK|XXX' | Select-Object Filename,LineNumber,Line`;
+        return executeCommandAsync(_cmd2, startTime);
+      }
+
+      case 'count': {
+        const _proj = (window as any).currentProjectPath || (window as any).fileSystem?.currentPath || '.';
+        const _cmd3 = `Get-ChildItem "${_proj}/src" -Recurse -Include '*.ts','*.tsx','*.js','*.jsx','*.css' -ErrorAction SilentlyContinue | Get-Content | Measure-Object -Line`;
+        return executeCommandAsync(_cmd3, startTime);
+      }
+
+      case 'deps': {
+        const _proj = (window as any).currentProjectPath || (window as any).fileSystem?.currentPath || '.';
+        const _cmd4 = `if (Test-Path "${_proj}/package.json") { $p = Get-Content "${_proj}/package.json" | ConvertFrom-Json; Write-Host 'Scripts:'; $p.scripts.PSObject.Properties | ForEach-Object { Write-Host "  $($_.Name): $($_.Value)" }; Write-Host ''; Write-Host "node_modules: $(if(Test-Path "${_proj}/node_modules") {'OK'} else {'MISSING - run npm install'})" } else { Write-Host 'No package.json found' }`;
+        return executeCommandAsync(_cmd4, startTime);
+      }
+
+      case 'scripts': {
+        const _proj = (window as any).currentProjectPath || (window as any).fileSystem?.currentPath || '.';
+        const _cmd5 = `if (Test-Path "${_proj}/package.json") { Get-Content "${_proj}/package.json" | ConvertFrom-Json | Select-Object -ExpandProperty scripts } else { 'No package.json' }`;
+        return executeCommandAsync(_cmd5, startTime);
+      }
+
+      case 'project': {
+        const _proj = (window as any).currentProjectPath || (window as any).fileSystem?.currentPath || '.';
+        const _cmd6 = `Write-Host "Project: $(Split-Path "${_proj}" -Leaf)"; Write-Host "Path: ${_proj}"; Write-Host ''; $files = Get-ChildItem "${_proj}" -Recurse -File -ErrorAction SilentlyContinue; Write-Host "Total files: $($files.Count)"; $files | Group-Object Extension | Sort-Object Count -Descending | Select-Object -First 8 | ForEach-Object { Write-Host "  $($_.Name.PadRight(10)) $($_.Count)" }`;
+        return executeCommandAsync(_cmd6, startTime);
+      }
         
       case 'ls':
       case 'dir':
@@ -2784,7 +2859,108 @@ function executeCommand(command: string): { output: string; success: boolean; ex
           output = `<span style="color: #ff9800;">⚠</span> Command '${cmd}' is recognized but not yet implemented in this simulation.`;
           success = false;
         } else {
-          output = `<span style="color: #f85149;">✕</span> Command '${cmd}' not found. Type 'help' for available commands or 'tips' for examples.`;
+          // Forward to real PowerShell via Tauri invoke
+          output = '';
+          setTimeout(async () => {
+            const termEl = document.getElementById('integrated-terminal-output');
+            const uid = 'ps' + Date.now();
+            // Inject CSS once
+            if (!document.getElementById('ps-ide-css')) {
+              const s = document.createElement('style');
+              s.id = 'ps-ide-css';
+              s.textContent = `
+                @keyframes ps-scan {
+                  0%   { width: 0%;   opacity: 1; }
+                  70%  { width: 100%; opacity: 1; }
+                  100% { width: 100%; opacity: 0; }
+                }
+                @keyframes ps-blink { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+                .ps-ide-running {
+                  font-family: Consolas, Monaco, 'Courier New', monospace;
+                  font-size: 12px;
+                  color: #608b4e;
+                  padding: 0 0 0 2px;
+                  line-height: 1.5;
+                  position: relative;
+                }
+                .ps-ide-running .ps-scanline {
+                  display: block;
+                  height: 1px;
+                  background: #569cd6;
+                  animation: ps-scan 1.4s ease-in-out infinite;
+                  margin-top: 2px;
+                  opacity: 0.6;
+                }
+                .ps-ide-out {
+                  font-family: Consolas, Monaco, 'Courier New', monospace;
+                  font-size: 12px;
+                  color: #d4d4d4;
+                  white-space: pre;
+                  line-height: 1.5;
+                  padding: 0 0 0 2px;
+                  overflow-x: auto;
+                }
+                .ps-ide-err {
+                  font-family: Consolas, Monaco, 'Courier New', monospace;
+                  font-size: 12px;
+                  color: #f48771;
+                  white-space: pre;
+                  line-height: 1.5;
+                  padding: 0 0 0 2px;
+                }
+                .ps-ide-meta {
+                  font-family: Consolas, Monaco, 'Courier New', monospace;
+                  font-size: 10px;
+                  color: #4e4e4e;
+                  padding: 0 0 4px 2px;
+                }
+              `;
+              document.head.appendChild(s);
+            }
+            if (termEl) {
+              const ph = document.createElement('div');
+              ph.id = uid;
+              ph.className = 'ps-ide-running';
+              ph.innerHTML = '<span style="color:#608b4e">// running...</span><span class="ps-scanline"></span>';
+              termEl.appendChild(ph);
+              termEl.scrollTop = termEl.scrollHeight;
+            }
+            const t0 = performance.now();
+            try {
+              const tauri = (window as any).__TAURI__;
+              const inv = tauri?.core?.invoke || tauri?.invoke;
+              if (!inv) throw new Error('Tauri not available');
+              const raw = await inv('execute_command', { command: command, isPowershell: true, workingDir: (window as any).currentProjectPath || (window as any).fileSystem?.currentPath || '' });
+              let parsed: any = raw;
+              if (typeof raw === 'string') {
+                try { parsed = JSON.parse(raw); } catch(e) { parsed = { stdout: raw, stderr: '', success: true }; }
+              }
+              const stdout = typeof parsed === 'string' ? parsed : (parsed?.stdout || '');
+              const stderr = typeof parsed === 'string' ? '' : (parsed?.stderr || '');
+              const ms = Math.round(performance.now() - t0);
+              const el = document.getElementById(uid);
+              if (el) {
+                if (stderr && stderr.trim()) {
+                  el.className = '';
+                  el.innerHTML = '<div class="ps-ide-err">' + stderr.trim() + '</div>'
+                    + '<div class="ps-ide-meta">// ' + ms + 'ms | exit 1</div>';
+                } else {
+                  const txt = stdout.trim() || '// (no output)';
+                  el.className = '';
+                  el.innerHTML = '<div class="ps-ide-out">' + txt + '</div>'
+                    + '<div class="ps-ide-meta">// ' + ms + 'ms</div>';
+                }
+              }
+            } catch (err: any) {
+              const el = document.getElementById(uid);
+              if (el) {
+                el.className = '';
+                el.innerHTML = '<div class="ps-ide-err">// Error: ' + (err?.message || String(err)) + '</div>';
+              }
+            }
+            const t2 = document.getElementById('integrated-terminal-output');
+            if (t2) t2.scrollTop = t2.scrollHeight;
+          }, 0);
           success = false;
         }
     }

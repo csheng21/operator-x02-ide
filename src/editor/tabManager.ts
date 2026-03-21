@@ -1,4 +1,4 @@
-// Enhanced TabManager.ts with Context Menu Support and Modified File Tracking
+﻿// Enhanced TabManager.ts with Context Menu Support and Modified File Tracking
 import { getLanguageFromPath } from '../utils/fileUtils';
 import { markFileAsModified, markFileAsSaved, isFileModified } from '../ide/fileExplorer/fileTreeRenderer';
 
@@ -2120,98 +2120,6 @@ private autoSaveTimer?: NodeJS.Timeout;
   }
 
   /**
-   * Save a specific tab
-   * Integrates with the file save system
-   */
-  public async saveTab(tabId: string): Promise<boolean> {
-    const tab = this.tabs.find(t => t.id === tabId);
-    if (!tab) {
-      console.error(`❌ Tab not found: ${tabId}`);
-      return false;
-    }
-
-    this.debug(`💾 Saving tab: ${tab.name}`);
-
-    try {
-      // Get the content to save
-      let content = tab.content;
-      
-      // If this is the active tab, get content from editor to ensure it's up-to-date
-      if (this.activeTabId === tabId) {
-        const editor = window.monaco?.editor?.getEditors()[0];
-        if (editor) {
-          const editorContent = editor.getValue();
-          if (editorContent !== content) {
-            content = editorContent;
-            tab.content = editorContent;
-            this.debug(`📝 Updated content from active editor`);
-          }
-        }
-      }
-
-      // Determine save path
-      let savePath = tab.path;
-      
-      // If path doesn't exist or is temporary, prompt for save location
-      if (!savePath || savePath === 'untitled' || savePath.startsWith('temp://')) {
-        // Use File System Access API or Tauri dialog
-        if ('showSaveFilePicker' in window) {
-          const { saveWithFileSystemAccessAPI } = await import('../fileSystem');
-          savePath = await saveWithFileSystemAccessAPI(content, tab.name) || '';
-        } else if ((window as any).__TAURI__) {
-          const { saveFile } = await import('../fileSystem');
-          savePath = await saveFile(content, null, tab.name) || '';
-        }
-        
-        if (!savePath) {
-          this.debug(`⚠️ Save cancelled for: ${tab.name}`);
-          return false;
-        }
-        
-        // Update tab with new path
-        this.updateTabPath(tabId, savePath);
-      } else {
-        // Save to existing path
-        if ((window as any).__TAURI__) {
-          // Use Tauri for desktop
-          const { invoke } = await import('@tauri-apps/api/core');
-          await invoke('write_file', { 
-            path: savePath, 
-            content: content 
-          });
-        } else if ('showSaveFilePicker' in window) {
-          // Use File System Access API for browser
-          const { saveWithFileSystemAccessAPI } = await import('../fileSystem');
-          await saveWithFileSystemAccessAPI(content, tab.name);
-        } else {
-          throw new Error('No save method available');
-        }
-      }
-
-      // Mark tab as saved
-      tab.originalContent = content;
-      tab.modified = false;
-      tab.lastSaved = new Date();
-      
-      // Update file tree
-      markFileAsSaved(tab.path);
-      
-      // Update visuals
-      this.updateTabVisuals(tab.path, false);
-      
-      // Notify the modified files tracker
-      this.notifyFileSaved(tab.path);
-      
-      this.debug(`✅ Tab saved successfully: ${tab.name}`);
-      return true;
-      
-    } catch (error) {
-      console.error(`❌ Error saving tab ${tab.name}:`, error);
-      return false;
-    }
-  }
-
-  /**
    * Save all modified tabs
    * Used by Save All menu action
    */
@@ -2271,42 +2179,6 @@ private autoSaveTimer?: NodeJS.Timeout;
     } catch (error) {
       console.error('❌ Error notifying file saved:', error);
     }
-  }
-  public cleanup(): void {
-    this.debug('🧹 Cleaning up TabManager...');
-    
-    // 🆕 CLEANUP CHANGE LISTENERS FIRST
-    this.modelListeners.forEach((listener, tabId) => {
-      if (listener && typeof listener.dispose === 'function') {
-        try {
-          listener.dispose();
-        } catch (error) {
-          console.error('Error disposing listener:', error);
-        }
-      }
-    });
-    this.modelListeners.clear();
-    this.debug('✅ All change listeners disposed');
-    
-    // Cleanup all event listeners and resources
-    this.tabs.forEach(tab => {
-      if (tab.model) {
-        try {
-          tab.model.dispose();
-        } catch (error) {
-          console.error('Error disposing model:', error);
-        }
-      }
-    });
-    
-    this.tabs = [];
-    this.modelMap.clear();
-    this.contentHistory = {};
-    this.activeTabId = null;
-    this.currentFile = null;
-    this.tabContainer.innerHTML = '';
-    
-    this.debug('✅ Cleanup complete');
   }
 }
 

@@ -1,4 +1,4 @@
-// menuSystem.ts - Menu System and File Operations
+﻿// menuSystem.ts - Menu System and File Operations
 // At the top of menuSystem.ts, add import
 import { markFileAsSaved, markFileAsModified, renderFileTree as renderFileTreeIDE } from './ide/fileExplorer/fileTreeRenderer';
 import { tabManager } from './editor/tabManager';
@@ -1025,6 +1025,23 @@ async function handleViewMenuAction(action: string): Promise<void> {
         showNotification('Layout reset to default', 'info');
         break;
         
+      case 'showTerminal':
+      case 'terminal':
+      case 'show-terminal': {
+        // Switch to terminal tab in explorer panel
+        const termTab = document.querySelector('[data-tab="terminal"]') as HTMLElement;
+        if (termTab) {
+          termTab.click();
+          console.log('[X02] showTerminal action: terminal tab activated.');
+        } else {
+          // Fallback: fire the forceTerminalPanel if available
+          if (typeof (window as any).forceTerminalPanel === 'function') {
+            (window as any).forceTerminalPanel();
+          }
+        }
+        break;
+      }
+
       default:
         console.log(`Unknown view menu action: ${action}`);
     }

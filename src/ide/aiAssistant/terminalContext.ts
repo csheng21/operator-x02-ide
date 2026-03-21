@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ====================================================================================================
  * FILE: src/ide/aiAssistant/terminalContext.ts
  * STANDALONE TERMINAL CONTEXT FOR AI - No dependencies on terminal module exports
@@ -1038,7 +1038,7 @@ function enableAIProjectSearch(): void {
  * ✅ FIX: Retry counter to prevent infinite loop
  */
 let toolbarRetryCount = 0;
-const MAX_TOOLBAR_RETRIES = 15; // Max 30 seconds of retrying
+const MAX_TOOLBAR_RETRIES = 5; // Max 30 seconds of retrying
 
 /**
  * Add terminal context button to chat UI
@@ -1164,7 +1164,7 @@ export function addTerminalContextButton(): void {
 function setupTerminalObserver(): void {
   // ✅ FIX: Retry counter to prevent infinite loop
   let observerRetryCount = 0;
-  const MAX_OBSERVER_RETRIES = 15;
+  const MAX_OBSERVER_RETRIES = 5;
   
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {

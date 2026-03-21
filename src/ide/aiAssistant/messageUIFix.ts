@@ -1,4 +1,4 @@
-// messageUIFix.ts - FIXED VERSION v15
+﻿// messageUIFix.ts - FIXED VERSION v15
 // ============================================================================
 // v15 FIXES:
 // - Removed .code-block-container skip that blocked MUF from processing MarkdownProcessor blocks
@@ -1325,6 +1325,8 @@ function enhanceCodeBlocks(): void {
     if (pre.closest('.cvp-panel')) { console.log(`⛔ [MUF v15] SKIP: inside cvp-panel`); return; }
     
     console.log(`✅ [MUF v15] PASSED all skip checks! Enhancing pre | parent="${parentClass}"`);
+    // [X02Fix MUF Size] Block oversized pre (re-render loop guard)
+    if (pre.textContent && pre.textContent.length > 500000) { return; }
     
     // Mark as processed FIRST to prevent race conditions
     pre.setAttribute('data-muf-done', 'true');

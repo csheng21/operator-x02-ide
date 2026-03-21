@@ -1,4 +1,4 @@
-// src/ide/preview/PreviewTab.ts
+﻿// src/ide/preview/PreviewTab.ts
 // Preview Tab - FIXED VERSION with Cache Busting & Project Tracking
 // ============================================================================
 // FIXES:

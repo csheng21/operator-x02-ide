@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ====================================================================================================
  * FILE: src/ide/terminal/terminalInstantFix.ts
  * ROBUST INSTANT FIX - Intercepts at CHAT LEVEL, not just terminalContext
@@ -587,6 +587,9 @@ function patchSendMessage(): void {
 // ============================================================================
 
 function initialize(): void {
+  // [X02Fix 5] Idempotency guard
+  if ((window as any).__terminalInstantFixInit) return;
+  (window as any).__terminalInstantFixInit = true;
   console.log('🚀 [TerminalInstantFix v2] Initializing with multiple intercepts...');
   
   // Set up all intercepts

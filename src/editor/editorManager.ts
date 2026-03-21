@@ -326,15 +326,15 @@ async function createEditor(): Promise<void> {
       
       if (monacoInstance) {
         // 1. Inline Code Generator (Ctrl+Shift+I)
-        initializeInlineAICodeWriter(monacoInstance);
+        initializeInlineAICodeWriter(monacoInstance, monacoEditor);
         console.log('✅ Inline AI Code Writer initialized (Ctrl+Shift+I)');
         
         // 2. Selection Editor (Ctrl+Shift+E)
-        initializeSelectionAIEditor(monacoInstance);
+        initializeSelectionAIEditor(monacoInstance, monacoEditor);
         console.log('✅ Selection AI Editor initialized (Ctrl+Shift+E)');
         
         // 3. Quick Command (Ctrl+K)
-        initializeQuickAICommand(monacoInstance);
+        initializeQuickAICommand(monacoInstance, monacoEditor);
         console.log('✅ Quick AI Command initialized (Ctrl+K)');
         
         // 4. AI Assistant Panel (Ctrl+Alt+A)

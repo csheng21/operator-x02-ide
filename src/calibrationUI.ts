@@ -1,4 +1,4 @@
-// calibrationUI.ts - Professional Calibration Panel UI
+﻿// calibrationUI.ts - Professional Calibration Panel UI
 // ============================================================================
 // Enhanced UI with consistent sizing, smooth animations, and compact design
 // ============================================================================
@@ -1089,6 +1089,13 @@ function showConfirmDialog(options: {
 // ============================================================================
 
 export function showCalibrationPanel(): void {
+  // Guard: only open when user explicitly triggers (not on startup)
+  if (!(window as any).__calibrationUserTriggered) {
+    console.log('[X02] Calibration panel blocked (startup auto-show). Use Ctrl+Shift+C or click button.');
+    return;
+  }
+  // Reset flag after use
+  (window as any).__calibrationUserTriggered = false;
   const existing = document.getElementById('calibration-panel');
   if (existing) existing.remove();
 

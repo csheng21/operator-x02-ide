@@ -1,4 +1,4 @@
-// explorerManager.ts - Updated for Terminal in Explorer Panel Layout
+﻿// explorerManager.ts - Updated for Terminal in Explorer Panel Layout
 // Integrates with the new tabbed explorer system (Files | Search | Terminal)
 import { contextMenuIcons, createIconElement, addEnhancedContextMenuStyles } from './contextMenuIcons';
 
@@ -1626,23 +1626,6 @@ private openFolder(): void {
   // Trigger folder open event
   document.dispatchEvent(new CustomEvent('folder-open-request', {
     detail: { path: this.currentPath }
-  }));
-  this.removeExistingMenu();
-}
-
-private createNewFile(): void {
-  if (!this.currentPath) return;
-  console.log('Creating new file in:', this.currentPath);
-  
-  const fileName = prompt('Enter file name:');
-  if (!fileName) return;
-  
-  // Trigger new file creation
-  document.dispatchEvent(new CustomEvent('file-create-request', {
-    detail: { 
-      folderPath: this.currentPath,
-      fileName: fileName 
-    }
   }));
   this.removeExistingMenu();
 }

@@ -1,0 +1,24 @@
+C:.
+├── main.ts · store.ts · state.ts · menuSystem.ts · styles.css
+├── assets/
+├── autonomousCoding/
+├── components/
+├── directFileOpener/
+├── editor/
+├── eventHandlers/
+├── fileOperations/
+├── ide/
+│   ├── aiAssistant/
+│   ├── camera/
+│   ├── fileExplorer/
+│   ├── projectCreation/
+│   └── terminal/
+├── plugins/
+│   ├── api/
+│   ├── builtin/ (android, csharp, python, flet)
+│   └── core/
+├── scripts/ (create-generic, fastapi, react, vue3, etc.)
+├── types/
+├── ui/
+├── utils/
+└── readme.txt · readme_changes.txt

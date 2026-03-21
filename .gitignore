@@ -25,3 +25,6 @@ fix_*.ps1
 scan_*.ps1
 fix_*.py
 diagnose_*.ps1
+
+src/generate tree.txt
+src/*.txt

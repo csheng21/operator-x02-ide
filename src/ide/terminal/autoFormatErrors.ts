@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ====================================================================================================
  * FILE: src/ide/terminal/autoFormatErrors.ts - AUTOMATIC ERROR FORMATTING (V3 - ULTRA RELIABLE)
  * ====================================================================================================
@@ -23,6 +23,9 @@ let isPollingActive = false;
  * This keeps trying until it succeeds!
  */
 export function initializeAutoErrorFormatting(): void {
+  // [X02Fix 6] Idempotency guard
+  if ((window as any).__autoErrorFmtInit) return;
+  (window as any).__autoErrorFmtInit = true;
   console.log('🎨 Starting Auto Error Formatting initialization...');
   
   // Try to start immediately

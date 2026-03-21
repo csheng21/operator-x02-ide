@@ -393,7 +393,7 @@ setTimeout(() => {
   } catch (e) {
     console.warn('⚠️ [FastApply] Init skipped:', e);
   }
-}, 500);
+}, 2000);
 // ============================================================================
 // DUPLICATE PREVENTION - Fix hot reload creating duplicate elements  
 // ============================================================================
@@ -901,6 +901,50 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 🧠 Initialize IDE Script system
   initIdeScriptBridge();
+// Expose WebUI detection globals from autonomousCoding
+setTimeout(() => {
+  if (typeof detectWebUIRequest === 'function') {
+    (window as any).detectWebUIRequest = detectWebUIRequest;
+    (window as any).WEB_UI_GENERATION_PROMPT = (typeof WEB_UI_GENERATION_PROMPT !== 'undefined') ? WEB_UI_GENERATION_PROMPT : '';
+    console.log('[WebUI Mode] globals exposed on window');
+  }
+}, 2000);
+
+function detectWebUIRequestFromDOM(): boolean {
+  const input = document.querySelector('#ai-assistant-input, #user-input, textarea[id*="input"]') as HTMLTextAreaElement;
+  const msg = input?.value || '';
+  const patterns = [
+    /\b(create|build|make|generate|design)\b.{0,50}\b(ui|page|website|landing|dashboard|component|layout)\b/i,
+    /\b(improve|enhance|redesign|update|restyle)\b.{0,40}\b(ui|design|look|style|layout)\b/i,
+    /\b(hero|navbar|header|footer|card|grid|section|banner)\b/i,
+    /more\s+(beautiful|modern|professional|clean|elegant|impressive)/i,
+  ];
+  return patterns.some(p => p.test(msg));
+}
+// Expose WebUI detection to window for console testing
+(window as any).detectWebUIRequestFromDOM = detectWebUIRequestFromDOM;
+(window as any).detectWebUIRequest = (msg: string) => {
+  const patterns = [
+    /\b(create|build|make|generate|design)\b.{0,50}\b(ui|page|website|landing|dashboard|component|layout)\b/i,
+    /\b(hero|navbar|header|footer|card|grid|section|banner)\b/i,
+    /more\s+(beautiful|modern|professional|clean|elegant)/i,
+  ];
+  return patterns.some(p => p.test(msg));
+};
+console.log('[WebUI] Detection functions exposed on window');
+
+// FIX3_TOKEN_FILTER - rejects CSS/numeric tokens from file mention detection
+function isValidFileMention(token) {
+  if (!token || token.length < 4) return false;
+  if (!token.includes('.')) return false;
+  if (/^[\d.]+(%|px|rem|em|s|ms|vw|vh|fr)?$/.test(token)) return false;
+  if (/^rgba?|^hsla?|^#[0-9a-f]/i.test(token)) return false;
+  if (token.startsWith('e.') || token.startsWith('window.') || token.startsWith('document.')) return false;
+  const ext = token.split('.').pop()?.toLowerCase() || '';
+  return ['ts','tsx','js','jsx','css','html','json','md','py','rs','cpp','java','go','vue'].includes(ext);
+}
+
+
         (window as any).processAiScriptResponse = processAiScriptResponse;
   initIdeScriptUI();
 
@@ -2472,7 +2516,7 @@ document.addEventListener('keydown', (e) => {
 // ============================================================================
 
 let _gitTabRetryCount = 0;
-const _GIT_TAB_MAX_RETRIES = 30; // 15 seconds at 500ms intervals
+const _GIT_TAB_MAX_RETRIES = 8; // 15 seconds at 500ms intervals
 
 function ensureGitTabInExplorer(): void {
   // Already exists? Done.
@@ -2487,7 +2531,7 @@ function ensureGitTabInExplorer(): void {
     _gitTabRetryCount++;
     if (_gitTabRetryCount <= _GIT_TAB_MAX_RETRIES) {
       console.warn(`⚠️ [Git] Explorer tabs not found, retry ${_gitTabRetryCount}/${_GIT_TAB_MAX_RETRIES}...`);
-      setTimeout(ensureGitTabInExplorer, 500);
+      setTimeout(ensureGitTabInExplorer, 200);
     } else {
       console.error('❌ [Git] Failed to find explorer tabs after max retries');
       _gitTabRetryCount = 0;
@@ -4408,7 +4452,7 @@ function attachGitTabHandlers(projectPath: string): void {
       diffAnalysis += '\n\nACTUAL CODE CHANGES (+ = added, - = removed):\n';
       diffAnalysis += '='.repeat(50) + '\n';
       
-      for (const file of files.slice(0, 5)) {
+      for (const file of files.filter(function(fp){ return !/(tsconfig|package-lock|\.lock$)/.test(fp); }).slice(0, 5)) {
         try {
           // Try multiple methods to get the diff
           let diff = '';
@@ -5538,7 +5582,7 @@ function initializePreviewTab(): void {
           if (!mem.recentFolders) mem.recentFolders = [];
           mem.recentFolders = mem.recentFolders.filter((f: string) => f !== pp);
           mem.recentFolders.unshift(pp);
-          mem.recentFolders = mem.recentFolders.slice(0, 10);
+          mem.recentFolders = mem.recentFolders.slice(0, 4);
           mem.lastProject = pp;
           localStorage.setItem(key, JSON.stringify(mem));
           console.log('[RecentFolders] Updated via localStorage:', pp);
@@ -5845,6 +5889,14 @@ initializePreviewTab();  // ← ADD THIS LINE
     initializeProjectCreation();
      await initializeFileExplorer();  
     initializeLayout();
+  // [X02 v7] Start terminal tab poller immediately after layout init
+  setTimeout(function() {
+    if (typeof (window as any).startX02TerminalPoller === 'function') {
+      (window as any).startX02TerminalPoller();
+    } else if (typeof startX02TerminalPoller !== 'undefined') {
+      startX02TerminalPoller();
+    }
+  }, 0);
     initializeUnifiedStatusBar();
     initializeArduino();
     initializeAndroid();
@@ -5939,6 +5991,186 @@ setTimeout(() => {
   removeAutoModeButton();
 }, 1000);
 
+
+// ============================================================================
+// SHORTCUT HELP CARD  (patch_shortcut_help_card.ps1)
+// Press ? to show / hide. Escape or backdrop click to dismiss.
+// ============================================================================
+function showShortcutHelpCard(): void {
+  if (document.getElementById('x02-help-card')) {
+    dismissShortcutHelpCard();
+    return;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'x02-help-card';
+  overlay.style.cssText = [
+    'position:fixed','top:0','left:0','right:0','bottom:0',
+    'z-index:99999','display:flex','align-items:center','justify-content:center',
+    'background:rgba(0,0,0,0.6)','animation:x02FadeIn 0.15s ease'
+  ].join(';');
+
+  const nl2 = '\n';
+  const card = document.createElement('div');
+  card.style.cssText = [
+    'background:#1e1e1e','border:1px solid #3c3c3c','border-radius:10px',
+    'padding:28px 32px','max-width:720px','width:90%','max-height:85vh',
+    'overflow-y:auto','box-shadow:0 20px 60px rgba(0,0,0,0.7)',
+    'font-family:"Cascadia Code","Fira Code",Consolas,monospace','color:#cccccc',
+    'animation:x02SlideUp 0.15s ease'
+  ].join(';');
+
+  const groups = [
+    {
+      title: 'AI Code Writing',
+      color: '#4ec9b0',
+      items: [
+        ['Ctrl+Shift+I', 'Generate code at cursor from description'],
+        ['Ctrl+Shift+E', 'Edit selected code with AI instruction'],
+        ['Ctrl+K',       'Quick AI code generation popup'],
+        ['Ctrl+Alt+A',   'AI Code Assistant Panel'],
+        ['Ctrl+Shift+R', 'AI Code Review'],
+        ['Ctrl+Shift+T', 'Generate Tests'],
+        ['Ctrl+Shift+D', 'Generate Documentation'],
+        ['Ctrl+Shift+F', 'Refactor Suggestions']
+      ]
+    },
+    {
+      title: 'Editor',
+      color: '#569cd6',
+      items: [
+        ['Ctrl+S',       'Save file'],
+        ['Ctrl+N',       'New file'],
+        ['Ctrl+Shift+N', 'New folder'],
+        ['F5',           'Run project'],
+        ['Shift+F5',     'Stop project'],
+        ['Ctrl+L',       'Clear terminal']
+      ]
+    },
+    {
+      title: 'Panels & Views',
+      color: '#ce9178',
+      items: [
+        ['Ctrl+Shift+G', 'Toggle Git / SVN panel'],
+        ['Ctrl+Shift+H', 'Git history'],
+        ['Ctrl+Shift+T', 'Toggle terminal context'],
+        ['Ctrl+Shift+P', 'Preview tab'],
+        ['Ctrl+Shift+O', 'Multi-provider settings'],
+        ['Ctrl+Shift+C', 'Calibration panel'],
+        ['Ctrl+Shift+A', 'Toggle AI chat']
+      ]
+    },
+    {
+      title: 'AI Chat',
+      color: '#dcdcaa',
+      items: [
+        ['+',            'Attach file to message'],
+        ['=',            'Insert current file as context'],
+        ['#provider',    'Route message to specific AI (e.g. #groq hello)'],
+        ['Ctrl+Shift+F', 'Search project files (AI)'],
+        ['Ctrl+Shift+[', 'Chat panel narrower'],
+        ['Ctrl+Shift+]', 'Chat panel wider']
+      ]
+    }
+  ];
+
+  let html = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">' +
+    '<div style="font-size:18px;font-weight:700;color:#fff;">Operator X02 - Keyboard Shortcuts</div>' +
+    '<div style="font-size:12px;color:#666;cursor:pointer;" id="x02-help-close">Press ? or Esc to close</div>' +
+    '</div>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">';
+
+  for (const g of groups) {
+    html += '<div><div style="font-size:11px;font-weight:700;color:' + g.color +
+      ';letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;border-bottom:1px solid #333;padding-bottom:6px;">' +
+      g.title + '</div><table style="width:100%;border-collapse:collapse;">';
+    for (const [key, desc] of g.items) {
+      html += '<tr style="line-height:1.9;">' +
+        '<td style="padding-right:14px;white-space:nowrap;">' +
+        '<kbd style="background:#2d2d2d;border:1px solid #555;border-radius:3px;padding:2px 7px;font-size:11px;color:#fff;font-family:inherit;">' +
+        key + '</kbd></td>' +
+        '<td style="font-size:12px;color:#aaa;">' + desc + '</td></tr>';
+    }
+    html += '</table></div>';
+  }
+
+  html += '</div><div style="margin-top:20px;text-align:center;font-size:11px;color:#444;">' +
+    'Coding is Art. Feel it. Enjoy it. &nbsp;&middot;&nbsp; operatorx02.com</div>';
+
+  card.innerHTML = html;
+
+  if (!document.getElementById('x02-help-styles')) {
+    const style = document.createElement('style');
+    style.id = 'x02-help-styles';
+    style.textContent = '@keyframes x02FadeIn{from{opacity:0}to{opacity:1}}' +
+      '@keyframes x02SlideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}';
+    document.head.appendChild(style);
+  }
+
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) dismissShortcutHelpCard();
+  });
+  const closeBtn = overlay.querySelector('#x02-help-close') as HTMLElement;
+  if (closeBtn) closeBtn.addEventListener('click', dismissShortcutHelpCard);
+
+  console.log('[X02] Shortcut help card shown. Press Ctrl+? or Esc to close.');
+}
+
+function dismissShortcutHelpCard(): void {
+  const el = document.getElementById('x02-help-card');
+  if (el) el.remove();
+}
+
+// Register ? key globally (no modifier needed)
+document.addEventListener('keydown', function(e: KeyboardEvent) {
+  const tag = (e.target as HTMLElement)?.tagName?.toLowerCase() || '';
+  if (tag === 'input' || tag === 'textarea' || (e.target as HTMLElement)?.isContentEditable) return;
+  if (e.ctrlKey && e.shiftKey && e.key === '/') {
+    e.preventDefault();
+    showShortcutHelpCard();
+  }
+  if (e.key === 'Escape') dismissShortcutHelpCard();
+});
+
+// Also expose on window for programmatic access
+
+// --- Status bar "Ctrl+?" hint label (added by patch_shortcut_help_card_update.ps1) ---
+setTimeout(function() {
+  if (document.getElementById('x02-shortcut-hint')) return;
+  const statusRight = document.querySelector('.status-bar-right') as HTMLElement
+    || document.querySelector('.status-bar') as HTMLElement;
+  if (!statusRight) return;
+  const hint = document.createElement('div');
+  hint.id = 'x02-shortcut-hint';
+  hint.title = 'Keyboard Shortcuts (Ctrl+?)';
+  hint.style.cssText = [
+    'display:inline-flex','align-items:center','gap:5px',
+    'padding:0 10px','height:100%','cursor:pointer',
+    'font-size:11px','color:#555',
+    'border-left:1px solid #2a2a2a',
+    'transition:color 0.15s','user-select:none',
+    'font-family:"Cascadia Code","Fira Code",Consolas,monospace'
+  ].join(';');
+  hint.innerHTML =
+    '<kbd style="background:#252525;border:1px solid #3a3a3a;border-radius:3px;' +
+    'padding:1px 5px;font-size:10px;font-family:inherit;">Ctrl+?</kbd>' +
+    '<span>Shortcuts</span>';
+  hint.onmouseenter = function() { hint.style.color = '#aaa'; };
+  hint.onmouseleave = function() { hint.style.color = '#555'; };
+  hint.addEventListener('click', function() {
+    if (typeof (window as any).showShortcutHelp === 'function') {
+      (window as any).showShortcutHelp();
+    }
+  });
+  statusRight.appendChild(hint);
+  console.log('[X02] Ctrl+? hint label added to status bar.');
+}, 3000);
+(window as any).showShortcutHelp    = showShortcutHelpCard;
+(window as any).dismissShortcutHelp = dismissShortcutHelpCard;
+
 // Remove Auto Mode button from terminal - function definition
 function removeAutoModeButton(): void {
   // Inject CSS to hide any Auto Mode buttons that might be added later
@@ -5985,6 +6217,105 @@ function removeAutoModeButton(): void {
     console.log('🗑️ Removed Auto Mode button (by data-action)');
   });
 }
+
+
+// ============================================================================
+// TERMINAL WELCOME UI + DEFAULT TAB  (patch_terminal_welcome_ui.ps1 v7)
+// ============================================================================
+
+// --- Welcome banner (injected once terminal panel is visible) ---
+function injectTerminalWelcomeUI(): void {
+  if ((window as any).__terminalWelcomeDone) return;
+
+  const selectors = ['.terminal-body','.terminal-output','.terminal-content','.xterm-rows','.term-output'];
+  let out: HTMLElement | null = null;
+  for (const s of selectors) { out = document.querySelector(s) as HTMLElement; if (out) break; }
+  if (!out) return; // will retry via poller
+
+  // Only inject if the terminal panel is actually visible to the user
+  const panelVisible = out.offsetParent !== null || out.offsetHeight > 0 || out.offsetWidth > 0;
+  if (!panelVisible) return; // panel hidden, skip for now
+
+  if (out.querySelector('#x02-terminal-welcome')) return;
+  (window as any).__terminalWelcomeDone = true;
+
+  const now  = new Date();
+  const dStr = now.toLocaleDateString('en-MY', { weekday:'short', year:'numeric', month:'short', day:'numeric' });
+  const tStr = now.toLocaleTimeString('en-MY', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+
+  const el = document.createElement('div');
+  el.id = 'x02-terminal-welcome';
+  el.style.cssText = [
+    'font-family:"Cascadia Code","Fira Code",Consolas,monospace',
+    'font-size:13px','line-height:1.7','padding:10px 16px 8px',
+    'color:#4ec94e','user-select:none',
+    'border-bottom:1px solid rgba(78,201,78,0.15)','margin-bottom:4px'
+  ].join(';');
+
+  const hr  = '<span style="color:#2ea043">' + '\u2500'.repeat(42) + '</span>';
+  const dot = '<span style="color:#4ec94e">  \u25b8 </span>';
+  const tl  = '\u250c' + '\u2500'.repeat(46) + '\u2510';
+  const bl  = '\u2514' + '\u2500'.repeat(46) + '\u2518';
+
+  el.innerHTML = '<div style="font-family:Consolas,Monaco,\"Courier New\",monospace;font-size:11px;line-height:1.6;padding:3px 0 3px 8px;border-left:2px solid #1a5c1a"><span style="color:#4ec94e;font-weight:700;letter-spacing:.5px">&#9889; OPERATOR X02</span><br><span style="color:#2a5a2a;font-size:10px">' + new Date().toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) + '  ' + new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}).toLowerCase() + '</span><br><span style="color:#1a3a1a;font-size:10px">-------------------------------</span><br><span style="color:#3a7a3a;font-size:10px">run<span style="color:#1a3a1a">...........<\/span><span style="color:#4ec94e">Ctrl+Shift+B<\/span><\/span><br><span style="color:#3a7a3a;font-size:10px">chat<span style="color:#1a3a1a">.........<\/span><span style="color:#4ec94e">Ctrl+Shift+A<\/span><\/span><br><span style="color:#3a7a3a;font-size:10px">surgical<span style="color:#1a3a1a">.....<\/span><span style="color:#4ec94e">active<\/span><\/span><br><span style="color:#3a7a3a;font-size:10px">gpu<span style="color:#1a3a1a">............<\/span><span style="color:#4ec94e">live<\/span><\/span><br><span style="color:#1a3a1a;font-size:10px">-------------------------------<\/span><br><span style="color:#2a4a2a;font-style:italic;font-size:10px">Coding is Art. Feel it. Enjoy it.<\/span><\/div>';
+
+  out.insertBefore(el, out.firstChild);
+  console.log('[X02] Terminal welcome UI injected.');
+}
+
+// --- Single tick: click terminal tab + attempt banner injection ---
+function x02TerminalTick(): boolean {
+  // 1. Find and click the TERMINAL tab if not already active
+  const termTab = document.querySelector('[data-tab="terminal"]') as HTMLElement;
+  const isActive = termTab && termTab.classList.contains('active');
+
+  if (termTab && !isActive) {
+    termTab.click();
+    console.log('[X02] Tick: terminal tab clicked.');
+  }
+
+  // 2. Try injecting the welcome banner
+  if (!(window as any).__terminalWelcomeDone) {
+    injectTerminalWelcomeUI();
+  }
+
+  // Return true if both jobs are done
+  return !!(isActive && (window as any).__terminalWelcomeDone);
+}
+
+// --- MAIN: Start polling loop immediately after initializeLayout() ---
+function startX02TerminalPoller(): void {
+  if ((window as any).__x02PollerStarted) return;
+  (window as any).__x02PollerStarted = true;
+
+  const startTime = Date.now();
+  const maxDuration = 5000; // poll for 5 seconds max
+  const interval   = 100;  // every 100ms
+
+  let ticks = 0;
+  const timer = setInterval(function() {
+    ticks++;
+    const done = x02TerminalTick();
+    const elapsed = Date.now() - startTime;
+
+    if (done || elapsed > maxDuration) {
+      clearInterval(timer);
+      if (done) {
+        console.log('[X02] Terminal poller done after ' + ticks + ' ticks (' + elapsed + 'ms).');
+      } else {
+        console.warn('[X02] Terminal poller timed out after ' + ticks + ' ticks. Forcing one last time.');
+        const t = document.querySelector('[data-tab="terminal"]') as HTMLElement;
+        if (t) t.click();
+        injectTerminalWelcomeUI();
+      }
+    }
+  }, interval);
+
+  console.log('[X02] Terminal poller started (100ms x 50 ticks max).');
+}
+(window as any).injectTerminalWelcomeUI = injectTerminalWelcomeUI;
+(window as any).startX02TerminalPoller  = startX02TerminalPoller;
+(window as any).x02TerminalTick         = x02TerminalTick;
 
 // === PROJECT PERSISTENCE ===
 const restoreProject = async (attempt: number = 1): Promise<void> => {
@@ -6379,11 +6710,13 @@ try {
     initializeCalibration();
   console.log('✅ Provider Calibration System initialized');
   initializeChangesExplanation();
-  initializeContextStatusBar({
-  showFileName: true,
-  showFileCount: true,
-  updateInterval: 2000  // Update every 2 seconds
-});
+  // initializeContextStatusBar renamed to initializeUnifiedStatusBar in contextStatusBar.ts
+  // (fixed by patch_fix_startup_errors.ps1)
+  try {
+    initializeUnifiedStatusBar();
+  } catch(_e) {
+    console.warn('[X02] initializeUnifiedStatusBar not available:', _e);
+  }
   // ✨ ADD THIS CODE
 if (import.meta.env.DEV) {
   // Make sure you have these imports at top:
@@ -6397,19 +6730,21 @@ if (import.meta.env.DEV) {
   (window as any).getContextStatus = getContextStatus;
   (window as any).toggleContextSystem = toggleContextSystem;
   (window as any).showCalibrationPanel = showCalibrationPanel
-  (window as any).debugContext = {
-    showStatus: () => {
-      console.log('📊 Context Status:');
-      console.log('  Enabled:', isContextEnabled());
-      console.log('  Status:', getContextStatus());
-      console.log('  Project:', contextManager.getProjectContext());
-      console.log('  Messages:', conversationManager.getCurrentConversation()?.messages?.length || 0);
-    },
-    enable: () => {
-      toggleContextSystem(true);
-      console.log('✅ Context enabled');
-    }
-  };
+  try {
+    (window as any).debugContext = {
+      showStatus: () => {
+        console.log('📊 Context Status:');
+        console.log('  Enabled:', isContextEnabled());
+        console.log('  Status:', getContextStatus());
+        console.log('  Project:', contextManager.getProjectContext());
+        console.log('  Messages:', conversationManager.getCurrentConversation()?.messages?.length || 0);
+      },
+      enable: () => {
+        toggleContextSystem(true);
+        console.log('✅ Context enabled');
+      }
+    };
+  } catch(e) { console.warn('[Init] debugContext skipped:', e?.message); }
   
   console.log('🔧 Debug commands available: debugContext.showStatus()');
 }
@@ -6468,7 +6803,7 @@ if (import.meta.env.DEV) {
         if (!success) {
           setTimeout(() => mod.coordinatedRender(), 1500);
         }
-      }, 500);
+      }, 2000);
     }).catch(e => console.warn('[RenderCoord] Import failed, falling back:', e));
     //setupDirectEventHandlers();
     setupFileUploadListeners();
@@ -6491,7 +6826,7 @@ setupMonacoValidation();
       console.log('✅ Auto error formatting started');
     }
   }, 2000);
-}, 500);
+}, 2000);
 
 
 setTimeout(() => {
@@ -7729,13 +8064,13 @@ console.log('Main.ts loaded - IDE with Plugin Detection');
          }
          
       if ((window as any).__buildSystemUI && typeof (window as any).__buildSystemUI.replaceRunButton === 'function') {
-           (window as any).__buildSystemUI.replaceRunButton();
+           if (window.__buildSystemUI && typeof window.__buildSystemUI.replaceRunButton === 'function') { (window as any).__buildSystemUI.replaceRunButton(); }
            console.log('✅ Dropdown initialized via module');
          } else {
-           console.warn('⚠️  __buildSystemUI.replaceRunButton not available - check buildSystemUI.ts exports');
+           if (window.__buildSystemUI && typeof window.__buildSystemUI.replaceRunButton === 'function') { console.warn('⚠️  __buildSystemUI.replaceRunButton not available - check buildSystemUI.ts exports'); }
          }
        }
-     }, 500);
+     }, 2000);
      
      setTimeout(() => clearInterval(checkInterval), 30000);
    }
@@ -8706,7 +9041,7 @@ ${folderFiles.length > 30 ? '  ... and ' + (folderFiles.length - 30) + ' more fi
         if (contentKeys.length > 0) {
           context += `[📚 File Contents (${contentKeys.length} files read from disk)]
 `;
-          for (const fileName of contentKeys.slice(0, 10)) {
+          for (const fileName of contentKeys.slice(0, 4)) {
             const content = fileContents[fileName];
             const ext = fileName.split('.').pop() || 'txt';
             const lines = content.split('\n').length;
@@ -8831,9 +9166,35 @@ ${code.split('\n').slice(0, 100).join('\n')}
                        (window as any).__currentFolderPath ||
                        localStorage.getItem('lastProjectPath') || '';
       const scriptPrompt = getIdeScriptSystemPrompt(projPath);
+
       if (scriptPrompt) {
         context = scriptPrompt + '\n' + context;
         console.log('🧠 [Context] IDE Script prompt injected (mode: ' + localStorage.getItem('ideScriptMode') + ')');
+    // WEB UI MODE - injected by patch (FIX2_DOM_MSG)
+    try {
+      const _domMsg = (
+        // Try the message variable in scope first (most reliable)
+        (typeof msg !== 'undefined' ? msg : '') ||
+        (typeof message !== 'undefined' ? message : '') ||
+        (typeof userMessage !== 'undefined' ? userMessage : '') ||
+        // Fallback: read last user message from chat DOM
+        document.querySelector('.user-message:last-child')?.textContent ||
+        document.querySelector('[data-role="user"]:last-child')?.textContent ||
+        document.querySelector('.human-message:last-child')?.textContent ||
+        document.querySelector('[class*="user-msg"]:last-child')?.textContent ||
+        // Last resort: input field (may be cleared already)
+        (document.querySelector('#ai-assistant-input') as HTMLTextAreaElement)?.value ||
+        ''
+      ).trim();
+      const _webUiFn = (window as any).detectWebUIRequest;
+      if (typeof _webUiFn === 'function' && _domMsg && _webUiFn(_domMsg)) {
+        context += (window as any).WEB_UI_GENERATION_PROMPT || '';
+        console.log('[WebUI Mode] UI generation rules injected for: ' + _domMsg.substring(0, 50));
+      } else if (detectWebUIRequestFromDOM()) {
+        context += (window as any).WEB_UI_GENERATION_PROMPT || '';
+        console.log('[WebUI Mode] UI generation rules injected via DOM detection');
+      }
+    } catch (_webUiErr) { /* silent */ }
       }
     }
 
@@ -9508,6 +9869,10 @@ try {
       
       // Summary
       fileContext += `\n---\n📊 **Summary:** Read ${includedFiles.length} files (${Math.round(totalCharsUsed/1000)}KB), ${allProjectFiles.length} total files in project\n`;
+    // FIX3_TOKEN_FILTER - cap context to 10KB
+    if (typeof fileContext === 'string' && fileContext.length > 10000) {
+      fileContext = fileContext.substring(0, 10000) + '\n\n...[truncated for perf]';
+    }
       
       fullMessage = fullMessage + fileContext;
       console.log(`✅ AI File Explorer: Read ${includedFiles.length} files (${totalCharsUsed} chars), ${unreadFiles.length} files available on request`);
@@ -10845,7 +11210,7 @@ try {
     }
     
     console.log('📂 Found folder:', folderName);
-    console.log('📄 Found files:', files.length, files.slice(0, 5));
+    console.log('📄 Found files:', files.length, files.filter(function(fp){ return !/(tsconfig|package-lock|\.lock$)/.test(fp); }).slice(0, 5));
     
     // Store it
     if (files.length > 0 || folderName !== 'Unknown') {
@@ -11582,7 +11947,7 @@ setTimeout(() => {
         }
       }
 
-      return matches.sort((a, b) => b.score - a.score).slice(0, 10);
+      return matches.sort((a, b) => b.score - a.score).slice(0, 4);
     }
 
     private extractKeywords(query: string): string[] {

@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // FILE: src/ide/aiAssistant/inlineAICodeWriter.ts
 // PURPOSE: AI writes code directly into files based on comments/instructions
 // ============================================================================
@@ -157,31 +157,26 @@ function extractExplanation(response: string): string | undefined {
 /**
  * Initialize inline AI code writer for Monaco editor
  */
-export function initializeInlineAICodeWriter(monaco: any): void {
+export function initializeInlineAICodeWriter(monaco: any, editorInstance?: any): void {
   console.log('🚀 Initializing Inline AI Code Writer...');
   
-  // Register command for Ctrl+Shift+I (or any shortcut you prefer)
-  monaco.editor.addCommand({
-    id: 'ai-inline-code-generator',
-    label: 'AI: Generate Code Here',
-    keybindings: [
-      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyI
-    ],
-    run: async (editor: any) => {
-      await handleInlineCodeGeneration(editor);
-    }
-  });
-  
-  // Add context menu item
-  monaco.editor.addAction({
-    id: 'ai-inline-code-generator',
-    label: '🤖 AI: Generate Code Here',
-    contextMenuGroupId: 'navigation',
-    contextMenuOrder: 1.5,
-    run: async (editor: any) => {
-      await handleInlineCodeGeneration(editor);
-    }
-  });
+  // Register action on the editor instance (addAction only exists on instance, not namespace)
+  if (editorInstance) {
+    editorInstance.addAction({
+      id: 'ai-inline-code-generator',
+      label: 'AI: Generate Code Here',
+      keybindings: [
+        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyI
+      ],
+      contextMenuGroupId: 'navigation',
+      contextMenuOrder: 1.5,
+      run: async (ed: any) => {
+        await handleInlineCodeGeneration(ed);
+      }
+    });
+  } else {
+    console.warn('[InlineAI] No editor instance - keybinding not registered.');
+  }
   
   // ✅ NEW: Auto-detect AI comments
   setupAutoDetection(monaco);

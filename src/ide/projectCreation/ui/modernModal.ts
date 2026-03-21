@@ -3669,40 +3669,6 @@ private renderFileTree(container: HTMLElement, files: any[], parentPath: string 
   }
 
   // ==========================================================================
-  // PRIVATE METHOD: showSuccessNotification
-  // ==========================================================================
-  /**
-   * Show success notification
-   */
-  private showSuccessNotification(projectName: string, fullPath: string): void {
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-      position: fixed; top: 20px; right: 20px;
-      background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-      color: white; padding: 20px 24px; border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3); z-index: 30000;
-      font-size: 14px; animation: slideInRight 0.3s ease; max-width: 400px;
-    `;
-    notification.innerHTML = `
-      <div style="display: flex; align-items: start; gap: 12px;">
-        <div style="font-size: 32px;">🎉</div>
-        <div>
-          <strong style="display: block; margin-bottom: 5px; font-size: 16px;">Project Created Successfully!</strong>
-          <div style="opacity: 0.95; font-size: 13px; margin-bottom: 8px;"><strong>${projectName}</strong></div>
-          <div style="opacity: 0.85; font-size: 11px; word-break: break-all;">${fullPath}</div>
-        </div>
-      </div>
-    `;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-      notification.style.animation = 'slideOutRight 0.3s ease';
-      setTimeout(() => notification.remove(), 300);
-    }, 5000);
-  }
-
-  // ==========================================================================
   // PRIVATE METHOD: showErrorNotification
   // ==========================================================================
   /**

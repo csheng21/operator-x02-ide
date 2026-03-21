@@ -1,4 +1,4 @@
-// calibrationIntegration.ts - Integration with Multi-Provider Orchestrator
+﻿// calibrationIntegration.ts - Integration with Multi-Provider Orchestrator
 // ============================================================================
 // Connects the calibration system to your existing orchestrator
 // ============================================================================
@@ -137,6 +137,7 @@ export function addCalibrationButton(): void {
     `;
     calibBtn.onclick = (e) => {
       e.stopPropagation();
+      (window as any).__calibrationUserTriggered = true;
       showCalibrationPanel();
     };
     calibBtn.onmouseenter = () => { calibBtn.style.transform = 'scale(1.2)'; };
@@ -155,6 +156,7 @@ export function initCalibrationShortcuts(): void {
     // Ctrl+Shift+C for Calibration panel
     if (e.ctrlKey && e.shiftKey && e.key === 'C') {
       e.preventDefault();
+      (window as any).__calibrationUserTriggered = true;
       showCalibrationPanel();
     }
   });

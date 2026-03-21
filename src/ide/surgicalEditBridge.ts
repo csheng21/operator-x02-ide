@@ -413,6 +413,7 @@ export async function surgicalApplySmartUpdate(
     return false;
   };
   const currentFile = (window as any).tabManager?.getCurrentFile?.() || '';
+  const filePath = getFilePath()!; // [X02Fix TDZ] hoisted â€” was at line 425
   const fileExt = getFileExt(currentFile || filePath || '');
   if (isSuspiciousContent(newCode, fileExt)) {
     console.warn(`\u26A0\uFE0F [X02 ContentGuard] Rejected patch for ${currentFile} â€” content looks like documentation/marketing, not ${fileExt} code`);
@@ -422,7 +423,7 @@ export async function surgicalApplySmartUpdate(
 
 
   const invoke = getInvoke()!;
-  const filePath = getFilePath()!;
+  // [X02Fix] original const filePath declaration removed (hoisted above)
   const fileName = getFileName();
   const em = getEditorAndModel();
   if (!em) {

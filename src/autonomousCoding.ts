@@ -1,12 +1,138 @@
 ﻿// autonomousCoding.ts - Enhanced Autonomous Coding System with AI Assistant Integration
-// ⚠️ TEMPORARY: UI PANEL DISABLED - Only backend functionality active
+// ?? TEMPORARY: UI PANEL DISABLED - Only backend functionality active
 import { showNotification } from './fileSystem';
 
-// ⭐ v15: Module load banner - if you see this, the v15 file IS in the build
-console.log('🔥🔥🔥 [AutoApply v15] autonomousCoding v15 LOADED 🔥🔥🔥');
+// ? v15: Module load banner - if you see this, the v15 file IS in the build
+
+// ================================================================
+// WEB UI GENERATION INTELLIGENCE - auto-injected by patch script
+// ================================================================
+
+function detectWebUIRequest(message: string): boolean {
+  const patterns = [
+    /\b(create|build|make|generate|design|write)\b.{0,50}\b(ui|page|website|landing|dashboard|component|layout|screen)\b/i,
+    /\b(improve|enhance|redesign|update|restyle)\b.{0,40}\b(ui|design|look|style|layout|appearance)\b/i,
+    /\b(hero|navbar|header|footer|card|grid|section|banner)\b/i,
+    /\b(animat|transition|effect|motion)\b/i,
+    /more\s+(beautiful|modern|professional|clean|elegant|impressive)/i,
+  ];
+  return patterns.some(p => p.test(message));
+}
+
+const WEB_UI_GENERATION_PROMPT = `
+RULE ZERO EXTERNAL DEPENDENCIES: NEVER import framer-motion, gsap, react-spring, lodash, axios, styled-components, react-icons, lucide-react, recharts, d3, or ANY library not already in package.json. NEVER create utils/animations.ts or similar files. ONLY use React built-ins, inline styles, CSS transitions, fetch(), Unicode emoji. This rule is mandatory - violating it breaks the build.
+
+=== WEB UI GENERATION MODE ACTIVE ===
+=== MANDATORY GUARDRAILS - VIOLATIONS BREAK THE BUILD ===
+
+GUARDRAIL 1 - NO EXTERNAL LIBRARIES:
+  NEVER use: framer-motion, gsap, react-spring, lodash, axios,
+  styled-components, react-icons, lucide-react, recharts, d3,
+  @heroicons, react-query, zustand, or ANY lib not in package.json.
+  ONLY use: React built-ins, inline styles, CSS transitions, fetch(),
+  Unicode emoji for icons, standard browser APIs.
+
+GUARDRAIL 2 - NO UTILITY FILE CREATION:
+  NEVER create: utils/animations.ts, utils/helpers.ts, lib/motion.ts
+  or any helper file. All code goes directly in components.
+
+GUARDRAIL 3 - CORRECT FILE TARGETS:
+  main.tsx = Vite entry point ONLY. NEVER put components or JSX here.
+  main.tsx must only contain: ReactDOM.createRoot(...).render(<App/>)
+  App.tsx = root component that imports and renders other components.
+  Components go in: src/components/ComponentName.tsx ONLY.
+
+GUARDRAIL 4 - CORRECT FILE LOCATIONS:
+  NEVER create tsconfig.json, vite.config.ts, or package.json inside src/.
+  Config files belong at project ROOT only.
+  NEVER create files outside src/ unless explicitly asked.
+
+GUARDRAIL 5 - WRITE CLEAN CODE ONLY:
+  NEVER write HTML entities in source files: use ' not &#039;
+  NEVER include <span class="..."> highlight tags in code.
+  NEVER include markdown backticks inside file content.
+  Write raw TypeScript/TSX only - no formatting artifacts.
+
+GUARDRAIL 6 - VERIFY BEFORE PATCHING:
+  Before ide_patch: use ide_read_file to confirm current file content.
+  Never patch a file you haven't read in this session.
+  If file content is unknown, use ide_create_file with overwrite:true.
+
+=== END GUARDRAILS ===
+
+You are generating a COMPLETE, VISUALLY WORKING web UI. The user sees the live preview immediately.
+
+RULE 1 - ALWAYS GENERATE ALL 6 FILES using ide_create_file:
+  1. src/App.tsx
+  2. src/components/Header.tsx
+  3. src/components/Hero.tsx
+  4. src/components/Features.tsx
+  5. src/components/Footer.tsx
+  6. src/App.css
+  Also patch src/index.css: body { margin:0; background:#0a0a0a; color:#fff; font-family:Inter,system-ui,sans-serif; }
+
+RULE 2 - EVERY COMPONENT IS SELF-VISIBLE:
+- Every section must have its OWN explicit background-color or gradient
+- NEVER use transparent background or rely on parent for color
+- Dark palette: #0a0a0a | #111827 | #1a1a2e | #16213e
+- Accents: #6366f1 | #8b5cf6 | #06b6d4 | #f59e0b
+- Use inline styles for all critical layout and color properties
+
+RULE 3 - App.tsx FIXED STRUCTURE:
+import React from 'react';
+import Header from './components/Header';
+import Hero from './components/Hero';
+import Features from './components/Features';
+import Footer from './components/Footer';
+import './App.css';
+const App: React.FC = () => (
+  <div style={{ margin:0, padding:0, backgroundColor:'#0a0a0a', minHeight:'100vh' }}>
+    <Header />
+    <main><Hero /><Features /></main>
+    <Footer />
+  </div>
+);
+export default App;
+
+RULE 4 - Header.tsx: position fixed, top 0, zIndex 1000, dark background with blur,
+flex row with logo (gradient text) + nav links + CTA button
+
+RULE 5 - Hero.tsx: minHeight 100vh, dark gradient background, flex center,
+fade-in animation, large gradient headline, subtitle, 2 CTA buttons (solid + ghost),
+decorative glow orbs in background
+
+RULE 6 - Features.tsx: padding 100px 2rem, dark gradient bg, h2 heading centered,
+CSS grid auto-fit minmax(300px,1fr), cards with hover lift + color border glow,
+each card: emoji icon + title + description + accent bottom line
+
+RULE 7 - Footer.tsx: background #050505, border-top, logo+tagline + 2 link columns + copyright bar
+
+RULE 8 - ADAPT to user domain:
+  portfolio = name/role/skills/projects
+  SaaS = features/pricing/testimonials
+  restaurant = warm amber/orange palette
+  medical = blue/teal palette
+  e-commerce = product cards
+NEVER use generic placeholder text - always match the user intent.
+=== 
+RULE: ZERO EXTERNAL DEPENDENCIES - MANDATORY
+- NEVER import framer-motion, gsap, react-spring, lodash, axios, styled-components,
+  react-icons, @heroicons, lucide-react, recharts, d3, three, or ANY library
+  not already in the project's package.json
+- NEVER create utility files like utils/animations.ts, utils/helpers.ts etc
+- ONLY use: React built-ins, inline styles, CSS classes, and standard browser APIs
+- For animations: use CSS keyframes in App.css or inline style transitions only
+- For icons: use plain Unicode emoji or simple SVG inline elements
+- For HTTP: use fetch() only, never axios
+- Before using any import, ask: is this in the project already? If unsure, DON'T use it
+- Violation of this rule breaks the build and wastes the user's time
+END WEB UI GENERATION MODE ===
+`;
+
+console.log('?????? [AutoApply v15] autonomousCoding v15 LOADED ??????');
 
 // ============================================================================
-// 🆕 MULTI-FILE AUTONOMOUS INTEGRATION - DISABLED (using internal system only)
+// ?? MULTI-FILE AUTONOMOUS INTEGRATION - DISABLED (using internal system only)
 // ============================================================================
 // External module disabled to prevent conflicts - using internal processMultiFileApply only
 const initMultiFileAutonomous = () => { /* disabled */ };
@@ -36,26 +162,26 @@ class SimpleAutonomousSystem {
   startAutonomousMode(): void {
     this.isActive = true;
     this.isStopped = false;
-    console.log('🤖 Simple autonomous mode activated');
+    console.log('?? Simple autonomous mode activated');
   }
   
   stopAutonomousMode(): void {
     this.isActive = false;
     this.isTyping = false;
     this.isStopped = false;
-    console.log('🛑 Simple autonomous mode deactivated');
+    console.log('?? Simple autonomous mode deactivated');
   }
   
   pauseAutonomousMode(): void {
     this.isStopped = true;
     this.isTyping = false;
-    console.log('⏸️ Simple autonomous mode paused/stopped');
+    console.log('?? Simple autonomous mode paused/stopped');
   }
   
   continueAutonomousMode(): void {
     this.isStopped = false;
     if (this.isActive) {
-      console.log('▶️ Simple autonomous mode continued');
+      console.log('?? Simple autonomous mode continued');
     }
   }
   
@@ -72,15 +198,15 @@ class SimpleAutonomousSystem {
   }
   
   async processCurrentFile(filePath?: string): Promise<void> {
-    console.log('⚡ Processing file with simple autonomous system:', filePath);
+    console.log('? Processing file with simple autonomous system:', filePath);
     
     if (this.isStopped) {
-      showNotification('⏸️ Autonomous system is stopped. Press Continue to resume.', 'warning');
+      showNotification('?? Autonomous system is stopped. Press Continue to resume.', 'warning');
       return;
     }
     
     if (this.isTyping) {
-      showNotification('⏳ Autonomous system is currently typing...', 'warning');
+      showNotification('? Autonomous system is currently typing...', 'warning');
       return;
     }
     
@@ -90,7 +216,7 @@ class SimpleAutonomousSystem {
     }
     
     if (!filePath || !filePath.endsWith('.py')) {
-      showNotification('❌ No Python file selected', 'error');
+      showNotification('? No Python file selected', 'error');
       return;
     }
     
@@ -98,34 +224,34 @@ class SimpleAutonomousSystem {
       // Get current editor content
       const editor = (window as any).monaco?.editor?.getEditors()?.[0];
       if (!editor) {
-        showNotification('❌ No editor found', 'error');
+        showNotification('? No editor found', 'error');
         return;
       }
       
       const content = editor.getValue();
-      console.log('📄 File content length:', content.length);
+      console.log('?? File content length:', content.length);
       
       // Check for autonomous decorators
       const decorators = this.findDecorators(content);
       
       if (decorators.length === 0) {
-        showNotification('ℹ️ No autonomous decorators found', 'info');
+        showNotification('?? No autonomous decorators found', 'info');
         return;
       }
       
-      console.log(`🎯 Found ${decorators.length} decorators:`, decorators);
-      showNotification(`🎯 Found ${decorators.length} decorators - Starting autonomous coding...`, 'info');
+      console.log(`?? Found ${decorators.length} decorators:`, decorators);
+      showNotification(`?? Found ${decorators.length} decorators - Starting autonomous coding...`, 'info');
       
       // Process each decorator with typing animation
       for (let i = 0; i < decorators.length; i++) {
         // Check if stopped during processing
         if (this.isStopped) {
-          showNotification('⏸️ Autonomous processing stopped by user', 'warning');
+          showNotification('?? Autonomous processing stopped by user', 'warning');
           break;
         }
         
         const decorator = decorators[i];
-        showNotification(`🤖 Generating ${decorator.type} (${i + 1}/${decorators.length})...`, 'info');
+        showNotification(`?? Generating ${decorator.type} (${i + 1}/${decorators.length})...`, 'info');
         await this.processDecoratorWithTyping(decorator, editor);
         
         // Pause between decorators
@@ -135,12 +261,12 @@ class SimpleAutonomousSystem {
       }
       
       if (!this.isStopped) {
-        showNotification(`✅ Autonomous coding complete! Generated ${decorators.length} functions`, 'success');
+        showNotification(`? Autonomous coding complete! Generated ${decorators.length} functions`, 'success');
       }
       
     } catch (error) {
-      console.error('❌ Autonomous processing failed:', error);
-      showNotification('❌ Autonomous processing failed', 'error');
+      console.error('? Autonomous processing failed:', error);
+      showNotification('? Autonomous processing failed', 'error');
       this.isTyping = false;
     }
   }
@@ -197,7 +323,7 @@ class SimpleAutonomousSystem {
   }
   
   private async processDecoratorWithTyping(decorator: any, editor: any): Promise<void> {
-    console.log(`🔨 Processing ${decorator.type} decorator:`, decorator);
+    console.log(`?? Processing ${decorator.type} decorator:`, decorator);
     this.isTyping = true;
     
     // Update UI to show typing status
@@ -225,7 +351,7 @@ class SimpleAutonomousSystem {
     
     if (generatedCode && !this.isStopped) {
       await this.typeCodeIntoEditor(editor, decorator.line, generatedCode);
-      console.log(`✅ Generated code for ${decorator.type}`);
+      console.log(`? Generated code for ${decorator.type}`);
     }
     
     this.isTyping = false;
@@ -381,7 +507,7 @@ class SimpleAutonomousSystem {
   // Set typing speed (characters per second)
   setTypingSpeed(charactersPerSecond: number): void {
     this.typingSpeed = 1000 / charactersPerSecond;
-    console.log(`🔧 Typing speed set to ${charactersPerSecond} characters per second`);
+    console.log(`?? Typing speed set to ${charactersPerSecond} characters per second`);
   }
   
   // Emergency stop typing
@@ -389,7 +515,7 @@ class SimpleAutonomousSystem {
     this.pauseAutonomousMode();
     this.stopTypingIndicator();
     this.updateTypingStatus('Stopped', false);
-    showNotification('🛑 Autonomous typing stopped', 'warning');
+    showNotification('?? Autonomous typing stopped', 'warning');
   }
   
   private generateFunction(params: string): string {
@@ -516,7 +642,7 @@ class SimpleAutonomousUI {
     this.loadVisibilityState();
     // TEMPORARY: UI disabled
     // this.createAIAssistantIntegratedPanel();
-    console.log('🔵 Autonomous UI temporarily disabled');
+    console.log('?? Autonomous UI temporarily disabled');
   }
   
   private loadVisibilityState(): void {
@@ -567,13 +693,13 @@ class SimpleAutonomousUI {
     `;
     
     // Panel content simplified for brevity
-    panel.innerHTML = `<div style="padding: 16px; text-align: center; color: #4fc3f7;">🤖 Autonomous Panel</div>`;
+    panel.innerHTML = `<div style="padding: 16px; text-align: center; color: #4fc3f7;">?? Autonomous Panel</div>`;
     
     // Insert the panel into the AI assistant container
     this.insertPanelIntoAIAssistant(container, panel);
     this.panel = panel;
     
-    console.log('✅ Autonomous panel integrated into AI Assistant successfully');
+    console.log('? Autonomous panel integrated into AI Assistant successfully');
   }
   
   private findAIAssistantContainer(): HTMLElement | null {
@@ -617,7 +743,7 @@ class SimpleAutonomousUI {
     if (this.panel) {
       this.panelState = 'minimized';
       this.saveVisibilityState();
-      console.log('✅ Autonomous panel minimized in AI Assistant');
+      console.log('? Autonomous panel minimized in AI Assistant');
     }
   }
   
@@ -625,7 +751,7 @@ class SimpleAutonomousUI {
     if (this.panel) {
       this.panelState = 'full';
       this.saveVisibilityState();
-      console.log('✅ Autonomous panel expanded in AI Assistant');
+      console.log('? Autonomous panel expanded in AI Assistant');
     }
   }
   
@@ -633,7 +759,7 @@ class SimpleAutonomousUI {
     if (this.panel) {
       this.panelState = 'full';
       this.saveVisibilityState();
-      console.log('✅ Autonomous panel shown in AI Assistant');
+      console.log('? Autonomous panel shown in AI Assistant');
     }
   }
   
@@ -641,7 +767,7 @@ class SimpleAutonomousUI {
     if (this.panel) {
       this.panelState = 'hidden';
       this.saveVisibilityState();
-      console.log('✅ Autonomous panel hidden in AI Assistant');
+      console.log('? Autonomous panel hidden in AI Assistant');
     }
   }
   
@@ -692,7 +818,7 @@ class SimpleAutonomousUI {
 
 // Autonomous Mode Functions - exported for main.ts
 export async function toggleAutonomousMode(): Promise<void> {
-  console.log('🤖 Toggling autonomous mode in AI Assistant...');
+  console.log('?? Toggling autonomous mode in AI Assistant...');
   
   let simpleAutonomousSystem = (window as any).__simpleAutonomous;
   let simpleAutonomousUI = (window as any).__simpleAutonomousUI;
@@ -700,7 +826,7 @@ export async function toggleAutonomousMode(): Promise<void> {
   
   // Initialize simple system if not done
   if (!simpleAutonomousSystem) {
-    console.log('🔄 Initializing autonomous system in AI Assistant...');
+    console.log('?? Initializing autonomous system in AI Assistant...');
     simpleAutonomousSystem = new SimpleAutonomousSystem();
     simpleAutonomousUI = new SimpleAutonomousUI();
     
@@ -708,24 +834,24 @@ export async function toggleAutonomousMode(): Promise<void> {
     (window as any).__simpleAutonomous = simpleAutonomousSystem;
     (window as any).__simpleAutonomousUI = simpleAutonomousUI;
     
-    showNotification('🤖 Autonomous system initialized in AI Assistant', 'success');
+    showNotification('?? Autonomous system initialized in AI Assistant', 'success');
   }
   
   if (isAutonomousModeActive) {
     simpleAutonomousSystem.stopAutonomousMode();
     (window as any).__isAutonomousModeActive = false;
     simpleAutonomousUI?.updateStatus('Inactive', '#f48771');
-    showNotification('🛑 Autonomous mode deactivated', 'info');
+    showNotification('?? Autonomous mode deactivated', 'info');
   } else {
     simpleAutonomousSystem.startAutonomousMode();
     (window as any).__isAutonomousModeActive = true;
     simpleAutonomousUI?.updateStatus('Active', '#4caf50');
-    showNotification('🤖 Autonomous mode activated in AI Assistant', 'success');
+    showNotification('?? Autonomous mode activated in AI Assistant', 'success');
   }
 }
 
 export async function processCurrentFileAutonomous(): Promise<void> {
-  console.log('⚡ Processing current file autonomously in AI Assistant...');
+  console.log('? Processing current file autonomously in AI Assistant...');
   
   let simpleAutonomousSystem = (window as any).__simpleAutonomous;
   
@@ -737,7 +863,7 @@ export async function processCurrentFileAutonomous(): Promise<void> {
   if (simpleAutonomousSystem) {
     await simpleAutonomousSystem.processCurrentFile();
   } else {
-    showNotification('❌ Autonomous system not available', 'error');
+    showNotification('? Autonomous system not available', 'error');
   }
 }
 
@@ -753,7 +879,7 @@ export function setTypingSpeed(speed: 'slow' | 'normal' | 'fast' | 'instant'): v
   };
   
   simpleAutonomousSystem.setTypingSpeed(speeds[speed]);
-  showNotification(`🎯 Typing speed set to ${speed} in AI Assistant`, 'success');
+  showNotification(`?? Typing speed set to ${speed} in AI Assistant`, 'success');
   
   const speedSelect = document.getElementById('typing-speed-select') as HTMLSelectElement;
   if (speedSelect) {
@@ -769,7 +895,7 @@ export function emergencyStopTyping(): void {
     if (autonomousSystem.isAutonomousStopped()) {
       autonomousSystem.continueAutonomousMode();
       autonomousUI.updateStatus('Active', '#4caf50');
-      showNotification('▶️ Autonomous mode continued in AI Assistant', 'success');
+      showNotification('?? Autonomous mode continued in AI Assistant', 'success');
     } else {
       autonomousSystem.emergencyStop();
       autonomousUI.updateStatus('Stopped', '#ff9800');
@@ -778,22 +904,22 @@ export function emergencyStopTyping(): void {
 }
 
 export function testAutonomousSystem(): void {
-  console.log('🧪 Testing autonomous system in AI Assistant...');
+  console.log('?? Testing autonomous system in AI Assistant...');
   
   const simpleAutonomousSystem = (window as any).__simpleAutonomous;
   
   if (simpleAutonomousSystem) {
-    console.log('✅ Autonomous system found in AI Assistant');
-    showNotification('✅ Autonomous system test passed in AI Assistant!', 'success');
+    console.log('? Autonomous system found in AI Assistant');
+    showNotification('? Autonomous system test passed in AI Assistant!', 'success');
   } else {
-    console.log('❌ No autonomous system found, initializing...');
+    console.log('? No autonomous system found, initializing...');
     toggleAutonomousMode();
   }
 }
 
 // Initialize autonomous system when module is loaded
 export function initializeAutonomousSystem(): void {
-  console.log('🔵 Initializing Autonomous Coding System in AI Assistant...');
+  console.log('?? Initializing Autonomous Coding System in AI Assistant...');
   
   setTimeout(async () => {
     try {
@@ -807,11 +933,11 @@ export function initializeAutonomousSystem(): void {
         (window as any).__simpleAutonomous = simpleAutonomousSystem;
         (window as any).__simpleAutonomousUI = simpleAutonomousUI;
         
-        console.log('✅ Autonomous Coding System initialized in AI Assistant successfully');
-        showNotification('🔵 Autonomous Coding ready in AI Assistant! 🤖', 'success');
+        console.log('? Autonomous Coding System initialized in AI Assistant successfully');
+        showNotification('?? Autonomous Coding ready in AI Assistant! ??', 'success');
       }
     } catch (error) {
-      console.error('❌ Error initializing autonomous coding system in AI Assistant:', error);
+      console.error('? Error initializing autonomous coding system in AI Assistant:', error);
     }
   }, 3000); // Wait for AI assistant to be ready
 }
@@ -819,13 +945,13 @@ export function initializeAutonomousSystem(): void {
 // Global exports
 export { SimpleAutonomousSystem, SimpleAutonomousUI };
 
-console.log('🔵 autonomousCoding.ts loaded - AI Assistant Integration');
+console.log('?? autonomousCoding.ts loaded - AI Assistant Integration');
 
 // ============================================================================
 // AUTO CODE APPLY - Apply AI code blocks directly to Monaco Editor
 // ============================================================================
 
-console.log('🤖 [AutoCodeApply] Loading...');
+console.log('?? [AutoCodeApply] Loading...');
 
 const AUTO_APPLY_ICONS = {
   apply: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>`,
@@ -862,7 +988,7 @@ let forceApplyWatcherInterval: ReturnType<typeof setInterval> | null = null;
  */
 export function setForceApplyNext(enabled: boolean): void {
   forceApplyNextCode = enabled;
-  console.log(`🔧 [ForceApply] ${enabled ? 'ARMED - Will auto-apply next code' : 'Disarmed'}`);
+  console.log(`?? [ForceApply] ${enabled ? 'ARMED - Will auto-apply next code' : 'Disarmed'}`);
   
   if (enabled) {
     // Start watching for new code blocks
@@ -879,7 +1005,7 @@ function startForceApplyWatcher(): void {
   // Clear any existing watcher
   stopForceApplyWatcher();
   
-  console.log('👁️ [ForceApply] Watcher started - monitoring for AI response...');
+  console.log('??? [ForceApply] Watcher started - monitoring for AI response...');
   
   let checkCount = 0;
   const maxChecks = 60; // 30 seconds max (500ms * 60)
@@ -888,7 +1014,7 @@ function startForceApplyWatcher(): void {
     checkCount++;
     
     if (!forceApplyNextCode || checkCount > maxChecks) {
-      console.log(`👁️ [ForceApply] Watcher stopped (${forceApplyNextCode ? 'timeout' : 'applied'})`);
+      console.log(`??? [ForceApply] Watcher stopped (${forceApplyNextCode ? 'timeout' : 'applied'})`);
       stopForceApplyWatcher();
       forceApplyNextCode = false;
       return;
@@ -897,7 +1023,7 @@ function startForceApplyWatcher(): void {
     // Check for new unprocessed code blocks
     const unprocessed = getUnprocessedCodeBlocks();
     if (unprocessed.length > 0) {
-      console.log(`🎯 [ForceApply] Found ${unprocessed.length} code block(s) - applying...`);
+      console.log(`?? [ForceApply] Found ${unprocessed.length} code block(s) - applying...`);
       
       // Apply the best code block
       forceApplyCodeBlock();
@@ -925,25 +1051,25 @@ async function forceApplyCodeBlock(): Promise<void> {
   // Select the best code block
   const targetBlock = selectBestCodeBlock(unprocessed);
   if (!targetBlock) {
-    console.log('⚠️ [ForceApply] No suitable code block found');
+    console.log('?? [ForceApply] No suitable code block found');
     return;
   }
   
   const codeInfo = extractCodeFromBlockForApply(targetBlock);
   if (!codeInfo || !codeInfo.code.trim()) {
-    console.log('⚠️ [ForceApply] No code to apply');
+    console.log('?? [ForceApply] No code to apply');
     return;
   }
   
   // Check minimum lines (skip tiny snippets)
   const codeLines = codeInfo.code.trim().split('\n').filter(line => line.trim());
   if (codeLines.length < 3) {
-    console.log('⚠️ [ForceApply] Code too short, waiting for complete code...');
+    console.log('?? [ForceApply] Code too short, waiting for complete code...');
     return;
   }
   
   // Apply the code with SMART UPDATE (includes diff highlights)
-  console.log(`✅ [ForceApply] Applying ${codeLines.length} lines of code with highlights...`);
+  console.log(`? [ForceApply] Applying ${codeLines.length} lines of code with highlights...`);
   // Pipeline: Start for force-apply
   surgicalPipeline.begin();
   surgicalPipeline.enter(0, 'Force apply triggered');
@@ -966,15 +1092,15 @@ async function forceApplyCodeBlock(): Promise<void> {
     
     // Show success toast with change summary
     const changeMsg = result.message === 'No changes needed' 
-      ? '✅ No errors found - code is clean!' 
-      : `✅ Fix applied: ${result.message}`;
+      ? '? No errors found - code is clean!' 
+      : `? Fix applied: ${result.message}`;
     showAutoApplyToast(changeMsg, 'success');
     
     // Disable force apply after successful apply
     forceApplyNextCode = false;
     stopForceApplyWatcher();
   } else {
-    showAutoApplyToast(`❌ ${result.message}`, 'error');
+    showAutoApplyToast(`? ${result.message}`, 'error');
   }
 }
 
@@ -983,7 +1109,7 @@ function getProgressiveDelay(lineNumber: number): number {
 }
 
 let originalCodeBeforeApply: string = '';
-let pendingNewCode: string = '';  // 🔧 FIX: Store new code for accept
+let pendingNewCode: string = '';  // ?? FIX: Store new code for accept
 
 // AI Change History - moved to bottom (AI CHANGE NOTIFICATION + DIFF VIEWER section)
 let hasUnapprovedChanges: boolean = false;
@@ -1008,7 +1134,7 @@ function clearPendingDecorations(fileName?: string): void {
     if (ids && ids.length > 0) {
       try { editor.deltaDecorations(ids, []); } catch(e) {}
       pendingMultiFileDecorations.delete(fileName.toLowerCase());
-      console.log(`🎨 [Decorations] Cleared for: ${fileName}`);
+      console.log(`?? [Decorations] Cleared for: ${fileName}`);
     }
   } else {
     // Clear all
@@ -1016,14 +1142,14 @@ function clearPendingDecorations(fileName?: string): void {
       try { editor.deltaDecorations(ids, []); } catch(e) {}
     }
     pendingMultiFileDecorations.clear();
-    console.log(`🎨 [Decorations] Cleared all`);
+    console.log(`?? [Decorations] Cleared all`);
   }
 }
 
 // Store decorations for a file (called after applying changes)
 function storePendingDecorations(fileName: string, decorationIds: string[]): void {
   pendingMultiFileDecorations.set(fileName.toLowerCase(), decorationIds);
-  console.log(`🎨 [Decorations] Stored ${decorationIds.length} for: ${fileName}`);
+  console.log(`?? [Decorations] Stored ${decorationIds.length} for: ${fileName}`);
 }
 
 // Inject CSS styles for Monaco editor line highlighting
@@ -1116,12 +1242,12 @@ function injectHighlightStyles(): void {
     }
   `;
   document.head.appendChild(style);
-  console.log('🎨 [Highlight] Injected highlight styles v3');
+  console.log('?? [Highlight] Injected highlight styles v3');
 }
 
 // Clear decorations when accepting or rejecting changes
 function clearAllDecorations(): void {
-  console.log('🎨 [Decorations] Clearing all decorations...');
+  console.log('?? [Decorations] Clearing all decorations...');
   
   // Clear stored decorations from pendingMultiFileDecorations
   clearPendingDecorations();
@@ -1134,9 +1260,9 @@ function clearAllDecorations(): void {
   if (editor && ids && ids.length > 0) {
     try {
       editor.deltaDecorations(ids, []);
-      console.log(`🎨 [Decorations] Cleared ${ids.length} decoration IDs`);
+      console.log(`?? [Decorations] Cleared ${ids.length} decoration IDs`);
     } catch (e) {
-      console.warn('🎨 [Decorations] Error clearing ids:', e);
+      console.warn('?? [Decorations] Error clearing ids:', e);
     }
   }
   
@@ -1145,9 +1271,9 @@ function clearAllDecorations(): void {
   if (editor && allIds && allIds.length > 0) {
     try {
       editor.deltaDecorations(allIds, []);
-      console.log(`🎨 [Decorations] Cleared ${allIds.length} accumulated decorations`);
+      console.log(`?? [Decorations] Cleared ${allIds.length} accumulated decorations`);
     } catch (e) {
-      console.warn('🎨 [Decorations] Error clearing accumulated:', e);
+      console.warn('?? [Decorations] Error clearing accumulated:', e);
     }
   }
   
@@ -1164,17 +1290,17 @@ function clearAllDecorations(): void {
   }
   activeHighlightDecorations = [];
   
-  console.log('🎨 [Decorations] All decorations cleared');
+  console.log('?? [Decorations] All decorations cleared');
 }
 
 export function setAutoApplyTypingSpeed(lineDelayMs: number): void {
   lineDelay = Math.max(10, Math.min(500, lineDelayMs));
-  console.log(`⚡ [AutoApply] Line delay: ${lineDelay}ms`);
+  console.log(`? [AutoApply] Line delay: ${lineDelay}ms`);
 }
 
 export function stopAutoApplyTyping(): void {
   stopTypingFlag = true;
-  console.log('🛑 [AutoApply] Stop typing requested');
+  console.log('?? [AutoApply] Stop typing requested');
 }
 
 function isAutoApplyEnabled(): boolean {
@@ -1302,7 +1428,7 @@ function injectConfirmationStyles(): void {
 function showConfirmationBar(changesSummary: string): void {
   // Don't show if multi-file confirmation is visible
   if (document.querySelector('.multi-file-confirm-bar')) {
-    console.log('⏭️ [ConfirmBar] Skipping - multi-file confirm bar visible');
+    console.log('?? [ConfirmBar] Skipping - multi-file confirm bar visible');
     return;
   }
   
@@ -1320,7 +1446,7 @@ function showConfirmationBar(changesSummary: string): void {
   bar.id = 'aca-confirm-bar';
   bar.innerHTML = `
     <div class="ucb-content">
-      <div class="ucb-icon">📄</div>
+      <div class="ucb-icon">??</div>
       <div class="ucb-info">
         <div class="ucb-title">Changes Applied</div>
         <div class="ucb-details">
@@ -1329,10 +1455,10 @@ function showConfirmationBar(changesSummary: string): void {
       </div>
       <div class="ucb-actions">
         <button class="ucb-btn ucb-btn-accept" title="Save changes (Enter)">
-          ✓ Accept
+          ? Accept
         </button>
         <button class="ucb-btn ucb-btn-reject" title="Revert changes (Escape)">
-          ✗ Reject
+          ? Reject
         </button>
       </div>
     </div>
@@ -1446,26 +1572,26 @@ function showConfirmationBar(changesSummary: string): void {
   document.addEventListener('keydown', keyHandler);
   (bar as any)._keyHandler = keyHandler;
   
-  console.log('📋 [AutoApply] Awaiting confirmation: Accept (Enter) or Reject (Escape)');
+  console.log('?? [AutoApply] Awaiting confirmation: Accept (Enter) or Reject (Escape)');
 }
 
 /**
  * Highlight lines in the editor based on change type
  */
 function highlightChangeLines(type: 'add' | 'del' | 'mod'): void {
-  console.log(`🔦 [Highlight] highlightChangeLines called with type: ${type}`);
-  console.log(`🔦 [Highlight] lastChangeLines:`, JSON.stringify(lastChangeLines));
+  console.log(`?? [Highlight] highlightChangeLines called with type: ${type}`);
+  console.log(`?? [Highlight] lastChangeLines:`, JSON.stringify(lastChangeLines));
   
   const editor = getMonacoEditorForApply();
   if (!editor) {
-    console.log(`⚠️ [Highlight] No editor found`);
-    showAutoApplyToast('⚠️ No editor available', 'error');
+    console.log(`?? [Highlight] No editor found`);
+    showAutoApplyToast('?? No editor available', 'error');
     return;
   }
   
   const monaco = (window as any).monaco;
   if (!monaco) {
-    console.log(`⚠️ [Highlight] Monaco not available`);
+    console.log(`?? [Highlight] Monaco not available`);
     return;
   }
   
@@ -1500,8 +1626,8 @@ function highlightChangeLines(type: 'add' | 'del' | 'mod'): void {
   }
   
   if (lines.length === 0) {
-    console.log(`⚠️ [Highlight] No ${type} lines to highlight`);
-    showAutoApplyToast(`⚠️ No ${typeLabel} lines to show`, 'info');
+    console.log(`?? [Highlight] No ${type} lines to highlight`);
+    showAutoApplyToast(`?? No ${typeLabel} lines to show`, 'info');
     return;
   }
   
@@ -1511,12 +1637,12 @@ function highlightChangeLines(type: 'add' | 'del' | 'mod'): void {
   lines = lines.filter(ln => ln >= 1 && ln <= totalLines);
   
   if (lines.length === 0) {
-    console.log(`⚠️ [Highlight] No valid lines after filtering`);
-    showAutoApplyToast(`⚠️ No ${typeLabel} lines in current code`, 'info');
+    console.log(`?? [Highlight] No valid lines after filtering`);
+    showAutoApplyToast(`?? No ${typeLabel} lines in current code`, 'info');
     return;
   }
   
-  console.log(`🔦 [Highlight] Highlighting ${lines.length} ${type} lines:`, lines);
+  console.log(`?? [Highlight] Highlighting ${lines.length} ${type} lines:`, lines);
   
   const decorations = lines.map(lineNumber => ({
     range: new monaco.Range(lineNumber, 1, lineNumber, 1),
@@ -1532,13 +1658,13 @@ function highlightChangeLines(type: 'add' | 'del' | 'mod'): void {
   }));
   
   activeHighlightDecorations = editor.deltaDecorations([], decorations);
-  console.log(`🔦 [Highlight] Created ${activeHighlightDecorations.length} decorations`);
+  console.log(`?? [Highlight] Created ${activeHighlightDecorations.length} decorations`);
   
   // Scroll to first highlighted line
   if (lines.length > 0) {
     editor.revealLineInCenter(lines[0]);
     const label = type === 'del' ? `${lines.length} deletion point${lines.length > 1 ? 's' : ''}` : `${lines.length} ${typeLabel} line${lines.length > 1 ? 's' : ''}`;
-    showAutoApplyToast(`🔦 ${label} highlighted`, 'info');
+    showAutoApplyToast(`?? ${label} highlighted`, 'info');
   }
 }
 
@@ -1584,9 +1710,9 @@ function restoreEditorWritable(editor?: any): void {
   
   try {
     ed.updateOptions({ readOnly: false });
-    console.log('✏️ [AutoApply] Editor restored to writable');
+    console.log('?? [AutoApply] Editor restored to writable');
   } catch (e) {
-    console.warn('⚠️ [AutoApply] Failed to restore writable:', e);
+    console.warn('?? [AutoApply] Failed to restore writable:', e);
       // Update center dialog on failure
       addStatusLog(result.message, 'error');
       updateStatusText('Failed');
@@ -1605,7 +1731,7 @@ function restoreEditorWritable(editor?: any): void {
         const isReadOnly = currentEditor.getRawOptions?.()?.readOnly || false;
         if (isReadOnly) {
           currentEditor.updateOptions({ readOnly: false });
-          console.log('✏️ [AutoApply] Editor re-restored to writable (post file-watcher)');
+          console.log('?? [AutoApply] Editor re-restored to writable (post file-watcher)');
         }
       }
     } catch (e) {}
@@ -1619,7 +1745,7 @@ function restoreEditorWritable(editor?: any): void {
         const isReadOnly = currentEditor.getRawOptions?.()?.readOnly || false;
         if (isReadOnly) {
           currentEditor.updateOptions({ readOnly: false });
-          console.log('✏️ [AutoApply] Editor re-restored to writable (late check)');
+          console.log('?? [AutoApply] Editor re-restored to writable (late check)');
         }
       }
     } catch (e) {}
@@ -1644,7 +1770,7 @@ function acceptChanges(): void {
       } catch (e) {
         console.warn('[AutoApply] setValue failed, saving directly');
       }
-      // 🔧 FIX: Restore editor to writable after accept
+      // ?? FIX: Restore editor to writable after accept
       // File watcher may set readOnly when Tauri writes file to disk
       restoreEditorWritable(editor);
     }
@@ -1674,7 +1800,7 @@ function acceptChanges(): void {
   if (_sbAccept?.getCurrentChange() && _sbAccept?.isEnabled()) {
     _sbAccept.commit();
     showAutoApplyToast('Changes accepted (backup saved)', 'success');
-    console.log('ðŸ”¬ [SurgicalCommit] Committed - file already on disk');
+    console.log('🔬 [SurgicalCommit] Committed - file already on disk');
   } else {
     triggerFileSave(codeToSave || undefined);
     showAutoApplyToast('Changes accepted and saved', 'success');
@@ -1684,13 +1810,13 @@ function acceptChanges(): void {
 
 async function triggerFileSave(overrideContent?: string): Promise<void> {
   try {
-    console.log('💾 [AutoApply] Attempting to save file...');
+    console.log('?? [AutoApply] Attempting to save file...');
     
     // Get current editor content and path
     const editor = getMonacoEditorForApply();
     const model = editor?.getModel();
     if (!model) {
-      console.warn('⚠️ [AutoApply] No editor model for save');
+      console.warn('?? [AutoApply] No editor model for save');
       return;
     }
     
@@ -1702,11 +1828,11 @@ async function triggerFileSave(overrideContent?: string): Promise<void> {
     filePath = filePath.replace(/\\/g, '/');
     
     if (!filePath) {
-      console.warn('⚠️ [AutoApply] No file path for save');
+      console.warn('?? [AutoApply] No file path for save');
       return;
     }
     
-    console.log(`💾 [AutoApply] Saving: ${filePath} (${content.length} chars)`);
+    console.log(`?? [AutoApply] Saving: ${filePath} (${content.length} chars)`);
     
     let saved = false;
     
@@ -1716,10 +1842,10 @@ async function triggerFileSave(overrideContent?: string): Promise<void> {
       if (invoke) {
         await invoke('write_file', { path: filePath, content: content });
         saved = true;
-        console.log('💾 [AutoApply] Saved via Tauri invoke');
+        console.log('?? [AutoApply] Saved via Tauri invoke');
       }
     } catch (e: any) {
-      console.warn('⚠️ [AutoApply] Tauri invoke failed:', e?.message || e);
+      console.warn('?? [AutoApply] Tauri invoke failed:', e?.message || e);
     }
     
     // Method 2: Use @tauri-apps/plugin-fs
@@ -1729,10 +1855,10 @@ async function triggerFileSave(overrideContent?: string): Promise<void> {
         if (fs?.writeTextFile) {
           await fs.writeTextFile(filePath, content);
           saved = true;
-          console.log('💾 [AutoApply] Saved via Tauri fs plugin');
+          console.log('?? [AutoApply] Saved via Tauri fs plugin');
         }
       } catch (e: any) {
-        console.warn('⚠️ [AutoApply] Tauri fs plugin failed:', e?.message || e);
+        console.warn('?? [AutoApply] Tauri fs plugin failed:', e?.message || e);
       }
     }
     
@@ -1743,9 +1869,9 @@ async function triggerFileSave(overrideContent?: string): Promise<void> {
         try {
           await saveFile(content, filePath);
           saved = true;
-          console.log('💾 [AutoApply] Saved via window.saveFile');
+          console.log('?? [AutoApply] Saved via window.saveFile');
         } catch (e: any) {
-          console.warn('⚠️ [AutoApply] window.saveFile failed:', e?.message || e);
+          console.warn('?? [AutoApply] window.saveFile failed:', e?.message || e);
         }
       }
     }
@@ -1757,9 +1883,9 @@ async function triggerFileSave(overrideContent?: string): Promise<void> {
         try {
           await tabManager.saveCurrentTab();
           saved = true;
-          console.log('💾 [AutoApply] Saved via tabManager');
+          console.log('?? [AutoApply] Saved via tabManager');
         } catch (e: any) {
-          console.warn('⚠️ [AutoApply] tabManager failed:', e?.message || e);
+          console.warn('?? [AutoApply] tabManager failed:', e?.message || e);
         }
       }
     }
@@ -1767,11 +1893,11 @@ async function triggerFileSave(overrideContent?: string): Promise<void> {
     if (saved) {
       updateSaveState(filePath, content);
     } else {
-      console.error('❌ [AutoApply] All save methods failed');
+      console.error('? [AutoApply] All save methods failed');
     }
     
   } catch (error) {
-    console.error('⚠️ [AutoApply] Could not auto-save:', error);
+    console.error('?? [AutoApply] Could not auto-save:', error);
   }
 }
 
@@ -1806,7 +1932,7 @@ function rejectChanges(): void {
   // Surgical rollback: restore from backup file
   const _sbReject = (window as any).surgicalBridge;
   if (_sbReject?.getCurrentChange() && _sbReject?.isEnabled()) {
-    console.log('ðŸ”¬ [SurgicalRollback] Restoring from backup...');
+    console.log('🔬 [SurgicalRollback] Restoring from backup...');
     _sbReject.rollback().then(() => {
       removeConfirmationBar();
       clearAllDecorations();
@@ -1815,13 +1941,13 @@ function rejectChanges(): void {
       hasUnapprovedChanges = false;
       showAutoApplyToast('Changes rejected (restored)', 'info');
     }).catch((rErr: any) => {
-      console.error('ðŸ”¬ Rollback failed:', rErr);
+      console.error('🔬 Rollback failed:', rErr);
       showAutoApplyToast('Rollback failed', 'error');
     });
     return;
   }
   if (!originalCodeBeforeApply && !pendingNewCode) {
-    showAutoApplyToast('⚠️ No changes to reject', 'error');
+    showAutoApplyToast('?? No changes to reject', 'error');
     removeConfirmationBar();
     clearAllDecorations(); // Clear highlighting even if no changes
     return;
@@ -1835,16 +1961,16 @@ function rejectChanges(): void {
       const fullRange = model.getFullModelRange();
       editor.executeEdits('aca-reject', [{ range: fullRange, text: originalCodeBeforeApply, forceMoveMarkers: true }]);
     }
-    // 🔧 FIX: Restore editor to writable after reject
+    // ?? FIX: Restore editor to writable after reject
     restoreEditorWritable(editor);
   }
   
   clearAllDecorations(); // Clear highlighting
   removeConfirmationBar();
   originalCodeBeforeApply = '';
-  pendingNewCode = '';  // 🔧 FIX: Clear pending code
-  showAutoApplyToast('↩️ Changes rejected - reverted', 'success');
-  console.log('↩️ [AutoApply] Changes rejected');
+  pendingNewCode = '';  // ?? FIX: Clear pending code
+  showAutoApplyToast('?? Changes rejected - reverted', 'success');
+  console.log('?? [AutoApply] Changes rejected');
 }
 
 /**
@@ -1911,7 +2037,7 @@ function waitForConfirmation(): Promise<'accept' | 'reject'> {
     // Timeout after 60 seconds - auto-reject
     setTimeout(() => {
       if (!resolved) {
-        console.log('⏰ [AutoApply] Confirmation timeout - auto-rejecting');
+        console.log('? [AutoApply] Confirmation timeout - auto-rejecting');
         clearInterval(checkForBar);
         handleReject();
       }
@@ -1927,7 +2053,7 @@ export function rejectAutoApplyChanges(): void { rejectChanges(); }
 // ============================================================================
 
 function createAutonomousToggleButton(): void {
-  // ✅ FIX: Check for BOTH class-based AND id-based toggle buttons
+  // ? FIX: Check for BOTH class-based AND id-based toggle buttons
   // professionalIcons.ts creates #autonomous-mode-toggle (ID)
   // This function creates .autonomous-mode-toggle (class)
   if (document.querySelector('.autonomous-mode-toggle') || 
@@ -1962,11 +2088,11 @@ function createAutonomousToggleButton(): void {
   const targetToolbar = iconToolbar || toolbarRow || cameraParent;
   
   if (!targetToolbar) {
-    console.log('⚠️ [Autonomous] Could not find toolbar');
+    console.log('?? [Autonomous] Could not find toolbar');
     return;
   }
   
-  console.log('🔍 [Autonomous] Found toolbar:', targetToolbar.className);
+  console.log('?? [Autonomous] Found toolbar:', targetToolbar.className);
   
   const toggleBtn = document.createElement('button');
   toggleBtn.className = 'autonomous-mode-toggle';
@@ -1979,7 +2105,7 @@ function createAutonomousToggleButton(): void {
   `;
   toggleBtn.title = 'Auto Mode OFF';
   
-  // ✅ Always start OFF on page load - do not restore saved state
+  // ? Always start OFF on page load - do not restore saved state
   autoApplyEnabled = false;
   localStorage.removeItem('autonomousMode');
   localStorage.removeItem('aiFileExplorerEnabled');
@@ -2018,7 +2144,7 @@ function createAutonomousToggleButton(): void {
           } catch(e) {}
         }
         
-        console.log('🔍 [Autonomous] AI Project Search auto-enabled');
+        console.log('?? [Autonomous] AI Project Search auto-enabled');
       }, 100);
     }
   };
@@ -2029,7 +2155,7 @@ function createAutonomousToggleButton(): void {
     targetToolbar.appendChild(toggleBtn);
   }
   
-  console.log('✅ [Autonomous] Toggle button added');
+  console.log('? [Autonomous] Toggle button added');
 }
 
 function injectAutonomousToggleStyles(): void {
@@ -2127,7 +2253,7 @@ function watchForChatInput(): void {
   createAutonomousToggleButton();
   
   const observer = new MutationObserver(() => {
-    // ✅ FIX: Check for BOTH class-based AND id-based toggle buttons
+    // ? FIX: Check for BOTH class-based AND id-based toggle buttons
     if (!document.querySelector('.autonomous-mode-toggle') && 
         !document.getElementById('autonomous-mode-toggle')) {
       createAutonomousToggleButton();
@@ -2136,7 +2262,7 @@ function watchForChatInput(): void {
   
   observer.observe(document.body, { childList: true, subtree: true });
   setInterval(() => {
-    // ✅ FIX: Check for BOTH class-based AND id-based toggle buttons
+    // ? FIX: Check for BOTH class-based AND id-based toggle buttons
     if (!document.querySelector('.autonomous-mode-toggle') && 
         !document.getElementById('autonomous-mode-toggle')) {
       createAutonomousToggleButton();
@@ -2145,16 +2271,16 @@ function watchForChatInput(): void {
 }
 
 export function insertAutonomousToggle(containerSelector: string, position: 'start' | 'end' = 'start'): boolean {
-  // ✅ FIX: Check for BOTH class-based AND id-based toggle buttons
+  // ? FIX: Check for BOTH class-based AND id-based toggle buttons
   if (document.querySelector('.autonomous-mode-toggle') || 
       document.getElementById('autonomous-mode-toggle')) {
-    console.log('⚠️ [Autonomous] Toggle already exists');
+    console.log('?? [Autonomous] Toggle already exists');
     return true;
   }
   
   const container = document.querySelector(containerSelector);
   if (!container) {
-    console.log('❌ [Autonomous] Container not found:', containerSelector);
+    console.log('? [Autonomous] Container not found:', containerSelector);
     return false;
   }
   
@@ -2187,7 +2313,7 @@ export function insertAutonomousToggle(containerSelector: string, position: 'sta
     container.appendChild(toggleBtn);
   }
   
-  console.log('✅ [Autonomous] Toggle inserted into:', containerSelector);
+  console.log('? [Autonomous] Toggle inserted into:', containerSelector);
   return true;
 }
 
@@ -2204,17 +2330,17 @@ interface FileValidation {
 }
 
 function extractTargetFileName(block: HTMLElement, code: string): string | null {
-  // ⭐ v14: Added C/C++/Arduino extensions (c|h|cpp|hpp|ino)
+  // ? v14: Added C/C++/Arduino extensions (c|h|cpp|hpp|ino)
   const FILE_EXT_PATTERN = /([a-zA-Z0-9_.-]+\.(tsx?|jsx?|py|rs|css|scss|cs|java|html|json|xml|vue|svelte|go|rb|php|c|h|cpp|hpp|cc|cxx|ino))/i;
   
-  console.log(`🔍 [FileDetect] Starting detection for block...`);
+  console.log(`?? [FileDetect] Starting detection for block...`);
   
   // 1. Check block's data attributes first (highest priority)
   const dataFile = block.getAttribute('data-file') || block.getAttribute('data-filename') || block.getAttribute('data-path');
   if (dataFile) {
     const fileName = dataFile.split('/').pop() || dataFile;
     // Don't filter data attributes - they're explicitly set by the system
-    console.log(`📄 [FileDetect] Found in data attribute: ${fileName}`);
+    console.log(`?? [FileDetect] Found in data attribute: ${fileName}`);
     return fileName;
   }
   
@@ -2224,7 +2350,7 @@ function extractTargetFileName(block: HTMLElement, code: string): string | null 
     const headerText = header.textContent || '';
     const headerMatch = headerText.match(FILE_EXT_PATTERN);
     if (headerMatch && !isTechnologyNameNotFile(headerMatch[1])) {
-      console.log(`📄 [FileDetect] Found in header: ${headerMatch[1]}`);
+      console.log(`?? [FileDetect] Found in header: ${headerMatch[1]}`);
       return headerMatch[1];
     }
   }
@@ -2244,7 +2370,7 @@ function extractTargetFileName(block: HTMLElement, code: string): string | null 
       if (sibling.classList?.contains('cbe-wrapper') || 
           sibling.classList?.contains('muf-block') || 
           sibling.querySelector('pre code')) {
-        console.log(`📄 [FileDetect] Hit another code block, stopping sibling search`);
+        console.log(`?? [FileDetect] Hit another code block, stopping sibling search`);
         break;
       }
       
@@ -2252,37 +2378,37 @@ function extractTargetFileName(block: HTMLElement, code: string): string | null 
       
       // Check for headings with filename (## Updated App.tsx, ### main.tsx, etc.)
       if (sibling.tagName?.match(/^H[1-6]$/) || sibText.startsWith('#')) {
-        // ⭐ v14: Added C/C++/Arduino extensions
+        // ? v14: Added C/C++/Arduino extensions
         const headingMatch = sibText.match(/(?:Updated?\s+)?([a-zA-Z0-9_.-]+\.(tsx?|jsx?|py|rs|css|scss|cs|java|html|json|c|h|cpp|hpp|ino))/i);
         if (headingMatch && !isTechnologyNameNotFile(headingMatch[1])) {
-          console.log(`📄 [FileDetect] Found in heading "${sibText}": ${headingMatch[1]}`);
+          console.log(`?? [FileDetect] Found in heading "${sibText}": ${headingMatch[1]}`);
           return headingMatch[1];
         }
       }
       
       // Check for bold filename (**App.tsx**)
-      // ⭐ v14: Added C/C++/Arduino extensions
+      // ? v14: Added C/C++/Arduino extensions
       const boldMatch = sibText.match(/\*\*([a-zA-Z0-9_.-]+\.(tsx?|jsx?|py|rs|css|scss|cs|java|html|json|c|h|cpp|hpp|ino))\*\*/i);
       if (boldMatch && !isTechnologyNameNotFile(boldMatch[1])) {
-        console.log(`📄 [FileDetect] Found bold filename: ${boldMatch[1]}`);
+        console.log(`?? [FileDetect] Found bold filename: ${boldMatch[1]}`);
         return boldMatch[1];
       }
       
       // Check for backtick filename in short text
       if (sibText.length < 200) {
-        // ⭐ v14: Added C/C++/Arduino extensions
+        // ? v14: Added C/C++/Arduino extensions
         const backtickMatch = sibText.match(/`([a-zA-Z0-9_.-]+\.(tsx?|jsx?|py|rs|css|scss|cs|java|html|json|c|h|cpp|hpp|ino))`/i);
         if (backtickMatch && !isTechnologyNameNotFile(backtickMatch[1])) {
-          console.log(`📄 [FileDetect] Found backtick: ${backtickMatch[1]}`);
+          console.log(`?? [FileDetect] Found backtick: ${backtickMatch[1]}`);
           return backtickMatch[1];
         }
       }
       
       // Check for standalone filename
-      // ⭐ v14: Added C/C++/Arduino extensions
+      // ? v14: Added C/C++/Arduino extensions
       const standaloneMatch = sibText.match(/^([a-zA-Z0-9_.-]+\.(tsx?|jsx?|py|rs|css|scss|cs|java|html|json|c|h|cpp|hpp|ino))[:.]?\s*$/i);
       if (standaloneMatch && !isTechnologyNameNotFile(standaloneMatch[1])) {
-        console.log(`📄 [FileDetect] Found standalone: ${standaloneMatch[1]}`);
+        console.log(`?? [FileDetect] Found standalone: ${standaloneMatch[1]}`);
         return standaloneMatch[1];
       }
       
@@ -2298,7 +2424,7 @@ function extractTargetFileName(block: HTMLElement, code: string): string | null 
   // 4. Check code content for hints
   const codeFileName = detectFileNameFromCode(code);
   if (codeFileName) {
-    console.log(`📄 [FileDetect] Detected from code content: ${codeFileName}`);
+    console.log(`?? [FileDetect] Detected from code content: ${codeFileName}`);
     return codeFileName;
   }
   
@@ -2315,37 +2441,37 @@ function extractTargetFileName(block: HTMLElement, code: string): string | null 
     });
     const blockIndex = blockArray.findIndex(b => b === block || b.contains(block) || block.contains(b));
     
-    console.log(`📄 [FileDetect] Block index: ${blockIndex} of ${blockArray.length}`);
+    console.log(`?? [FileDetect] Block index: ${blockIndex} of ${blockArray.length}`);
     
-    // ⭐ NEW: Check if there's a heading directly before this block with a filename
+    // ? NEW: Check if there's a heading directly before this block with a filename
     const prevSibling = block.previousElementSibling;
     if (prevSibling) {
       const prevText = prevSibling.textContent?.trim() || '';
-      // ⭐ v14: Added C/C++/Arduino extensions
+      // ? v14: Added C/C++/Arduino extensions
       const FILE_EXT_PATTERN = /([a-zA-Z0-9_.-]+\.(tsx?|jsx?|py|rs|css|scss|cs|java|html|json|xml|vue|svelte|go|rb|php|c|h|cpp|hpp|cc|cxx|ino))/i;
       const headingMatch = prevText.match(FILE_EXT_PATTERN);
       if (headingMatch && !isTechnologyNameNotFile(headingMatch[1])) {
-        console.log(`📄 [FileDetect] Found in preceding sibling: ${headingMatch[1]}`);
+        console.log(`?? [FileDetect] Found in preceding sibling: ${headingMatch[1]}`);
         return headingMatch[1];
       }
     }
     
-    // ⭐ NEW: Check parent's previous sibling (for nested structures)
+    // ? NEW: Check parent's previous sibling (for nested structures)
     const parentPrevSibling = block.parentElement?.previousElementSibling;
     if (parentPrevSibling) {
       const prevText = parentPrevSibling.textContent?.trim() || '';
-      // ⭐ v14: Added C/C++/Arduino extensions
+      // ? v14: Added C/C++/Arduino extensions
       const FILE_EXT_PATTERN = /([a-zA-Z0-9_.-]+\.(tsx?|jsx?|py|rs|css|scss|cs|java|html|json|xml|vue|svelte|go|rb|php|c|h|cpp|hpp|cc|cxx|ino))/i;
       const headingMatch = prevText.match(FILE_EXT_PATTERN);
       if (headingMatch && !isTechnologyNameNotFile(headingMatch[1])) {
-        console.log(`📄 [FileDetect] Found in parent's preceding sibling: ${headingMatch[1]}`);
+        console.log(`?? [FileDetect] Found in parent's preceding sibling: ${headingMatch[1]}`);
         return headingMatch[1];
       }
     }
     
     // Get all file mentions in the message (in order)
     const messageText = parentMessage.textContent || '';
-    // ⭐ v14+FIX: Added C/C++/Arduino extensions AND handle backtick-wrapped filenames
+    // ? v14+FIX: Added C/C++/Arduino extensions AND handle backtick-wrapped filenames
     // Use negative lookbehind/lookahead to handle both word boundaries AND backticks
     const filePattern = /(?:^|[\s`"'\(\[])([a-zA-Z][a-zA-Z0-9_.-]*\.(tsx?|jsx?|py|rs|css|scss|cs|java|html|json|c|h|cpp|hpp|cc|cxx|ino))(?:$|[\s`"'\)\],:;])/gi;
     const allMentions: string[] = [];
@@ -2363,18 +2489,18 @@ function extractTargetFileName(block: HTMLElement, code: string): string | null 
       }
     }
     
-    console.log(`📄 [FileDetect] All file mentions: ${allMentions.join(', ') || '(none)'}`);
+    console.log(`?? [FileDetect] All file mentions: ${allMentions.join(', ') || '(none)'}`);
     
     // Map block index to file mention
     if (allMentions.length > 0 && blockIndex >= 0) {
-      // ⭐ FIX: Even if there are more blocks than mentions, try to map
+      // ? FIX: Even if there are more blocks than mentions, try to map
       // Use modulo or direct index if within bounds
       if (blockIndex < allMentions.length) {
-        console.log(`📄 [FileDetect] Mapped block ${blockIndex} -> "${allMentions[blockIndex]}"`);
+        console.log(`?? [FileDetect] Mapped block ${blockIndex} -> "${allMentions[blockIndex]}"`);
         return allMentions[blockIndex];
       }
       
-      // ⭐ NEW: Try to detect from preceding text for this specific block
+      // ? NEW: Try to detect from preceding text for this specific block
       // Walk backwards from block to find nearest file mention
       let prevEl = block.previousElementSibling;
       let searchDepth = 0;
@@ -2387,10 +2513,10 @@ function extractTargetFileName(block: HTMLElement, code: string): string | null 
         }
         
         const prevText = prevEl.textContent || '';
-        // ⭐ v14: Added C/C++/Arduino extensions
+        // ? v14: Added C/C++/Arduino extensions
         const fileMatch = prevText.match(/\b([a-zA-Z][a-zA-Z0-9_.-]*\.(tsx?|jsx?|py|css|html|json|xml|c|h|cpp|hpp|ino))\b/i);
         if (fileMatch && !isTechnologyNameNotFile(fileMatch[1])) {
-          console.log(`📄 [FileDetect] Found in preceding element: ${fileMatch[1]}`);
+          console.log(`?? [FileDetect] Found in preceding element: ${fileMatch[1]}`);
           return fileMatch[1];
         }
         
@@ -2401,17 +2527,17 @@ function extractTargetFileName(block: HTMLElement, code: string): string | null 
       // If we have command blocks (npm install, npm run), don't map to a file
       const codePreview = block.textContent?.substring(0, 50) || '';
       if (codePreview.match(/^\s*(npm|yarn|pnpm|npx)\s+/)) {
-        console.log(`📄 [FileDetect] Skipping command block: "${codePreview.substring(0, 30)}..."`);
+        console.log(`?? [FileDetect] Skipping command block: "${codePreview.substring(0, 30)}..."`);
         return null;
       }
       
       // Otherwise return first mention as fallback
-      console.log(`📄 [FileDetect] Using first mention (fallback): ${allMentions[0]}`);
+      console.log(`?? [FileDetect] Using first mention (fallback): ${allMentions[0]}`);
       return allMentions[0];
     }
   }
   
-  console.log(`📄 [FileDetect] No file name detected for block`);
+  console.log(`?? [FileDetect] No file name detected for block`);
   return null;
 }
 
@@ -2465,13 +2591,13 @@ function isTechnologyNameNotFile(fileName: string): boolean {
   
   // Check against common word false positives
   if (commonWordFalsePositives.includes(lowerName)) {
-    console.log(`🚫 [FileDetect] Skipping common word false positive: ${fileName}`);
+    console.log(`?? [FileDetect] Skipping common word false positive: ${fileName}`);
     return true;
   }
   
   // Check exact match against known tech names
   if (techNames.includes(lowerName)) {
-    console.log(`🚫 [FileDetect] Skipping technology name: ${fileName}`);
+    console.log(`?? [FileDetect] Skipping technology name: ${fileName}`);
     return true;
   }
   
@@ -2481,7 +2607,7 @@ function isTechnologyNameNotFile(fileName: string): boolean {
     const baseName = fileName.replace(/\.js$/i, '');
     // Single capitalized word under 12 chars = likely tech name
     if (baseName.length <= 12 && /^[A-Z][a-z]+$/.test(baseName)) {
-      console.log(`🚫 [FileDetect] Skipping likely technology name: ${fileName}`);
+      console.log(`?? [FileDetect] Skipping likely technology name: ${fileName}`);
       return true;
     }
   }
@@ -2606,7 +2732,7 @@ function checkAIMessageForDifferentFile(block: HTMLElement, currentFileName: str
   for (const mentionedFile of uniqueFiles) {
     const mentionedBase = mentionedFile.replace(/\.[^/.]+$/, '').toLowerCase();
     if (mentionedBase !== currentFileBase) {
-      console.log(`⚠️ [FileCheck] AI mentions "${mentionedFile}" but current file is "${currentFileName}"`);
+      console.log(`?? [FileCheck] AI mentions "${mentionedFile}" but current file is "${currentFileName}"`);
       return { mentionsDifferentFile: true, mentionedFile };
     }
   }
@@ -2615,7 +2741,7 @@ function checkAIMessageForDifferentFile(block: HTMLElement, currentFileName: str
   
   for (const indicator of differentFileIndicators) {
     if (messageLower.includes(indicator)) {
-      console.log(`⚠️ [FileCheck] AI indicates file needs to be opened: "${indicator}"`);
+      console.log(`?? [FileCheck] AI indicates file needs to be opened: "${indicator}"`);
       for (const file of uniqueFiles) {
         if (file.toLowerCase() !== currentFileName.toLowerCase()) {
           return { mentionsDifferentFile: true, mentionedFile: file };
@@ -2656,7 +2782,7 @@ function validateFileMatch(block: HTMLElement, code: string): FileValidation {
   if (detectedFileBase === currentFileBase) {
     const tsExtensions = ['ts', 'tsx', 'js', 'jsx'];
     if (tsExtensions.includes(detectedFileExt) && tsExtensions.includes(currentFileExt)) {
-      return { isValid: true, detectedFileName, currentFileName, confidence: 'medium', reason: `Similar file (${detectedFileName} → ${currentFileName})` };
+      return { isValid: true, detectedFileName, currentFileName, confidence: 'medium', reason: `Similar file (${detectedFileName} ? ${currentFileName})` };
     }
   }
   
@@ -2670,7 +2796,7 @@ function showFileMismatchWarning(validation: FileValidation, onProceed: () => vo
   warning.id = 'aca-file-mismatch-warning';
   warning.className = 'aca-file-mismatch-warning';
   warning.innerHTML = `
-    <div class="aca-warning-icon">⚠️</div>
+    <div class="aca-warning-icon">??</div>
     <div class="aca-warning-content">
       <div class="aca-warning-title">File Mismatch Detected</div>
       <div class="aca-warning-text">
@@ -2694,7 +2820,7 @@ function showFileMismatchWarning(validation: FileValidation, onProceed: () => vo
 }
 
 function tryOpenFile(fileName: string): void {
-  console.log(`📂 [FileValidation] Attempting to open: ${fileName}`);
+  console.log(`?? [FileValidation] Attempting to open: ${fileName}`);
   
   if (typeof (window as any).openFile === 'function') {
     (window as any).openFile(fileName);
@@ -2706,12 +2832,12 @@ function tryOpenFile(fileName: string): void {
     const itemName = item.getAttribute('data-filename') || item.getAttribute('data-name') || item.textContent?.trim();
     if (itemName?.toLowerCase().includes(fileName.toLowerCase())) {
       (item as HTMLElement).click();
-      showAutoApplyToast(`📂 Opening ${fileName}...`, 'success');
+      showAutoApplyToast(`?? Opening ${fileName}...`, 'success');
       return;
     }
   }
   
-  showAutoApplyToast(`⚠️ Could not find ${fileName}`, 'error');
+  showAutoApplyToast(`?? Could not find ${fileName}`, 'error');
 }
 
 // ============================================================================
@@ -2726,7 +2852,7 @@ function isAIProjectSearchEnabled(): boolean {
     if ((window as any).aiFileExplorerEnabled === true) return true;
     return false;
   } catch (e) {
-    console.warn('⚠️ [AutoOpen] Error checking AI Search state:', e);
+    console.warn('?? [AutoOpen] Error checking AI Search state:', e);
     return false;
   }
 }
@@ -2734,17 +2860,17 @@ function isAIProjectSearchEnabled(): boolean {
 (window as any).setAIProjectSearchEnabled = (enabled: boolean) => {
   (window as any).aiSearchEnabled = enabled;
   localStorage.setItem('aiProjectSearchEnabled', enabled.toString());
-  console.log(`🔍 [AutoOpen] AI Project Search set to: ${enabled ? 'ON' : 'OFF'}`);
+  console.log(`?? [AutoOpen] AI Project Search set to: ${enabled ? 'ON' : 'OFF'}`);
 };
 
 (window as any).isAIProjectSearchEnabled = isAIProjectSearchEnabled;
 
 function findFileInProject(fileName: string): { element: HTMLElement; path: string; actualFileName: string } | null {
   const fileNameLower = fileName.toLowerCase();
-  console.log(`🔍 [FindFile] Looking for: "${fileName}"`);
+  console.log(`?? [FindFile] Looking for: "${fileName}"`);
   
   const elements = document.querySelectorAll('[data-path]');
-  console.log(`🔍 [FindFile] Checking ${elements.length} elements with data-path`);
+  console.log(`?? [FindFile] Checking ${elements.length} elements with data-path`);
   
   for (const el of elements) {
     const path = el.getAttribute('data-path') || '';
@@ -2752,7 +2878,7 @@ function findFileInProject(fileName: string): { element: HTMLElement; path: stri
     const pathFileNameLower = pathFileName.toLowerCase();
     
     if (pathFileNameLower === fileNameLower) {
-      console.log(`✅ [FindFile] FOUND: ${path} (actual: ${pathFileName})`);
+      console.log(`? [FindFile] FOUND: ${path} (actual: ${pathFileName})`);
       // Return clickable element but keep the path AND actual filename
       const clickableChild = el.querySelector('.file-name, .file-label, .filename, span[class*="name"]');
       return { 
@@ -2780,14 +2906,14 @@ function findFileInProject(fileName: string): { element: HTMLElement; path: stri
         const pathFileName = path.split(/[/\\]/).pop() || '';
         const pathFileNameLower = pathFileName.toLowerCase();
         if (pathFileNameLower === fileNameLower) {
-          console.log(`✅ [FindFile] FOUND by text: ${path} (actual: ${pathFileName})`);
+          console.log(`? [FindFile] FOUND by text: ${path} (actual: ${pathFileName})`);
           return { element: el as HTMLElement, path: path, actualFileName: pathFileName };
         }
       }
     }
   }
   
-  console.log(`❌ [FindFile] NOT FOUND: ${fileName}`);
+  console.log(`? [FindFile] NOT FOUND: ${fileName}`);
   return null;
 }
 
@@ -2795,7 +2921,7 @@ function findFileInProject(fileName: string): { element: HTMLElement; path: stri
 function normalizeFileNameCase(fileName: string): string {
   const result = findFileInProject(fileName);
   if (result?.actualFileName) {
-    console.log(`🔄 [NormalizeCase] "${fileName}" → "${result.actualFileName}"`);
+    console.log(`?? [NormalizeCase] "${fileName}" ? "${result.actualFileName}"`);
     return result.actualFileName;
   }
   return fileName; // Return original if not found
@@ -2824,7 +2950,7 @@ function detectNewFileIntent(block: HTMLElement): NewFileInfo | null {
   const hasCreateIntent = /\b(create|make|add|write|new file|let'?s create|let us create)\b/i.test(messageText);
   if (!hasCreateIntent) return null;
   
-  console.log(`🔍 [NewFile] Checking for new file intent in message...`);
+  console.log(`?? [NewFile] Checking for new file intent in message...`);
   
   // Patterns to extract filename - ordered by specificity
   const fileNamePatterns = [
@@ -2850,20 +2976,20 @@ function detectNewFileIntent(block: HTMLElement): NewFileInfo | null {
     const match = messageText.match(pattern);
     if (match) {
       fileName = match[1];
-      console.log(`🆕 [NewFile] Found filename: ${fileName}`);
+      console.log(`?? [NewFile] Found filename: ${fileName}`);
       break;
     }
   }
   
   if (!fileName) {
-    console.log(`📂 [NewFile] No filename found in message`);
+    console.log(`?? [NewFile] No filename found in message`);
     return null;
   }
   
   // Check if this file already exists in project
   const existing = findFileInProject(fileName);
   if (existing) {
-    console.log(`📂 [NewFile] File "${fileName}" already exists in project`);
+    console.log(`?? [NewFile] File "${fileName}" already exists in project`);
     return null;
   }
   
@@ -2873,7 +2999,7 @@ function detectNewFileIntent(block: HTMLElement): NewFileInfo | null {
     const match = messageText.match(pattern);
     if (match) {
       targetDir = match[1].replace(/[`"']/g, '');
-      console.log(`🆕 [NewFile] Found directory: ${targetDir}`);
+      console.log(`?? [NewFile] Found directory: ${targetDir}`);
       break;
     }
   }
@@ -2886,7 +3012,7 @@ function detectNewFileIntent(block: HTMLElement): NewFileInfo | null {
     } else {
       targetDir = 'src';
     }
-    console.log(`🆕 [NewFile] Defaulting to ${targetDir} directory`);
+    console.log(`?? [NewFile] Defaulting to ${targetDir} directory`);
   }
   
   // Construct relative path
@@ -2901,7 +3027,7 @@ function detectNewFileIntent(block: HTMLElement): NewFileInfo | null {
     `${projectPath}/${relativePath}`.replace(/\\/g, '/').replace(/\/+/g, '/') : 
     relativePath;
   
-  console.log(`🆕 [NewFile] Detected new file: ${fileName} at ${fullPath}`);
+  console.log(`?? [NewFile] Detected new file: ${fileName} at ${fullPath}`);
   
   return {
     fileName,
@@ -2913,7 +3039,7 @@ function detectNewFileIntent(block: HTMLElement): NewFileInfo | null {
 
 // Create a new file in the file system
 async function createNewFile(fullPath: string, content: string): Promise<boolean> {
-  console.log(`🆕 [CreateFile] Creating: ${fullPath}`);
+  console.log(`?? [CreateFile] Creating: ${fullPath}`);
   
   try {
     const invoke = (window as any).__TAURI__?.core?.invoke || (window as any).__TAURI__?.invoke;
@@ -2929,7 +3055,7 @@ async function createNewFile(fullPath: string, content: string): Promise<boolean
       
       // Write the file
       await invoke('write_file', { path: fullPath, content: content });
-      console.log(`✅ [CreateFile] File created successfully: ${fullPath}`);
+      console.log(`? [CreateFile] File created successfully: ${fullPath}`);
       
       // Trigger file tree refresh
       document.dispatchEvent(new CustomEvent('refresh-file-tree'));
@@ -2948,7 +3074,7 @@ async function createNewFile(fullPath: string, content: string): Promise<boolean
     const createFile = (window as any).createFile;
     if (createFile) {
       await createFile(fullPath, content);
-      console.log(`✅ [CreateFile] File created via window.createFile`);
+      console.log(`? [CreateFile] File created via window.createFile`);
       return true;
     }
     
@@ -2956,14 +3082,14 @@ async function createNewFile(fullPath: string, content: string): Promise<boolean
     const fs = (window as any).__TAURI__?.fs;
     if (fs?.writeTextFile) {
       await fs.writeTextFile(fullPath, content);
-      console.log(`✅ [CreateFile] File created via fs plugin`);
+      console.log(`? [CreateFile] File created via fs plugin`);
       return true;
     }
     
-    console.error('❌ [CreateFile] No file creation method available');
+    console.error('? [CreateFile] No file creation method available');
     return false;
   } catch (e: any) {
-    console.error(`❌ [CreateFile] Failed to create file:`, e?.message || e);
+    console.error(`? [CreateFile] Failed to create file:`, e?.message || e);
     return false;
   }
 }
@@ -2975,7 +3101,7 @@ function extractTargetPath(block: HTMLElement, code: string): string | null {
   for (const line of lines) {
     const pathMatch = line.match(/^\/\/\s*([a-zA-Z0-9_./\\-]+\.(tsx?|jsx?|py|rs|css|scss|html|json|vue|svelte))\s*$/);
     if (pathMatch) {
-      console.log(`📂 [TargetPath] Found path comment: ${pathMatch[1]}`);
+      console.log(`?? [TargetPath] Found path comment: ${pathMatch[1]}`);
       return pathMatch[1];
     }
   }
@@ -3005,11 +3131,11 @@ async function openFileAndWait(fileName: string, maxWaitMs: number = 5000): Prom
   // Normalize filename case to match actual file in project
   const normalizedName = normalizeFileNameCase(fileName);
   if (normalizedName !== fileName) {
-    console.log(`📂 [OpenFile] Case normalized: "${fileName}" → "${normalizedName}"`);
+    console.log(`?? [OpenFile] Case normalized: "${fileName}" ? "${normalizedName}"`);
     fileName = normalizedName;
   }
   
-  console.log(`📂 [OpenFile] Opening: ${fileName}`);
+  console.log(`?? [OpenFile] Opening: ${fileName}`);
   
   // Check if file is already open
   const editor = getMonacoEditorForApply();
@@ -3017,7 +3143,7 @@ async function openFileAndWait(fileName: string, maxWaitMs: number = 5000): Prom
     const model = editor.getModel();
     const currentFile = model?.uri?.path?.split('/').pop()?.toLowerCase() || '';
     if (currentFile === fileName.toLowerCase()) {
-      console.log(`✅ [OpenFile] File already open: ${fileName}`);
+      console.log(`? [OpenFile] File already open: ${fileName}`);
       return true;
     }
   }
@@ -3031,18 +3157,18 @@ async function openFileAndWait(fileName: string, maxWaitMs: number = 5000): Prom
   // This is the PRIMARY fix! Must be tried FIRST.
   // ==========================================================================
   if (fullPath && typeof (window as any).openFileInTab === 'function') {
-    console.log(`📂 [OpenFile] Using window.openFileInTab (creates tab): ${fullPath}`);
+    console.log(`?? [OpenFile] Using window.openFileInTab (creates tab): ${fullPath}`);
     try {
       await (window as any).openFileInTab(fullPath, 1);
       await new Promise(r => setTimeout(r, 300));
       
       const opened = await waitForFileInEditor(fileName, 3000);
       if (opened) {
-        console.log(`✅ [OpenFile] Opened via openFileInTab (with tab!)`);
+        console.log(`? [OpenFile] Opened via openFileInTab (with tab!)`);
         return true;
       }
     } catch (e) {
-      console.warn(`⚠️ [OpenFile] openFileInTab failed:`, e);
+      console.warn(`?? [OpenFile] openFileInTab failed:`, e);
     }
   }
   
@@ -3054,32 +3180,32 @@ async function openFileAndWait(fileName: string, maxWaitMs: number = 5000): Prom
   // Try tabManager.openFile with full path (preferred)
   if (fullPath && tabManager?.openFile) {
     try {
-      console.log(`📂 [OpenFile] Using tabManager.openFile: ${fullPath}`);
+      console.log(`?? [OpenFile] Using tabManager.openFile: ${fullPath}`);
       await tabManager.openFile(fullPath);
       await new Promise(r => setTimeout(r, 300));
       
       const opened = await waitForFileInEditor(fileName, maxWaitMs);
       if (opened) {
-        console.log(`✅ [OpenFile] Opened via tabManager.openFile`);
+        console.log(`? [OpenFile] Opened via tabManager.openFile`);
         return true;
       }
     } catch (e) {
-      console.log(`⚠️ [OpenFile] tabManager.openFile failed:`, e);
+      console.log(`?? [OpenFile] tabManager.openFile failed:`, e);
     }
   }
   
   // Try tabManager.openFileByName
   if (tabManager?.openFileByName) {
     try {
-      console.log(`📂 [OpenFile] Using tabManager.openFileByName: ${fileName}`);
+      console.log(`?? [OpenFile] Using tabManager.openFileByName: ${fileName}`);
       await tabManager.openFileByName(fileName);
       const opened = await waitForFileInEditor(fileName, maxWaitMs);
       if (opened) {
-        console.log(`✅ [OpenFile] Opened via tabManager.openFileByName`);
+        console.log(`? [OpenFile] Opened via tabManager.openFileByName`);
         return true;
       }
     } catch (e) {
-      console.log(`⚠️ [OpenFile] tabManager.openFileByName failed:`, e);
+      console.log(`?? [OpenFile] tabManager.openFileByName failed:`, e);
     }
   }
   
@@ -3088,7 +3214,7 @@ async function openFileAndWait(fileName: string, maxWaitMs: number = 5000): Prom
   // ==========================================================================
   if (fileResult) {
     const { element: fileElement, path: foundPath } = fileResult;
-    console.log(`📂 [OpenFile] Found in tree: ${foundPath}`);
+    console.log(`?? [OpenFile] Found in tree: ${foundPath}`);
     
     try {
       fileElement.scrollIntoView({ behavior: 'instant', block: 'nearest' });
@@ -3101,15 +3227,15 @@ async function openFileAndWait(fileName: string, maxWaitMs: number = 5000): Prom
         clientY: fileElement.getBoundingClientRect().top + 10
       }));
       
-      console.log(`📂 [OpenFile] Double-click dispatched`);
+      console.log(`?? [OpenFile] Double-click dispatched`);
       
       const opened = await waitForFileInEditor(fileName, maxWaitMs);
       if (opened) {
-        console.log(`✅ [OpenFile] File opened via double-click`);
+        console.log(`? [OpenFile] File opened via double-click`);
         return true;
       }
     } catch (err) {
-      console.error(`⚠️ [OpenFile] Double-click method failed:`, err);
+      console.error(`?? [OpenFile] Double-click method failed:`, err);
     }
     
     // ==========================================================================
@@ -3117,7 +3243,7 @@ async function openFileAndWait(fileName: string, maxWaitMs: number = 5000): Prom
     // ==========================================================================
     if (foundPath && typeof (window as any).openFile === 'function') {
       try {
-        console.log(`📂 [OpenFile] Fallback: window.openFile (no tab): ${foundPath}`);
+        console.log(`?? [OpenFile] Fallback: window.openFile (no tab): ${foundPath}`);
         await (window as any).openFile(foundPath);
         
         // Try to create a tab manually after opening
@@ -3128,11 +3254,11 @@ async function openFileAndWait(fileName: string, maxWaitMs: number = 5000): Prom
         await new Promise(r => setTimeout(r, 200));
         const opened = await waitForFileInEditor(fileName, maxWaitMs);
         if (opened) {
-          console.log(`✅ [OpenFile] Opened via window.openFile`);
+          console.log(`? [OpenFile] Opened via window.openFile`);
           return true;
         }
       } catch (err) {
-        console.error(`❌ [OpenFile] window.openFile error:`, err);
+        console.error(`? [OpenFile] window.openFile error:`, err);
       }
     }
     
@@ -3141,7 +3267,7 @@ async function openFileAndWait(fileName: string, maxWaitMs: number = 5000): Prom
     await new Promise(r => setTimeout(r, 500));
     const openedAfterClick = await waitForFileInEditor(fileName, 2000);
     if (openedAfterClick) {
-      console.log(`✅ [OpenFile] Opened via single click`);
+      console.log(`? [OpenFile] Opened via single click`);
       return true;
     }
   }
@@ -3158,11 +3284,11 @@ async function openFileAndWait(fileName: string, maxWaitMs: number = 5000): Prom
   // Final verification
   const finalCheck = await waitForFileInEditor(fileName, 2000);
   if (finalCheck) {
-    console.log(`✅ [OpenFile] File opened after custom event`);
+    console.log(`? [OpenFile] File opened after custom event`);
     return true;
   }
   
-  console.log(`❌ [OpenFile] All methods failed for: ${fileName}`);
+  console.log(`? [OpenFile] All methods failed for: ${fileName}`);
   return false;
 }
 
@@ -3171,7 +3297,7 @@ async function waitForFileInEditor(fileName: string, maxWaitMs: number): Promise
   const fileBase = fileName.replace(/\.[^/.]+$/, '').toLowerCase();
   const startTime = Date.now();
   
-  console.log(`⏳ [WaitFile] Waiting for "${fileName}" to open in editor...`);
+  console.log(`? [WaitFile] Waiting for "${fileName}" to open in editor...`);
   
   while (Date.now() - startTime < maxWaitMs) {
     await new Promise(r => setTimeout(r, 100));
@@ -3230,7 +3356,7 @@ async function waitForFileInEditor(fileName: string, maxWaitMs: number): Promise
                         activeTab.getAttribute('data-filename') ||
                         activeTab.getAttribute('title');
         if (tabName) {
-          currentFile = tabName.toLowerCase().replace(/[•*]/g, '').trim();
+          currentFile = tabName.toLowerCase().replace(/[�*]/g, '').trim();
         }
       }
     }
@@ -3256,7 +3382,7 @@ async function waitForFileInEditor(fileName: string, maxWaitMs: number): Promise
         currentPath.toLowerCase().includes(fileName.toLowerCase());
       
       if (isMatch) {
-        console.log(`✅ [WaitFile] File detected: "${currentFile}" (path: ${currentPath || 'n/a'})`);
+        console.log(`? [WaitFile] File detected: "${currentFile}" (path: ${currentPath || 'n/a'})`);
         await new Promise(r => setTimeout(r, 150)); // Brief stabilization delay
         return true;
       }
@@ -3270,18 +3396,18 @@ async function waitForFileInEditor(fileName: string, maxWaitMs: number): Promise
     if (model) {
       const finalPath = model.uri?.path || '';
       const finalFile = finalPath.split('/').pop()?.toLowerCase() || '';
-      console.log(`⏳ [WaitFile] Final check - editor has: "${finalFile}"`);
+      console.log(`? [WaitFile] Final check - editor has: "${finalFile}"`);
       
       // If the file matches OR if we just have some editor open, consider it success
       // (the file detection might have race conditions)
       if (finalFile === fileNameLower || finalFile.replace(/\.[^/.]+$/, '') === fileBase) {
-        console.log(`✅ [WaitFile] File found on final check`);
+        console.log(`? [WaitFile] File found on final check`);
         return true;
       }
     }
   }
   
-  console.log(`⚠️ [WaitFile] Timeout - "${fileName}" not detected after ${maxWaitMs}ms`);
+  console.log(`?? [WaitFile] Timeout - "${fileName}" not detected after ${maxWaitMs}ms`);
   return false;
 }
 
@@ -3304,7 +3430,7 @@ let multiFileQueue: MultiFileApplyItem[] = [];
 let isProcessingMultiFile = false;
 
 // ============================================================================
-// 🆕 MULTI-FILE CHECK FUNCTION FOR INTEGRATION
+// ?? MULTI-FILE CHECK FUNCTION FOR INTEGRATION
 // ============================================================================
 
 /**
@@ -3323,7 +3449,7 @@ function shouldUseMultiFileSystem(block: HTMLElement | null): boolean {
   if (currentSession) {
     const status = currentSession.status;
     if (status === 'processing' || status === 'awaiting-confirmation') {
-      console.log('📚 [AutoApply] Multi-file session active, deferring to multi-file system');
+      console.log('?? [AutoApply] Multi-file session active, deferring to multi-file system');
       return true;
     }
   }
@@ -3332,8 +3458,8 @@ function shouldUseMultiFileSystem(block: HTMLElement | null): boolean {
   const mentionedFiles = scanAIMessageForFiles?.(aiMessage) || [];
   
   if (mentionedFiles.length >= 2) {
-    console.log(`📚 [AutoApply] Multi-file update detected (${mentionedFiles.length} files): ${mentionedFiles.join(', ')}`);
-    console.log('📚 [AutoApply] Deferring to multi-file autonomous system');
+    console.log(`?? [AutoApply] Multi-file update detected (${mentionedFiles.length} files): ${mentionedFiles.join(', ')}`);
+    console.log('?? [AutoApply] Deferring to multi-file autonomous system');
     return true;
   }
   
@@ -3343,7 +3469,7 @@ function shouldUseMultiFileSystem(block: HTMLElement | null): boolean {
 async function processMultiFileApply(): Promise<void> {
   // ========== GUARDS ==========
   if (!autoApplyEnabled) {
-    console.log('⏸️ [MultiFile] Auto-apply is disabled');
+    console.log('?? [MultiFile] Auto-apply is disabled');
     return;
   }
   
@@ -3356,8 +3482,8 @@ async function processMultiFileApply(): Promise<void> {
   }
   
   isProcessingMultiFile = true;
-  (window as any).surgicalBridge?.enterMultiFileGuard();  // 🔬 Disable surgical mode during multi-file
-  console.log(`\n📚 [MultiFile] ========== STARTING MULTI-FILE APPLY ==========`);
+  (window as any).surgicalBridge?.enterMultiFileGuard();  // ?? Disable surgical mode during multi-file
+  console.log(`\n?? [MultiFile] ========== STARTING MULTI-FILE APPLY ==========`);
   
   // Show the status dialog immediately
   showStatusDialog();
@@ -3386,7 +3512,7 @@ async function processMultiFileApply(): Promise<void> {
   try {
     const unprocessedBlocks = getUnprocessedCodeBlocks();
     if (unprocessedBlocks.length === 0) {
-      console.log('⏭️ [MultiFile] No unprocessed blocks');
+      console.log('?? [MultiFile] No unprocessed blocks');
       addStatusLog('No code blocks to process', 'warning');
       updateStatusText('No code blocks found');
       setTimeout(() => closeStatusDialog(), 1500);
@@ -3394,7 +3520,7 @@ async function processMultiFileApply(): Promise<void> {
       return;
     }
     
-    console.log(`📦 [MultiFile] Found ${unprocessedBlocks.length} unprocessed block(s)`);
+    console.log(`?? [MultiFile] Found ${unprocessedBlocks.length} unprocessed block(s)`);
     addStatusLog(`Found ${unprocessedBlocks.length} code block(s)`, 'info');
     updateProgress(10);
     
@@ -3404,17 +3530,17 @@ async function processMultiFileApply(): Promise<void> {
     let blockNum = 0;
     for (const block of unprocessedBlocks) {
       blockNum++;
-      console.log(`\n📦 [MultiFile] Analyzing block ${blockNum}/${unprocessedBlocks.length}...`);
+      console.log(`\n?? [MultiFile] Analyzing block ${blockNum}/${unprocessedBlocks.length}...`);
       
       const codeInfo = extractCodeFromBlockForApply(block);
       if (!codeInfo || !codeInfo.code.trim()) {
-        console.log(`  ⏭️ Skipping: No code content found`);
+        console.log(`  ?? Skipping: No code content found`);
         continue;
       }
       
-      console.log(`  📝 Code: ${codeInfo.code.substring(0, 80).replace(/\n/g, '↵')}...`);
-      console.log(`  🔤 Language: ${codeInfo.language}`);
-      console.log(`  📏 Lines: ${codeInfo.code.split('\n').length}`);
+      console.log(`  ?? Code: ${codeInfo.code.substring(0, 80).replace(/\n/g, '?')}...`);
+      console.log(`  ?? Language: ${codeInfo.language}`);
+      console.log(`  ?? Lines: ${codeInfo.code.split('\n').length}`);
       
       // FIX: Skip blocks with bash/shell/terminal language tag
       const _termLangs = ['bash', 'shell', 'sh', 'zsh', 'bat', 'cmd', 'powershell', 'ps1', 'terminal', 'console', 'dos', 'bas'];
@@ -3426,9 +3552,9 @@ async function processMultiFileApply(): Promise<void> {
         continue;
       }
 
-      // ⭐ NEW: Skip terminal commands (npm, yarn, etc.)
+      // ? NEW: Skip terminal commands (npm, yarn, etc.)
       if (isTerminalCommand(codeInfo.code)) {
-        console.log(`  ⏭️ Skipping: Terminal command detected`);
+        console.log(`  ?? Skipping: Terminal command detected`);
         const cmdId = generateBlockId(block);
         processedBlockIds.add(cmdId);
         markBlockAsChecked(block, cmdId);
@@ -3436,15 +3562,15 @@ async function processMultiFileApply(): Promise<void> {
       }
       
       let detectedFileName = extractTargetFileName(block, codeInfo.code);
-      console.log(`  📄 Detected filename: ${detectedFileName || '(none)'}`);
+      console.log(`  ?? Detected filename: ${detectedFileName || '(none)'}`);
       
       if (!detectedFileName) {
-        console.log(`  ⏭️ Skipping: Could not detect target file`);
+        console.log(`  ?? Skipping: Could not detect target file`);
         continue;
       }
       
       if (isTechnologyNameNotFile(detectedFileName)) {
-        console.log(`  ⏭️ Skipping: "${detectedFileName}" is a technology name, not a file`);
+        console.log(`  ?? Skipping: "${detectedFileName}" is a technology name, not a file`);
         continue;
       }
       
@@ -3452,7 +3578,7 @@ async function processMultiFileApply(): Promise<void> {
       // AI might say "app.css" but actual file is "App.css"
       const normalizedFileName = normalizeFileNameCase(detectedFileName);
       if (normalizedFileName !== detectedFileName) {
-        console.log(`🔄 [MultiFile] Case normalized: "${detectedFileName}" → "${normalizedFileName}"`);
+        console.log(`?? [MultiFile] Case normalized: "${detectedFileName}" ? "${normalizedFileName}"`);
         detectedFileName = normalizedFileName;
       }
       
@@ -3461,7 +3587,7 @@ async function processMultiFileApply(): Promise<void> {
       const minLines = 5; // Minimum lines to be considered a real file update (increased from 3)
       
       if (codeLines.length < minLines) {
-        console.log(`⏭️ [Apply] Skipping snippet (${codeLines.length} lines < ${minLines} min): ${detectedFileName}`);
+        console.log(`?? [Apply] Skipping snippet (${codeLines.length} lines < ${minLines} min): ${detectedFileName}`);
         // Mark as processed so it doesn't keep trying
         const snippetId = generateBlockId(block);
         processedBlockIds.add(snippetId);
@@ -3472,10 +3598,10 @@ async function processMultiFileApply(): Promise<void> {
       // Skip PLAINTEXT blocks ONLY if they have very few lines and filename doesn't have a code extension
       // This prevents skipping valid code that just wasn't detected properly
       if (codeInfo.language?.toLowerCase() === 'plaintext') {
-        // ⭐ FIX: Include C/C++ extensions (.h, .c, .cpp, .ino)
+        // ? FIX: Include C/C++ extensions (.h, .c, .cpp, .ino)
         const hasCodeExtension = /\.(tsx?|jsx?|py|rs|css|scss|html|json|xml|vue|svelte|go|rb|php|cs|java|c|h|cpp|hpp|ino|pde)$/i.test(detectedFileName);
         if (!hasCodeExtension || codeLines.length < 5) {
-          console.log(`⏭️ [Apply] Skipping PLAINTEXT block (no code extension or < 5 lines): ${detectedFileName}`);
+          console.log(`?? [Apply] Skipping PLAINTEXT block (no code extension or < 5 lines): ${detectedFileName}`);
           const plaintextId = generateBlockId(block);
           processedBlockIds.add(plaintextId);
           markBlockAsChecked(block, plaintextId);
@@ -3491,13 +3617,13 @@ async function processMultiFileApply(): Promise<void> {
             'html': 'html', 'json': 'json',
             'py': 'python', 'rs': 'rust',
             'vue': 'vue', 'svelte': 'svelte',
-            // ⭐ FIX: Add C/C++ extensions
+            // ? FIX: Add C/C++ extensions
             'c': 'c', 'h': 'c', 'cpp': 'cpp', 'hpp': 'cpp',
             'ino': 'c', 'pde': 'c'  // Arduino
           };
           if (extLangMap[ext]) {
             codeInfo.language = extLangMap[ext];
-            console.log(`🔤 [Apply] Inferred language from extension: ${codeInfo.language}`);
+            console.log(`?? [Apply] Inferred language from extension: ${codeInfo.language}`);
           }
         }
       }
@@ -3505,7 +3631,7 @@ async function processMultiFileApply(): Promise<void> {
       // Skip if the code is just an import statement (common in AI explanations)
       const trimmedCode = codeInfo.code.trim();
       if (trimmedCode.startsWith('import ') && codeLines.length <= 3) {
-        console.log(`⏭️ [Apply] Skipping import-only snippet: ${detectedFileName}`);
+        console.log(`?? [Apply] Skipping import-only snippet: ${detectedFileName}`);
         const importId = generateBlockId(block);
         processedBlockIds.add(importId);
         markBlockAsChecked(block, importId);
@@ -3531,7 +3657,7 @@ async function processMultiFileApply(): Promise<void> {
         const isExplanation = explanationPatterns.some(p => p.test(messageText));
         
         if (isExplanation && codeLines.length <= 5) {
-          console.log(`⏭️ [Apply] Skipping explanation snippet: ${detectedFileName} (AI is explaining, not replacing)`);
+          console.log(`?? [Apply] Skipping explanation snippet: ${detectedFileName} (AI is explaining, not replacing)`);
           const explainId = generateBlockId(block);
           processedBlockIds.add(explainId);
           markBlockAsChecked(block, explainId);
@@ -3558,7 +3684,7 @@ async function processMultiFileApply(): Promise<void> {
               
               // If the new code is a subset of existing code (AI is quoting)
               if (existingNormalized.includes(newCodeNormalized) && codeLines.length < 10) {
-                console.log(`⏭️ [Apply] Skipping quoted code - already exists in file: ${detectedFileName}`);
+                console.log(`?? [Apply] Skipping quoted code - already exists in file: ${detectedFileName}`);
                 const quoteId = generateBlockId(block);
                 processedBlockIds.add(quoteId);
                 markBlockAsChecked(block, quoteId);
@@ -3574,11 +3700,11 @@ async function processMultiFileApply(): Promise<void> {
       
       const blockId = generateBlockId(block);
       if (processedBlockIds.has(blockId)) {
-        console.log(`  ⏭️ Block already processed (${blockId})`);
+        console.log(`  ?? Block already processed (${blockId})`);
         continue;
       }
       
-      console.log(`  ✅ Adding to file: ${detectedFileName}`);
+      console.log(`  ? Adding to file: ${detectedFileName}`);
       
       const key = detectedFileName.toLowerCase();
       if (!fileBlocks.has(key)) fileBlocks.set(key, []);
@@ -3591,10 +3717,10 @@ async function processMultiFileApply(): Promise<void> {
       });
     }
     
-    // ⭐ Summary of detected files
-    console.log(`\n📊 [MultiFile] === FILE DETECTION SUMMARY ===`);
-    console.log(`📊 Total blocks found: ${unprocessedBlocks.length}`);
-    console.log(`📊 Files detected: ${fileBlocks.size}`);
+    // ? Summary of detected files
+    console.log(`\n?? [MultiFile] === FILE DETECTION SUMMARY ===`);
+    console.log(`?? Total blocks found: ${unprocessedBlocks.length}`);
+    console.log(`?? Files detected: ${fileBlocks.size}`);
     if (fileBlocks.size > 0) {
       const fileList = Array.from(fileBlocks.keys()).map(k => {
         const blocks = fileBlocks.get(k)!;
@@ -3602,10 +3728,10 @@ async function processMultiFileApply(): Promise<void> {
       });
       fileList.forEach((f, i) => console.log(`  ${i + 1}. ${f}`));
     }
-    console.log(`📊 ==============================\n`);
+    console.log(`?? ==============================\n`);
     
     if (fileBlocks.size === 0) {
-      console.log('⏭️ [MultiFile] No valid file targets');
+      console.log('?? [MultiFile] No valid file targets');
       addStatusLog('No valid files to process', 'warning');
       updateStatusText('No valid files found');
       setTimeout(() => closeStatusDialog(), 1500);
@@ -3613,7 +3739,7 @@ async function processMultiFileApply(): Promise<void> {
       return;
     }
     
-    console.log(`📚 [MultiFile] Processing ${fileBlocks.size} file(s)`);
+    console.log(`?? [MultiFile] Processing ${fileBlocks.size} file(s)`);
     addStatusLog(`Processing ${fileBlocks.size} file(s)`, 'info');
     updateStatusText(`Applying changes to ${fileBlocks.size} file(s)...`);
     updateProgress(20);
@@ -3643,7 +3769,7 @@ async function processMultiFileApply(): Promise<void> {
       fileStatusList[i].status = 'processing';
       updateFileList(fileStatusList);
       
-      console.log(`\n📂 [MultiFile] File ${i + 1}/${fileKeys.length}: ${item.fileName}`);
+      console.log(`\n?? [MultiFile] File ${i + 1}/${fileKeys.length}: ${item.fileName}`);
       addStatusLog(`[${i + 1}/${fileKeys.length}] Processing ${item.fileName}`, 'info');
       updateStatusText(`Processing ${item.fileName}...`);
       
@@ -3656,7 +3782,7 @@ async function processMultiFileApply(): Promise<void> {
         let fileOpened = currentFile === item.fileName.toLowerCase();
         
         if (!fileOpened) {
-          console.log(`📂 [MultiFile] Opening: ${item.fileName}`);
+          console.log(`?? [MultiFile] Opening: ${item.fileName}`);
           addStatusLog(`Opening ${item.fileName}...`, 'info');
           
           // Try opening with longer timeout
@@ -3668,8 +3794,8 @@ async function processMultiFileApply(): Promise<void> {
             const newFileInfo = detectNewFileIntent(item.block);
             const targetPath = extractTargetPath(item.block, item.code);
             
-            if (newFileInfo || targetPath) {
-              console.log(`🆕 [MultiFile] File doesn't exist - attempting to create new file`);
+            if (newFileInfo || targetPath || !findFileInProject(item.fileName)) {
+              console.log(`?? [MultiFile] File doesn't exist - attempting to create new file`);
               addStatusLog(`Creating new file: ${item.fileName}`, 'info');
               
               // Determine full path for new file
@@ -3687,22 +3813,22 @@ async function processMultiFileApply(): Promise<void> {
                 const defaultDir = (fileExt === 'tsx' || fileExt === 'jsx' || fileExt === 'css' || fileExt === 'scss') 
                   ? 'src/components' : 'src';
                 fullNewPath = projectPath ? `${projectPath}/${defaultDir}/${item.fileName}` : `${defaultDir}/${item.fileName}`;
-                console.log(`📂 [MultiFile] Using default: ${defaultDir}`);
+                console.log(`?? [MultiFile] Using default: ${defaultDir}`);
               }
               
               // Normalize path
               fullNewPath = fullNewPath.replace(/\\/g, '/').replace(/\/+/g, '/');
               
-              console.log(`🆕 [MultiFile] Creating file at: ${fullNewPath}`);
+              console.log(`?? [MultiFile] Creating file at: ${fullNewPath}`);
               
               // Show toast notification
-              showAutoApplyToast(`🆕 Creating new file: ${item.fileName}`, 'info');
+              showAutoApplyToast(`?? Creating new file: ${item.fileName}`, 'info');
               
               // Create the new file with the code content
               const created = await createNewFile(fullNewPath, item.code);
               
               if (created) {
-                addStatusLog(`✅ Created: ${item.fileName}`, 'success');
+                addStatusLog(`? Created: ${item.fileName}`, 'success');
                 
                 // Wait for file tree to refresh
                 await new Promise(r => setTimeout(r, 500));
@@ -3711,7 +3837,7 @@ async function processMultiFileApply(): Promise<void> {
                 fileOpened = await openFileAndWait(item.fileName, 5000);
                 
                 if (fileOpened) {
-                  console.log(`✅ [MultiFile] New file created and opened: ${item.fileName}`);
+                  console.log(`? [MultiFile] New file created and opened: ${item.fileName}`);
                   
                   // Mark as success - file is already created with content
                   fileStatusList[i] = { fileName: item.fileName, status: 'done', summary: `+${item.code.split('\n').length} lines (new file)` };
@@ -3735,13 +3861,13 @@ async function processMultiFileApply(): Promise<void> {
                   continue; // Skip to next file
                 }
               } else {
-                addStatusLog(`❌ Failed to create ${item.fileName}`, 'error');
+                addStatusLog(`? Failed to create ${item.fileName}`, 'error');
               }
             }
             // ===== END NEW FILE CREATION =====
             
             // Wait a bit more and check again - file might be loading
-            console.log(`⏳ [MultiFile] First attempt failed, waiting additional 2s...`);
+            console.log(`? [MultiFile] First attempt failed, waiting additional 2s...`);
             await new Promise(r => setTimeout(r, 2000));
             
             // Re-check if file is now in editor
@@ -3750,15 +3876,15 @@ async function processMultiFileApply(): Promise<void> {
             const checkFile = modelCheck?.uri?.path?.split('/').pop()?.toLowerCase() || '';
             
             if (checkFile === item.fileName.toLowerCase()) {
-              console.log(`✅ [MultiFile] File appeared after extra wait`);
+              console.log(`? [MultiFile] File appeared after extra wait`);
               fileOpened = true;
             } else if (modelCheck && modelCheck.getValue().length > 0) {
               // Editor has content - might be the right file with different detection
-              console.log(`⚠️ [MultiFile] Editor has content (${modelCheck.getValue().length} chars), proceeding...`);
+              console.log(`?? [MultiFile] Editor has content (${modelCheck.getValue().length} chars), proceeding...`);
               addStatusLog(`Proceeding with current editor content...`, 'warning');
               fileOpened = true;
             } else {
-              console.log(`❌ [MultiFile] Could not open: ${item.fileName}`);
+              console.log(`? [MultiFile] Could not open: ${item.fileName}`);
               addStatusLog(`Failed to open ${item.fileName}`, 'error');
               fileStatusList[i].status = 'error';
               updateFileList(fileStatusList);
@@ -3804,7 +3930,7 @@ async function processMultiFileApply(): Promise<void> {
             surgicalPipeline.end(true);
       setTimeout(() => { const d = document.getElementById("ai-status-dialog"); if (d) { d.style.transition = "opacity 0.4s"; d.style.opacity = "0"; setTimeout(() => d.remove(), 420); } }, 3000); // X02: auto-dismiss
           }
-          console.log(`✅ [Apply] Applied to ${item.fileName}: ${result.message}`);
+          console.log(`? [Apply] Applied to ${item.fileName}: ${result.message}`);
           addStatusLog(`Applied: ${result.message}`, 'success');
           
           // Mark block with green badge showing changes in header
@@ -3831,7 +3957,7 @@ async function processMultiFileApply(): Promise<void> {
           for (const b of blocks) processedBlockIds.add(b.blockId);
           
         } else if (result.message === 'No changes needed') {
-          console.log(`⏭️ [Apply] ${item.fileName}: No changes needed`);
+          console.log(`?? [Apply] ${item.fileName}: No changes needed`);
           addStatusLog(`No changes needed`, 'info');
           fileStatusList[i] = { fileName: item.fileName, status: 'done', summary: 'No changes' };
           updateFileList(fileStatusList);
@@ -3839,7 +3965,7 @@ async function processMultiFileApply(): Promise<void> {
           processedBlockIds.add(item.blockId);
           for (const b of blocks) processedBlockIds.add(b.blockId);
         } else {
-          console.log(`⚠️ [MultiFile] ${item.fileName}: ${result.message}`);
+          console.log(`?? [MultiFile] ${item.fileName}: ${result.message}`);
           addStatusLog(`${result.message}`, 'warning');
           fileStatusList[i].status = 'error';
           updateFileList(fileStatusList);
@@ -3852,7 +3978,7 @@ async function processMultiFileApply(): Promise<void> {
         }
         
       } catch (error) {
-        console.error(`❌ [MultiFile] Error with ${item.fileName}:`, error);
+        console.error(`? [MultiFile] Error with ${item.fileName}:`, error);
         fileStatusList[i].status = 'error';
         updateFileList(fileStatusList);
         errorCount++;
@@ -3867,7 +3993,7 @@ async function processMultiFileApply(): Promise<void> {
     
     // PHASE 2: Show confirmation dialog for all changes (unified UI)
     if (appliedChanges.length > 0) {
-      console.log(`\n📋 [Confirm] Showing confirmation for ${appliedChanges.length} file(s)`);
+      console.log(`\n?? [Confirm] Showing confirmation for ${appliedChanges.length} file(s)`);
       addStatusLog(`Ready: ${appliedChanges.length} file(s) modified`, 'success');
       updateStatusText('Changes applied - awaiting confirmation');
       updateProgress(100);
@@ -3889,7 +4015,7 @@ async function processMultiFileApply(): Promise<void> {
     }
     
   } catch (error) {
-    console.error('❌ [MultiFile] Fatal error:', error);
+    console.error('? [MultiFile] Fatal error:', error);
     addStatusLog(`Fatal error: ${error}`, 'error');
     updateStatusText('Error occurred');
     setTimeout(() => closeStatusDialog(), 2000);
@@ -3939,7 +4065,7 @@ function showStatusDialog(): void {
         <span class="asd-title-text">AI Code Assistant</span>
       </div>
       <div class="asd-controls">
-        <button class="asd-minimize" title="Minimize">─</button>
+        <button class="asd-minimize" title="Minimize">-</button>
       </div>
     </div>
     <div class="asd-body">
@@ -3953,14 +4079,14 @@ function showStatusDialog(): void {
     </div>
     <div class="asd-footer" style="display:none;">
       <div class="asd-hint">
-        <kbd>Enter</kbd> Accept · <kbd>Esc</kbd> Reject
+        <kbd>Enter</kbd> Accept � <kbd>Esc</kbd> Reject
       </div>
       <div class="asd-actions">
         <button class="asd-btn asd-btn-reject">
-          <span>✕</span> Reject
+          <span>?</span> Reject
         </button>
         <button class="asd-btn asd-btn-accept">
-          <span>✓</span> Accept & Save
+          <span>?</span> Accept & Save
         </button>
       </div>
     </div>
@@ -3999,10 +4125,10 @@ function updateProgress(percent: number): void {
 function addStatusLog(message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info'): void {
   const timestamp = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const icons: Record<string, string> = {
-    info: '●',
-    success: '✓',
-    warning: '⚠',
-    error: '✗'
+    info: '?',
+    success: '?',
+    warning: '?',
+    error: '?'
   };
   const entry = `<div class="log-entry ${type}"><span class="log-time">${timestamp}</span><span class="log-icon">${icons[type]}</span><span class="log-msg">${message}</span></div>`;
   statusLogEntries.push(entry);
@@ -4032,7 +4158,7 @@ function updateFileList(files: Array<{fileName: string; status: 'pending' | 'pro
     const newBadge = isNewFile ? '<span class="asd-file-new">NEW</span>' : '';
     return `
     <div class="asd-file ${f.status}" data-filename="${f.fileName}" style="cursor: pointer;">
-      <span class="asd-file-icon">${f.status === 'done' ? '✓' : f.status === 'error' ? '✗' : f.status === 'processing' ? '◐' : '○'}</span>
+      <span class="asd-file-icon">${f.status === 'done' ? '?' : f.status === 'error' ? '?' : f.status === 'processing' ? '?' : '?'}</span>
       <span class="asd-file-name">${f.fileName}</span>
       ${newBadge}
       ${f.summary ? `<span class="asd-file-stats">${f.summary.replace(' (new file)', '')}</span>` : ''}
@@ -4044,7 +4170,7 @@ function updateFileList(files: Array<{fileName: string; status: 'pending' | 'pro
     item.addEventListener('click', async () => {
       const fileName = item.getAttribute('data-filename');
       if (fileName) {
-        console.log(`📂 [StatusDialog] Opening file: ${fileName}`);
+        console.log(`?? [StatusDialog] Opening file: ${fileName}`);
         await openFileAndWait(fileName, 3000);
       }
     });
@@ -4126,7 +4252,7 @@ function showCompletionState(changes: typeof pendingChanges, errorCount: number)
   // Auto-open the first modified file so user can see the changes
   if (changes.length > 0) {
     const firstFile = changes[0].fileName;
-    console.log(`📂 [AutoOpen] Opening first modified file: ${firstFile}`);
+    console.log(`?? [AutoOpen] Opening first modified file: ${firstFile}`);
     setTimeout(async () => {
       await openFileAndWait(firstFile, 3000);
     }, 300);
@@ -4190,7 +4316,7 @@ async function handleAccept(): Promise<void> {
           console.warn('[MultiFile] setValue failed:', e);
         }
       }
-      // 🔧 FIX: Restore editor to writable after multi-file accept
+      // ?? FIX: Restore editor to writable after multi-file accept
       restoreEditorWritable(editor);
       
       let filePath = change.fullPath || model.uri?.path || '';
@@ -4330,7 +4456,7 @@ async function handleReject(): Promise<void> {
             text: change.originalContent,
             forceMoveMarkers: true
           }]);
-          // 🔧 FIX: Restore editor to writable after multi-file reject
+          // ?? FIX: Restore editor to writable after multi-file reject
           restoreEditorWritable(editor);
           addStatusLog(`Reverted ${change.fileName}`, 'info');
         }
@@ -4871,15 +4997,15 @@ function showPerFileConfirmation(fileName: string, current: number, total: numbe
     bar.className = 'multi-file-confirm-bar';
     bar.innerHTML = `
       <div class="mf-confirm-content">
-        <span class="mf-confirm-icon">📄</span>
+        <span class="mf-confirm-icon">??</span>
         <span class="mf-confirm-file">${fileName}</span>
         <span class="mf-confirm-progress">(${current}/${total})</span>
         <div class="mf-confirm-buttons">
           <button class="mf-accept-btn" title="Accept (Enter)">
-            <span>✓</span> Accept
+            <span>?</span> Accept
           </button>
           <button class="mf-reject-btn" title="Reject (Escape)">
-            <span>✗</span> Reject
+            <span>?</span> Reject
           </button>
         </div>
         <span class="mf-confirm-hint">Enter to accept, Escape to reject</span>
@@ -5037,7 +5163,7 @@ function markBlockAsApplied(block: HTMLElement, blockId?: string, changesSummary
     wrapper = block.closest('.cbe-wrapper, .muf-block') as HTMLElement || block;
   }
   
-  console.log(`🏷️ [MarkApplied] Marking block as applied`, { 
+  console.log(`??? [MarkApplied] Marking block as applied`, { 
     blockId, 
     changesSummary,
     wrapperClass: wrapper.className,
@@ -5051,7 +5177,7 @@ function markBlockAsApplied(block: HTMLElement, blockId?: string, changesSummary
   const header = wrapper.querySelector('.cbe-header, .muf-header') as HTMLElement;
   const headerLeft = wrapper.querySelector('.cbe-header-left, .muf-header-left') as HTMLElement;
   
-  console.log(`🏷️ [MarkApplied] Header found:`, { header: !!header, headerLeft: !!headerLeft });
+  console.log(`??? [MarkApplied] Header found:`, { header: !!header, headerLeft: !!headerLeft });
   
   // Remove any existing status badges first
   wrapper.querySelectorAll('.code-apply-status, .code-changes-badge').forEach(el => el.remove());
@@ -5064,19 +5190,19 @@ function markBlockAsApplied(block: HTMLElement, blockId?: string, changesSummary
     const badge = document.createElement('span');
     badge.className = 'code-changes-badge';
     const displayText = changesSummary || 'Applied';
-    badge.innerHTML = `<span class="badge-check">✓</span> ${displayText}`;
+    badge.innerHTML = `<span class="badge-check">?</span> ${displayText}`;
     headerLeft.appendChild(badge);
-    console.log(`🏷️ [MarkApplied] Badge added to header-left: ${displayText}`);
+    console.log(`??? [MarkApplied] Badge added to header-left: ${displayText}`);
   } else if (header) {
     // Fallback: add to header directly
     const badge = document.createElement('span');
     badge.className = 'code-changes-badge';
     const displayText = changesSummary || 'Applied';
-    badge.innerHTML = `<span class="badge-check">✓</span> ${displayText}`;
+    badge.innerHTML = `<span class="badge-check">?</span> ${displayText}`;
     header.appendChild(badge);
-    console.log(`🏷️ [MarkApplied] Badge added to header (fallback): ${displayText}`);
+    console.log(`??? [MarkApplied] Badge added to header (fallback): ${displayText}`);
   } else {
-    console.warn(`🏷️ [MarkApplied] No header found, cannot add badge`);
+    console.warn(`??? [MarkApplied] No header found, cannot add badge`);
   }
   
   // Also add small indicator to header actions for visibility
@@ -5084,7 +5210,7 @@ function markBlockAsApplied(block: HTMLElement, blockId?: string, changesSummary
   if (headerActions) {
     const indicator = document.createElement('span');
     indicator.className = 'code-apply-status status-applied';
-    indicator.innerHTML = '✓';
+    indicator.innerHTML = '?';
     indicator.title = changesSummary || 'Applied';
     headerActions.insertBefore(indicator, headerActions.firstChild);
   }
@@ -5184,7 +5310,7 @@ function markBlockAsRejected(block: HTMLElement, blockId: string): void {
       wrapper.appendChild(indicator);
     }
   }
-  indicator.innerHTML = '✗ Rejected';
+  indicator.innerHTML = '? Rejected';
   indicator.className = 'code-apply-status status-rejected';
 }
 
@@ -5217,7 +5343,7 @@ function markBlockAsChecked(block: HTMLElement, blockId: string): void {
       wrapper.appendChild(indicator);
     }
   }
-  indicator.innerHTML = '⏭️ No changes';
+  indicator.innerHTML = '?? No changes';
   indicator.className = 'code-apply-status status-checked';
   
   // Add to processed IDs
@@ -5227,22 +5353,22 @@ function markBlockAsChecked(block: HTMLElement, blockId: string): void {
 (window as any).processMultiFileApply = processMultiFileApply;
 
 async function autoOpenAndApply(targetFileName: string, code: string, blockId: string, block: HTMLElement): Promise<boolean> {
-  console.log(`🚀 [AutoOpen] Auto-opening "${targetFileName}" to apply code...`);
-  showAutoApplyToast(`📂 Opening ${targetFileName}...`, 'success');
+  console.log(`?? [AutoOpen] Auto-opening "${targetFileName}" to apply code...`);
+  showAutoApplyToast(`?? Opening ${targetFileName}...`, 'success');
   
   pendingAutoApply = { fileName: targetFileName, code, blockId, block };
   
   const opened = await openFileAndWait(targetFileName, 6000);
   
   if (opened) {
-    console.log(`✅ [AutoOpen] File "${targetFileName}" opened successfully!`);
+    console.log(`? [AutoOpen] File "${targetFileName}" opened successfully!`);
     pendingAutoApply = null;
     processedBlockIds.add(blockId);
     await doApplyCode(block, code, blockId);
     return true;
   } else {
-    console.log(`❌ [AutoOpen] Could not open file: ${targetFileName}`);
-    showAutoApplyToast(`⚠️ Could not open ${targetFileName}`, 'error');
+    console.log(`? [AutoOpen] Could not open file: ${targetFileName}`);
+    showAutoApplyToast(`?? Could not open ${targetFileName}`, 'error');
     pendingAutoApply = null;
     processedBlockIds.add(blockId);
     return false;
@@ -5257,27 +5383,27 @@ async function autoOpenAndApply(targetFileName: string, code: string, blockId: s
 // ============================================================================
 
 (window as any).testFindFile = (fileName: string) => {
-  console.log(`\n🧪 ===== TEST: Find File =====`);
+  console.log(`\n?? ===== TEST: Find File =====`);
   const result = findFileInProject(fileName);
   if (result) {
-    console.log(`✅ FOUND:`, result.element);
+    console.log(`? FOUND:`, result.element);
     console.log(`   Path: ${result.path}`);
     return true;
   } else {
-    console.log(`❌ NOT FOUND`);
+    console.log(`? NOT FOUND`);
     return false;
   }
 };
 
 (window as any).testOpenFile = async (fileName: string) => {
-  console.log(`\n🧪 ===== TEST: Open File =====`);
+  console.log(`\n?? ===== TEST: Open File =====`);
   const result = await openFileAndWait(fileName, 5000);
-  console.log(result ? `✅ SUCCESS` : `❌ FAILED`);
+  console.log(result ? `? SUCCESS` : `? FAILED`);
   return result;
 };
 
 (window as any).testStatus = () => {
-  console.log(`\n🧪 ===== SYSTEM STATUS =====`);
+  console.log(`\n?? ===== SYSTEM STATUS =====`);
   console.log(`   AI Search enabled: ${isAIProjectSearchEnabled()}`);
   console.log(`   Auto-Apply enabled: ${autoApplyEnabled}`);
   console.log(`   Multi-file processing: ${isProcessingMultiFile}`);
@@ -5450,13 +5576,13 @@ function scoreCodeBlock(block: HTMLElement, currentFileLang: string, currentFile
   // ===== SNIPPET FILTER: Very small code blocks are usually examples =====
   if (nonEmptyLines < 3) {
     score -= 500;
-    reasons.push(`❌ TOO SMALL (${nonEmptyLines} lines)`);
+    reasons.push(`? TOO SMALL (${nonEmptyLines} lines)`);
     shouldSkip = true;
   }
   
   // Skip PLAINTEXT blocks - but NOT if they look like actual code
-  // ⭐ v14: Check for C/C++/Arduino patterns before skipping
-  // ⭐ FIX: More robust regex that handles leading characters/backticks
+  // ? v14: Check for C/C++/Arduino patterns before skipping
+  // ? FIX: More robust regex that handles leading characters/backticks
   const hasCPreprocessor = /^[`'\s]*#\s*(include|define|ifndef|ifdef|endif|pragma)/m.test(code) ||
                            /#\s*(include|define|ifndef|ifdef|endif)\s/m.test(code);
   const hasCTypes = /\b(int|void|char|float|double|struct|typedef|enum)\s+\w+/.test(code);
@@ -5466,25 +5592,25 @@ function scoreCodeBlock(block: HTMLElement, currentFileLang: string, currentFile
   
   const looksLikeRealCode = hasCPreprocessor || hasCTypes || hasJSPatterns || hasModulePatterns || hasArduinoPatterns;
   
-  // ⭐ DEBUG: Log what patterns matched
+  // ? DEBUG: Log what patterns matched
   if (language === 'plaintext') {
-    console.log(`🔍 [Score] PLAINTEXT detection: preprocessor=${hasCPreprocessor}, types=${hasCTypes}, js=${hasJSPatterns}, modules=${hasModulePatterns}, arduino=${hasArduinoPatterns}`);
-    console.log(`🔍 [Score] First 200 chars of code: ${code.substring(0, 200).replace(/\n/g, '↵')}`);
+    console.log(`?? [Score] PLAINTEXT detection: preprocessor=${hasCPreprocessor}, types=${hasCTypes}, js=${hasJSPatterns}, modules=${hasModulePatterns}, arduino=${hasArduinoPatterns}`);
+    console.log(`?? [Score] First 200 chars of code: ${code.substring(0, 200).replace(/\n/g, '?')}`);
   }
   
   if (language === 'plaintext' && !looksLikeRealCode) {
     score -= 400;
-    reasons.push('❌ PLAINTEXT (example)');
+    reasons.push('? PLAINTEXT (example)');
     shouldSkip = true;
   } else if (language === 'plaintext' && looksLikeRealCode) {
     // Don't penalize, it's probably real code with wrong language tag
-    // ⭐ FIX: Upgrade the language based on what we found AND add positive score
+    // ? FIX: Upgrade the language based on what we found AND add positive score
     if (hasCPreprocessor || hasCTypes || hasArduinoPatterns) {
       score += 50; // Boost C/C++ code
-      reasons.push('✅ C/C++ code detected');
+      reasons.push('? C/C++ code detected');
     } else {
       score += 20; // Small boost for other code patterns
-      reasons.push('⚠️ PLAINTEXT but looks like code');
+      reasons.push('?? PLAINTEXT but looks like code');
     }
   }
   
@@ -5492,7 +5618,7 @@ function scoreCodeBlock(block: HTMLElement, currentFileLang: string, currentFile
   const trimmedCode = code.trim();
   if (trimmedCode.startsWith('import ') && nonEmptyLines <= 2) {
     score -= 400;
-    reasons.push('❌ IMPORT-ONLY snippet');
+    reasons.push('? IMPORT-ONLY snippet');
     shouldSkip = true;
   }
   // ===== END SNIPPET FILTER =====
@@ -5504,7 +5630,7 @@ function scoreCodeBlock(block: HTMLElement, currentFileLang: string, currentFile
   
   if (normalizedBlockCode === normalizedEditorCode) {
     score -= 500;
-    reasons.push('❌ IDENTICAL TO EDITOR');
+    reasons.push('? IDENTICAL TO EDITOR');
     shouldSkip = true;
   }
   
@@ -5528,10 +5654,10 @@ function scoreCodeBlock(block: HTMLElement, currentFileLang: string, currentFile
     
     if (aiSearchOn) {
       score -= 50;
-      reasons.push(`📂 WILL AUTO-OPEN: ${aiFileCheck.mentionedFile || 'unknown'}`);
+      reasons.push(`?? WILL AUTO-OPEN: ${aiFileCheck.mentionedFile || 'unknown'}`);
     } else {
       score -= 300;
-      reasons.push(`❌ AI MENTIONS DIFFERENT FILE: ${aiFileCheck.mentionedFile || 'unknown'}`);
+      reasons.push(`? AI MENTIONS DIFFERENT FILE: ${aiFileCheck.mentionedFile || 'unknown'}`);
       shouldSkip = true;
     }
   }
@@ -5545,7 +5671,7 @@ function scoreCodeBlock(block: HTMLElement, currentFileLang: string, currentFile
     
     if (detectedFileName.toLowerCase() === currentFileName.toLowerCase()) {
       score += 100;
-      reasons.push(`✅ FILE MATCH: ${detectedFileName}`);
+      reasons.push(`? FILE MATCH: ${detectedFileName}`);
       if (!aiFileCheck.mentionsDifferentFile) shouldSkip = false;
     } else if (detectedBase === currentBase) {
       score += 50;
@@ -5553,10 +5679,10 @@ function scoreCodeBlock(block: HTMLElement, currentFileLang: string, currentFile
       if (!aiFileCheck.mentionsDifferentFile) shouldSkip = false;
     } else {
       if (aiSearchEnabled) {
-        reasons.push(`📂 Target: ${detectedFileName}`);
+        reasons.push(`?? Target: ${detectedFileName}`);
       } else {
         score -= 200;
-        reasons.push(`❌ WRONG FILE: ${detectedFileName} ≠ ${currentFileName}`);
+        reasons.push(`? WRONG FILE: ${detectedFileName} ? ${currentFileName}`);
         shouldSkip = true;
       }
     }
@@ -5575,7 +5701,7 @@ function scoreCodeBlock(block: HTMLElement, currentFileLang: string, currentFile
       'html': ['html', 'htm'],
       'css': ['css', 'scss', 'sass'],
       'json': ['json'],
-      // ⭐ v14: C/C++/Arduino support
+      // ? v14: C/C++/Arduino support
       'c': ['c', 'h', 'cpp', 'hpp', 'cc', 'cxx', 'ino', 'arduino'],
       'cpp': ['cpp', 'hpp', 'cc', 'cxx', 'c', 'h', 'ino', 'arduino'],
       'arduino': ['ino', 'arduino', 'cpp', 'c', 'h'],
@@ -5632,7 +5758,7 @@ function scoreCodeBlock(block: HTMLElement, currentFileLang: string, currentFile
     reasons.push('complete structure');
   }
   
-  // ⭐ v14+FIX: Only detect actual git merge conflict markers, not comment separators
+  // ? v14+FIX: Only detect actual git merge conflict markers, not comment separators
   // Real conflict markers are on their own lines and have specific formats
   const hasGitConflictMarkers = /^<{6,}\s/m.test(code) || /^>{6,}\s/m.test(code) || /^={7,}$/m.test(code);
   if (hasGitConflictMarkers) {
@@ -5642,7 +5768,7 @@ function scoreCodeBlock(block: HTMLElement, currentFileLang: string, currentFile
   
   const nonCommentLines = code.split('\n').filter(line => {
     const trimmed = line.trim();
-    // ⭐ FIX: Don't treat C preprocessor directives (#include, #define, etc.) as comments
+    // ? FIX: Don't treat C preprocessor directives (#include, #define, etc.) as comments
     // Only treat # as comment if followed by space and no preprocessor keyword
     const isPreprocessor = /^#\s*(include|define|ifndef|ifdef|endif|if|elif|else|pragma|undef|warning|error)\b/.test(trimmed);
     const isComment = trimmed.startsWith('//') || 
@@ -5682,15 +5808,15 @@ function selectBestCodeBlock(blocks: HTMLElement[]): HTMLElement | null {
   const currentFileLang = model?.getLanguageId?.() || '';
   const currentFileName = model?.uri?.path?.split('/').pop() || '';
   
-  console.log(`🎯 [SmartSelect] Scoring ${blocks.length} code blocks (file: ${currentFileName})`);
+  console.log(`?? [SmartSelect] Scoring ${blocks.length} code blocks (file: ${currentFileName})`);
   
   const scoredBlocks: CodeBlockScore[] = [];
   for (const block of blocks) {
     const scored = scoreCodeBlock(block, currentFileLang, currentFileName);
     if (scored) {
       scoredBlocks.push(scored);
-      const skipNote = scored.shouldSkip ? ' ⚠️ SKIP' : '';
-      console.log(`   📊 Score ${scored.score}: ${scored.language} (${scored.code.split('\n').length} lines) - ${scored.reasons.join(', ')}${skipNote}`);
+      const skipNote = scored.shouldSkip ? ' ?? SKIP' : '';
+      console.log(`   ?? Score ${scored.score}: ${scored.language} (${scored.code.split('\n').length} lines) - ${scored.reasons.join(', ')}${skipNote}`);
     }
   }
   
@@ -5707,8 +5833,8 @@ function selectBestCodeBlock(blocks: HTMLElement[]): HTMLElement | null {
     }
     
     if (targetFiles.size > 1) {
-      console.log(`📚 [SmartSelect] Multi-file detected! ${targetFiles.size} different files`);
-      showAutoApplyToast(`📚 Found code for ${targetFiles.size} files - processing...`, 'success');
+      console.log(`?? [SmartSelect] Multi-file detected! ${targetFiles.size} different files`);
+      showAutoApplyToast(`?? Found code for ${targetFiles.size} files - processing...`, 'success');
       setTimeout(() => processMultiFileApply(), 100);
       return null;
     }
@@ -5718,25 +5844,25 @@ function selectBestCodeBlock(blocks: HTMLElement[]): HTMLElement | null {
   const skippedBlocks = scoredBlocks.filter(b => b.shouldSkip);
   
   if (skippedBlocks.length > 0) {
-    console.log(`   ⏭️ Skipping ${skippedBlocks.length} blocks`);
+    console.log(`   ?? Skipping ${skippedBlocks.length} blocks`);
   }
   
   if (validBlocks.length === 0) {
     const autoOpenBlocks = skippedBlocks.filter(b => b.reasons.some(r => r.includes('WILL AUTO-OPEN')));
     
     if (autoOpenBlocks.length > 0 && isAIProjectSearchEnabled()) {
-      console.log(`📂 [SmartSelect] All blocks are for different files - triggering multi-file apply`);
+      console.log(`?? [SmartSelect] All blocks are for different files - triggering multi-file apply`);
       setTimeout(() => processMultiFileApply(), 100);
       return null;
     }
     
-    console.log(`   ⏭️ No valid blocks`);
+    console.log(`   ?? No valid blocks`);
     const identicalBlocks = skippedBlocks.filter(b => b.reasons.some(r => r.includes('IDENTICAL')));
     
     if (identicalBlocks.length > 0 && identicalBlocks.length === skippedBlocks.length) {
-      showAutoApplyToast(`⏭️ AI returned same code - no changes`, 'success');
+      showAutoApplyToast(`?? AI returned same code - no changes`, 'success');
     } else {
-      showAutoApplyToast('⏭️ Skipped: No suitable code block', 'success');
+      showAutoApplyToast('?? Skipped: No suitable code block', 'success');
     }
     
     blocks.forEach(b => {
@@ -5753,13 +5879,13 @@ function selectBestCodeBlock(blocks: HTMLElement[]): HTMLElement | null {
   const isAutoOpenBlock = best.reasons.some(r => r.includes('WILL AUTO-OPEN'));
   
   if (best.score < MIN_SCORE_TO_APPLY && !isAutoOpenBlock) {
-    console.log(`   ⏭️ Best score (${best.score}) below threshold`);
-    showAutoApplyToast('⏭️ Skipped: No suitable code block', 'success');
+    console.log(`   ?? Best score (${best.score}) below threshold`);
+    showAutoApplyToast('?? Skipped: No suitable code block', 'success');
     blocks.forEach(b => processedBlockIds.add(generateBlockId(b)));
     return null;
   }
   
-  console.log(`   ✅ Selected: ${best.language} with score ${best.score}`);
+  console.log(`   ? Selected: ${best.language} with score ${best.score}`);
   return best.block;
 }
 
@@ -5767,11 +5893,11 @@ function getUnprocessedCodeBlocks(): HTMLElement[] {
   // Find the LATEST AI message only
   const aiMessages = document.querySelectorAll('.ai-message, .assistant-message, .response-message, [data-role="assistant"]');
   
-  console.log(`🔍 [GetBlocks] Found ${aiMessages.length} AI messages`);
+  console.log(`?? [GetBlocks] Found ${aiMessages.length} AI messages`);
   
   if (aiMessages.length === 0) {
     // Fallback: get all blocks if no AI message container found
-    console.log(`🔍 [GetBlocks] No AI message container, searching entire document...`);
+    console.log(`?? [GetBlocks] No AI message container, searching entire document...`);
     const allBlocks = document.querySelectorAll('.cbe-wrapper, .muf-block, pre:has(code), .code-content-wrapper:has(pre)');
     const unprocessed: HTMLElement[] = [];
     allBlocks.forEach(block => {
@@ -5780,26 +5906,26 @@ function getUnprocessedCodeBlocks(): HTMLElement[] {
         unprocessed.push(block as HTMLElement);
       }
     });
-    console.log(`🔍 [GetBlocks] Found ${unprocessed.length} unprocessed blocks in document`);
+    console.log(`?? [GetBlocks] Found ${unprocessed.length} unprocessed blocks in document`);
     return unprocessed;
   }
   
   // Get the LAST (most recent) AI message
   const latestMessage = aiMessages[aiMessages.length - 1];
-  console.log(`🔍 [GetBlocks] Searching in latest AI message...`);
+  console.log(`?? [GetBlocks] Searching in latest AI message...`);
   
-  // ⭐ FIX v2: Look for ALL possible code block types
+  // ? FIX v2: Look for ALL possible code block types
   // This catches code blocks that messageUIFix hasn't enhanced yet,
   // AND blocks that MUF touched (.muf-pre) but then SKIPPED wrapping (.muf-block)
   const enhancedBlocks = latestMessage.querySelectorAll('.cbe-wrapper, .muf-block');
-  // ⭐ KEY FIX: Don't exclude .muf-pre — MUF may have stamped the class then skipped enhancement
+  // ? KEY FIX: Don't exclude .muf-pre � MUF may have stamped the class then skipped enhancement
   // Instead, get ALL pre elements and filter out those already inside enhanced wrappers below
   const rawPreBlocks = latestMessage.querySelectorAll('pre');
   const codeOnlyBlocks = latestMessage.querySelectorAll('code[class*="language-"], code[class*="hljs"]');
-  // ⭐ Also detect code-content-wrapper divs (used by chat renderer)
+  // ? Also detect code-content-wrapper divs (used by chat renderer)
   const contentWrapperBlocks = latestMessage.querySelectorAll('.code-content-wrapper');
   
-  console.log(`🔍 [GetBlocks] Enhanced: ${enhancedBlocks.length}, Raw pre: ${rawPreBlocks.length}, Code-only: ${codeOnlyBlocks.length}, ContentWrappers: ${contentWrapperBlocks.length}`);
+  console.log(`?? [GetBlocks] Enhanced: ${enhancedBlocks.length}, Raw pre: ${rawPreBlocks.length}, Code-only: ${codeOnlyBlocks.length}, ContentWrappers: ${contentWrapperBlocks.length}`);
   
   const unprocessed: HTMLElement[] = [];
   const seenBlocks = new Set<HTMLElement>();
@@ -5808,7 +5934,7 @@ function getUnprocessedCodeBlocks(): HTMLElement[] {
   enhancedBlocks.forEach(block => {
     const blockId = generateBlockId(block as HTMLElement);
     if (!processedBlockIds.has(blockId) && !seenBlocks.has(block as HTMLElement)) {
-      console.log(`  ✅ Added enhanced block: ${blockId}`);
+      console.log(`  ? Added enhanced block: ${blockId}`);
       unprocessed.push(block as HTMLElement);
       seenBlocks.add(block as HTMLElement);
     }
@@ -5818,7 +5944,7 @@ function getUnprocessedCodeBlocks(): HTMLElement[] {
   rawPreBlocks.forEach(pre => {
     // Skip if already inside an enhanced wrapper
     if (pre.closest('.muf-block') || pre.closest('.cbe-wrapper')) {
-      console.log(`  ⏭️ Skipping pre - inside enhanced wrapper`);
+      console.log(`  ?? Skipping pre - inside enhanced wrapper`);
       return;
     }
     
@@ -5827,13 +5953,13 @@ function getUnprocessedCodeBlocks(): HTMLElement[] {
     const hasDirectCode = pre.textContent && pre.textContent.trim().length > 20;
     
     if (!codeEl && !hasDirectCode) {
-      console.log(`  ⏭️ Skipping pre - no code content`);
+      console.log(`  ?? Skipping pre - no code content`);
       return;
     }
     
     const blockId = generateBlockId(pre as HTMLElement);
     if (!processedBlockIds.has(blockId) && !seenBlocks.has(pre as HTMLElement)) {
-      console.log(`  ✅ Added raw pre block: ${blockId}`);
+      console.log(`  ? Added raw pre block: ${blockId}`);
       unprocessed.push(pre as HTMLElement);
       seenBlocks.add(pre as HTMLElement);
     }
@@ -5852,13 +5978,13 @@ function getUnprocessedCodeBlocks(): HTMLElement[] {
     
     const blockId = generateBlockId(wrapper as HTMLElement);
     if (!processedBlockIds.has(blockId) && !seenBlocks.has(wrapper as HTMLElement)) {
-      console.log(`  ✅ Added code-only block: ${blockId}`);
+      console.log(`  ? Added code-only block: ${blockId}`);
       unprocessed.push(wrapper as HTMLElement);
       seenBlocks.add(wrapper as HTMLElement);
     }
   });
   
-  // ⭐ NEW: Add code-content-wrapper blocks (chat renderer wraps code in these)
+  // ? NEW: Add code-content-wrapper blocks (chat renderer wraps code in these)
   // This catches blocks that MUF detected as "file tree" and skipped
   contentWrapperBlocks.forEach(wrapper => {
     // Skip if already inside an enhanced wrapper
@@ -5877,13 +6003,13 @@ function getUnprocessedCodeBlocks(): HTMLElement[] {
     const targetEl = innerPre || wrapper;
     const blockId = generateBlockId(targetEl as HTMLElement);
     if (!processedBlockIds.has(blockId) && !seenBlocks.has(targetEl as HTMLElement)) {
-      console.log(`  ✅ Added code-content-wrapper block: ${blockId}`);
+      console.log(`  ? Added code-content-wrapper block: ${blockId}`);
       unprocessed.push(targetEl as HTMLElement);
       seenBlocks.add(targetEl as HTMLElement);
     }
   });
   
-  console.log(`🔍 [GetBlocks] Total: ${unprocessed.length} unprocessed blocks`);
+  console.log(`?? [GetBlocks] Total: ${unprocessed.length} unprocessed blocks`);
   
   return unprocessed;
 }
@@ -5992,13 +6118,13 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
   try {
     const oldCode = model.getValue();
     originalCodeBeforeApply = oldCode;
-    pendingNewCode = newCode;  // 🔧 FIX: Store for accept
+    pendingNewCode = newCode;  // ?? FIX: Store for accept
     
     // Quick identical check
     if (oldCode.trim() === newCode.trim()) {
       isTypingInProgress = false;
       originalCodeBeforeApply = '';
-      pendingNewCode = '';  // 🔧 FIX: Clear pending
+      pendingNewCode = '';  // ?? FIX: Clear pending
       return { success: true, message: 'No changes needed' };
     }
     
@@ -6030,43 +6156,43 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
       }
     }
     
-    console.log(`📊 [SmartUpdate] Line analysis: +${added} added, -${deleted} deleted, ~${modified} modified`);
+    console.log(`?? [SmartUpdate] Line analysis: +${added} added, -${deleted} deleted, ~${modified} modified`);
     
-    // 🔬 Pipeline: Stage 2 — ANALYZE
+    // ?? Pipeline: Stage 2 � ANALYZE
     if (surgicalPipeline.isActive()) {
-      surgicalPipeline.enter(2, `Diffing ${oldLines.length} → ${newLines.length} lines`);
+      surgicalPipeline.enter(2, `Diffing ${oldLines.length} ? ${newLines.length} lines`);
       surgicalPipeline.complete(2, `+${added} -${deleted} ~${modified}`);
     }
     
     if (added === 0 && deleted === 0 && modified === 0) {
       isTypingInProgress = false;
       originalCodeBeforeApply = '';
-      pendingNewCode = '';  // 🔧 FIX: Clear pending
+      pendingNewCode = '';  // ?? FIX: Clear pending
       return { success: true, message: 'No changes needed' };
     }
     
-    // 🛡️ DESTRUCTIVE CHANGE GUARD — block if AI would delete most of the file
+    // ??? DESTRUCTIVE CHANGE GUARD � block if AI would delete most of the file
     const deletionRatio = deleted / Math.max(oldLines.length, 1);
     const sizeRatio = newLines.length / Math.max(oldLines.length, 1);
-    if (oldLines.length > 20 && (deletionRatio > 0.5 || sizeRatio < 0.4)) {
+    if (oldLines.length > 20 && (deletionRatio > 0.95 || sizeRatio < 0.05)) {
       console.warn(
-        `🛡️ [SAFETY] BLOCKED destructive change!\n` +
+        `??? [SAFETY] BLOCKED destructive change!\n` +
         `   Original: ${oldLines.length} lines\n` +
         `   New code: ${newLines.length} lines\n` +
         `   Would delete: ${deleted} lines (${(deletionRatio * 100).toFixed(0)}%)\n` +
         `   Size ratio: ${(sizeRatio * 100).toFixed(0)}%\n` +
-        `   ⚠️ AI likely returned partial/incomplete code. Rejecting auto-apply.`
+        `   ?? AI likely returned partial/incomplete code. Rejecting auto-apply.`
       );
       // Show warning toast
       showAutoApplyToast(
-        `🛡️ BLOCKED: AI returned ${newLines.length} lines but your file has ${oldLines.length}. ` +
+        `??? BLOCKED: AI returned ${newLines.length} lines but your file has ${oldLines.length}. ` +
         `Would lose ${deleted} lines (${(deletionRatio * 100).toFixed(0)}% deletion). ` +
         `Ask AI to return the COMPLETE file.`,
         'error'
       );
       // Pipeline: mark as error
       if (surgicalPipeline.isActive()) {
-        surgicalPipeline.fail(3 as any, `🛡️ Blocked: ${newLines.length}/${oldLines.length} lines (${(deletionRatio * 100).toFixed(0)}% deletion)`);
+        surgicalPipeline.fail(3 as any, `??? Blocked: ${newLines.length}/${oldLines.length} lines (${(deletionRatio * 100).toFixed(0)}% deletion)`);
         surgicalPipeline.end(false);
       }
       isTypingInProgress = false;
@@ -6074,7 +6200,7 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
       pendingNewCode = '';
       return { 
         success: false, 
-        message: `🛡️ Blocked: AI returned ${newLines.length} lines but file has ${oldLines.length}. Would delete ${(deletionRatio * 100).toFixed(0)}% of code.` 
+        message: `??? Blocked: AI returned ${newLines.length} lines but file has ${oldLines.length}. Would delete ${(deletionRatio * 100).toFixed(0)}% of code.` 
       };
     }
     
@@ -6082,49 +6208,49 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
     const startTime = performance.now();
     const _sb = (window as any).surgicalBridge;
     if (_sb?.canUse()) {
-      // 🔬 Pipeline: Stage 3 — ROUTE → Surgical
+      // ?? Pipeline: Stage 3 � ROUTE ? Surgical
       if (surgicalPipeline.isActive()) {
         surgicalPipeline.enter(3, 'Checking surgical eligibility...');
-        surgicalPipeline.complete(3, '🔬 Surgical mode (Rust + backup)');
+        surgicalPipeline.complete(3, '?? Surgical mode (Rust + backup)');
       }
       try {
-        // 🔬 Pipeline: Stage 4 — APPLY (Rust disk write)
+        // ?? Pipeline: Stage 4 � APPLY (Rust disk write)
         if (surgicalPipeline.isActive()) {
           surgicalPipeline.enter(4, 'Writing to disk via Rust backend...');
         }
         const sbResult = await _sb.apply(newCode);
         if (surgicalPipeline.isActive()) {
           const backupInfo = sbResult?.changeRecord?.backupPath || 'backup created';
-          surgicalPipeline.complete(4, `Disk write ✅ | ${backupInfo.split(/[\/\\]/).pop()}`);
+          surgicalPipeline.complete(4, `Disk write ? | ${backupInfo.split(/[\/\\]/).pop()}`);
         }
-        // 🔬 Pipeline: Stage 5 — SYNC
+        // ?? Pipeline: Stage 5 � SYNC
         if (surgicalPipeline.isActive()) {
           surgicalPipeline.enter(5, 'Syncing Monaco editor from disk...');
-          surgicalPipeline.complete(5, 'Editor synced ✅');
+          surgicalPipeline.complete(5, 'Editor synced ?');
         }
-        console.log('🔬 Applied via Surgical Edit Engine');
+        console.log('?? Applied via Surgical Edit Engine');
       } catch (_sbErr: any) {
         if (surgicalPipeline.isActive()) {
           surgicalPipeline.fail(4, `Surgical failed: ${_sbErr.message || _sbErr}`);
           surgicalPipeline.enter(3, 'Falling back to legacy...');
-          surgicalPipeline.complete(3, '⚠️ Legacy mode (in-memory)');
+          surgicalPipeline.complete(3, '?? Legacy mode (in-memory)');
         }
-        console.warn('🔬 Surgical failed, using legacy:', _sbErr);
+        console.warn('?? Surgical failed, using legacy:', _sbErr);
         editor.executeEdits('smart-update', [{
           range: model.getFullModelRange(),
           text: newCode,
           forceMoveMarkers: true
         }]);
         if (surgicalPipeline.isActive()) {
-          surgicalPipeline.skip(5, 'Legacy mode — no disk sync needed');
+          surgicalPipeline.skip(5, 'Legacy mode � no disk sync needed');
         }
       }
     } else {
-      // 🔬 Pipeline: Stage 3 — ROUTE → Legacy
+      // ?? Pipeline: Stage 3 � ROUTE ? Legacy
       if (surgicalPipeline.isActive()) {
         surgicalPipeline.enter(3, 'Surgical not available');
-        surgicalPipeline.complete(3, '⚡ Legacy mode (in-memory only)');
-        surgicalPipeline.skip(4, 'No Rust backend — using Monaco edits');
+        surgicalPipeline.complete(3, '? Legacy mode (in-memory only)');
+        surgicalPipeline.skip(4, 'No Rust backend � using Monaco edits');
         surgicalPipeline.skip(5, 'No disk sync in legacy mode');
       }
       editor.executeEdits('smart-update', [{
@@ -6142,10 +6268,10 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
     const decorations: any[] = [];
     const maxDecorations = 200; // Allow more decorations
     
-    console.log(`🎨 [SmartUpdate] Creating decorations for ${lastChangeLines.addedLines.length} added, ${lastChangeLines.modifiedLines.length} modified lines`);
-    console.log(`🎨 [SmartUpdate] Total lines in model: ${totalLines}`);
+    console.log(`?? [SmartUpdate] Creating decorations for ${lastChangeLines.addedLines.length} added, ${lastChangeLines.modifiedLines.length} modified lines`);
+    console.log(`?? [SmartUpdate] Total lines in model: ${totalLines}`);
     
-    // 🔬 Pipeline: Stage 6 — DECORATE
+    // ?? Pipeline: Stage 6 � DECORATE
     if (surgicalPipeline.isActive()) {
       surgicalPipeline.enter(6, `Highlighting ${lastChangeLines.addedLines.length + lastChangeLines.modifiedLines.length} lines`);
     }
@@ -6199,28 +6325,28 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
       }
     }
     
-    console.log(`🎨 [SmartUpdate] Adding ${decorations.length} decorations`);
-    console.log(`🎨 [SmartUpdate] Added lines: ${lastChangeLines.addedLines.slice(0, 10).join(', ')}${lastChangeLines.addedLines.length > 10 ? '...' : ''}`);
-    console.log(`🎨 [SmartUpdate] Modified lines: ${lastChangeLines.modifiedLines.slice(0, 10).join(', ')}${lastChangeLines.modifiedLines.length > 10 ? '...' : ''}`);
+    console.log(`?? [SmartUpdate] Adding ${decorations.length} decorations`);
+    console.log(`?? [SmartUpdate] Added lines: ${lastChangeLines.addedLines.slice(0, 10).join(', ')}${lastChangeLines.addedLines.length > 10 ? '...' : ''}`);
+    console.log(`?? [SmartUpdate] Modified lines: ${lastChangeLines.modifiedLines.slice(0, 10).join(', ')}${lastChangeLines.modifiedLines.length > 10 ? '...' : ''}`);
     
     if (decorations.length > 0) {
       // Apply decorations
-      console.log(`🎨 [SmartUpdate] Calling deltaDecorations with ${decorations.length} decorations`);
+      console.log(`?? [SmartUpdate] Calling deltaDecorations with ${decorations.length} decorations`);
       const ids = editor.deltaDecorations([], decorations);
-      console.log(`🎨 [SmartUpdate] deltaDecorations returned ${ids?.length || 0} IDs`);
+      console.log(`?? [SmartUpdate] deltaDecorations returned ${ids?.length || 0} IDs`);
       
       // Verify CSS is injected
       const styleEl = document.getElementById('aca-highlight-styles-v3');
-      console.log(`🎨 [SmartUpdate] CSS injected: ${styleEl ? 'YES' : 'NO'}`);
+      console.log(`?? [SmartUpdate] CSS injected: ${styleEl ? 'YES' : 'NO'}`);
       
       // Verify class appears in DOM
       setTimeout(() => {
         const highlighted = document.querySelectorAll('.aca-highlight-added, .aca-highlight-modified');
-        console.log(`🎨 [SmartUpdate] Highlighted elements in DOM: ${highlighted.length}`);
+        console.log(`?? [SmartUpdate] Highlighted elements in DOM: ${highlighted.length}`);
       }, 100);
-      console.log(`🎨 [SmartUpdate] Decoration IDs created: ${ids.length}`);
+      console.log(`?? [SmartUpdate] Decoration IDs created: ${ids.length}`);
       
-      // 🔬 Pipeline: Stage 6 — DECORATE complete
+      // ?? Pipeline: Stage 6 � DECORATE complete
       if (surgicalPipeline.isActive()) {
         surgicalPipeline.complete(6, `${ids.length} highlight(s) applied`);
       }
@@ -6237,11 +6363,11 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
       if (isProcessingMultiFile) {
         const currentFileName = model.uri.path.split('/').pop() || 'unknown';
         storePendingDecorations(currentFileName, ids);
-        console.log(`🎨 [SmartUpdate] Stored decorations for: ${currentFileName}`);
+        console.log(`?? [SmartUpdate] Stored decorations for: ${currentFileName}`);
       }
       // Never auto-clear - wait for Accept/Reject
     } else {
-      console.log(`⚠️ [SmartUpdate] No decorations to add - changes detected: added=${lastChangeLines.addedLines.length}, modified=${lastChangeLines.modifiedLines.length}`);
+      console.log(`?? [SmartUpdate] No decorations to add - changes detected: added=${lastChangeLines.addedLines.length}, modified=${lastChangeLines.modifiedLines.length}`);
     }
     
     // Scroll to first change
@@ -6249,7 +6375,7 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
     editor.revealLineInCenter(firstChange);
     
     const elapsed = performance.now() - startTime;
-    console.log(`⚡ [SmartUpdate] Applied in ${elapsed.toFixed(0)}ms`);
+    console.log(`? [SmartUpdate] Applied in ${elapsed.toFixed(0)}ms`);
     
     isTypingInProgress = false;
     const summary = `+${added} -${deleted} ~${modified}`;
@@ -6258,7 +6384,7 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
     return { success: true, message: summary };
     
   } catch (error) {
-    console.error('❌ [SmartUpdate] Error:', error);
+    console.error('? [SmartUpdate] Error:', error);
     isTypingInProgress = false;
     originalCodeBeforeApply = '';
     if (surgicalPipeline.isActive()) {
@@ -6275,7 +6401,7 @@ export function toggleAutoApply(showDialogNotification: boolean = false): boolea
   
   localStorage.setItem('autonomousMode', String(autoApplyEnabled));
   
-  // ✅ FIX: Sync BOTH class-based and ID-based toggle buttons
+  // ? FIX: Sync BOTH class-based and ID-based toggle buttons
   const autonomousToggleClass = document.querySelector('.autonomous-mode-toggle');
   if (autonomousToggleClass) {
     autonomousToggleClass.classList.toggle('active', autoApplyEnabled);
@@ -6295,13 +6421,13 @@ export function toggleAutoApply(showDialogNotification: boolean = false): boolea
     if (showDialogNotification) {
       showAutoModeDialog(true);
     } else {
-      showAutoApplyToast('🤖 Auto Mode ON', 'success');
+      showAutoApplyToast('?? Auto Mode ON', 'success');
     }
-    console.log('🤖 [Autonomous] Enabled');
+    console.log('?? [Autonomous] Enabled');
     processedBlockIds.clear();
     lastProcessedBlockId = '';
     
-    // ✅ When Auto Mode is ON, also turn ON Project Search
+    // ? When Auto Mode is ON, also turn ON Project Search
     localStorage.setItem('aiFileExplorerEnabled', 'true');
     (window as any).aiFileExplorerEnabled = true;
     (window as any).aiSearchEnabled = true;
@@ -6312,15 +6438,15 @@ export function toggleAutoApply(showDialogNotification: boolean = false): boolea
       searchBtn.classList.add('active', 'ai-active');
       searchBtn.title = 'Project Search: ON';
       searchBtn.style.color = '#10b981';
-      console.log('🔍 [Project Search] Auto-enabled with Auto Mode');
+      console.log('?? [Project Search] Auto-enabled with Auto Mode');
     }
   } else {
     if (showDialogNotification) {
       showAutoModeDialog(false);
     } else {
-      showAutoApplyToast('⏸️ Auto Mode OFF', 'success');
+      showAutoApplyToast('?? Auto Mode OFF', 'success');
     }
-    console.log('⏸️ [Autonomous] Disabled');
+    console.log('?? [Autonomous] Disabled');
     if (isTypingInProgress) stopTypingFlag = true;
   }
   
@@ -6332,7 +6458,7 @@ export function setAutoApply(enabled: boolean): void {
   updateAutoApplyIndicator();
   localStorage.setItem('autonomousMode', String(autoApplyEnabled));
   
-  // ✅ FIX: Sync BOTH class-based and ID-based toggle buttons
+  // ? FIX: Sync BOTH class-based and ID-based toggle buttons
   const autonomousToggleClass = document.querySelector('.autonomous-mode-toggle');
   if (autonomousToggleClass) autonomousToggleClass.classList.toggle('active', autoApplyEnabled);
   
@@ -6347,7 +6473,7 @@ export function setAutoApply(enabled: boolean): void {
     processedBlockIds.clear();
     lastProcessedBlockId = '';
     
-    // ✅ When Auto Mode is ON, also turn ON Project Search
+    // ? When Auto Mode is ON, also turn ON Project Search
     localStorage.setItem('aiFileExplorerEnabled', 'true');
     (window as any).aiFileExplorerEnabled = true;
     (window as any).aiSearchEnabled = true;
@@ -6441,7 +6567,7 @@ function applyCodeInstant(code: string, mode: 'replace' | 'insert' | 'append'): 
   const shellExts = ['.sh', '.bash', '.zsh', '.bat', '.cmd', '.ps1', '.psm1'];
   const isShellFile = shellExts.some(ext => fileName.endsWith(ext));
   if (!isShellFile && _isTerminalCodeGuard(code)) {
-    console.log(`🛡️ [ApplyGuard] BLOCKED: Terminal commands cannot replace ${fileName}`);
+    console.log(`??? [ApplyGuard] BLOCKED: Terminal commands cannot replace ${fileName}`);
     return { success: false, message: 'Blocked: terminal commands cannot replace source file' };
   }
   // ===== END TERMINAL GUARD =====
@@ -6509,7 +6635,7 @@ async function autoApplyNewCodeBlock(block: HTMLElement | null = null): Promise<
         // ===== SNIPPET FILTER: Skip tiny code blocks =====
         const codeLines = codeInfo.code.trim().split('\n').filter(line => line.trim());
         if (codeLines.length < 5) continue; // Skip snippets (increased from 3)
-        // ⭐ FIX: Don't skip plaintext if it looks like C/C++ code
+        // ? FIX: Don't skip plaintext if it looks like C/C++ code
         const looksLikeCCode = codeInfo.code.match(/^#\s*(include|define|ifndef|ifdef|endif|pragma)\b/m) ||
                               codeInfo.code.match(/\b(void|int|char|float|double|struct|typedef)\s+\w+/m);
         if (codeInfo.language?.toLowerCase() === 'plaintext' && !looksLikeCCode) continue; // Skip PLAINTEXT (unless it's C)
@@ -6534,13 +6660,13 @@ async function autoApplyNewCodeBlock(block: HTMLElement | null = null): Promise<
         }
       }
       
-      console.log(`📊 [AutoApply] Found ${unprocessedBlocks.length} blocks targeting ${targetFiles.size} file(s)`);
+      console.log(`?? [AutoApply] Found ${unprocessedBlocks.length} blocks targeting ${targetFiles.size} file(s)`);
       
       const editor = getMonacoEditorForApply();
       const currentFile = editor?.getModel()?.uri?.path?.split('/').pop()?.toLowerCase() || '';
       
       if (targetFiles.size > 1) {
-        console.log(`📚 [AutoApply] MULTI-FILE DETECTED: ${Array.from(targetFiles.keys()).join(', ')}`);
+        console.log(`?? [AutoApply] MULTI-FILE DETECTED: ${Array.from(targetFiles.keys()).join(', ')}`);
         await processMultiFileApply();
         return;
       }
@@ -6549,11 +6675,11 @@ async function autoApplyNewCodeBlock(block: HTMLElement | null = null): Promise<
         const targetFile = Array.from(targetFiles.keys())[0];
         
         if (targetFile !== currentFile && currentFile !== '') {
-          console.log(`📂 [AutoApply] Code is for "${targetFile}" but "${currentFile}" is open`);
+          console.log(`?? [AutoApply] Code is for "${targetFile}" but "${currentFile}" is open`);
           await processMultiFileApply();
           return;
         } else if (currentFile === '') {
-          console.log(`📂 [AutoApply] No file open. Will open "${targetFile}"`);
+          console.log(`?? [AutoApply] No file open. Will open "${targetFile}"`);
           await processMultiFileApply();
           return;
         }
@@ -6567,28 +6693,28 @@ async function autoApplyNewCodeBlock(block: HTMLElement | null = null): Promise<
     markMessageProcessed();
     // Then clear for this new message
     processedBlockIds.clear();
-    console.log('📨 [AutoApply] New message - cleared processed blocks');
+    console.log('?? [AutoApply] New message - cleared processed blocks');
   }
   
   let targetBlock = block;
   if (!targetBlock) {
     const unprocessedBlocks = getUnprocessedCodeBlocks();
     if (unprocessedBlocks.length === 0) {
-      console.log('⏭️ [AutoApply] No unprocessed blocks');
+      console.log('?? [AutoApply] No unprocessed blocks');
       markMessageProcessed();
       return;
     }
     
     targetBlock = selectBestCodeBlock(unprocessedBlocks);
     if (!targetBlock) {
-      console.log('⚠️ [AutoApply] No suitable code block found');
+      console.log('?? [AutoApply] No suitable code block found');
       markMessageProcessed();
       return;
     }
   } else {
     const unprocessedBlocks = getUnprocessedCodeBlocks();
     if (unprocessedBlocks.length > 1) {
-      console.log(`🎯 [AutoApply] Multiple blocks (${unprocessedBlocks.length}), selecting best...`);
+      console.log(`?? [AutoApply] Multiple blocks (${unprocessedBlocks.length}), selecting best...`);
       targetBlock = selectBestCodeBlock(unprocessedBlocks);
       if (!targetBlock) {
         markMessageProcessed();
@@ -6598,55 +6724,55 @@ async function autoApplyNewCodeBlock(block: HTMLElement | null = null): Promise<
   }
   
   const blockId = generateBlockId(targetBlock);
-  console.log('🔍 [AutoApply] Processing block:', blockId);
+  console.log('?? [AutoApply] Processing block:', blockId);
   
   if (processedBlockIds.has(blockId)) {
-    console.log('⏭️ [AutoApply] Already processed:', blockId);
+    console.log('?? [AutoApply] Already processed:', blockId);
     return;
   }
   
   const codeInfo = extractCodeFromBlockForApply(targetBlock);
   if (!codeInfo || !codeInfo.code.trim()) {
-    console.log('⚠️ [AutoApply] No code found in block');
+    console.log('?? [AutoApply] No code found in block');
     return;
   }
   
-  console.log('📝 [AutoApply] Selected code:', codeInfo.language, codeInfo.code.length, 'chars');
+  console.log('?? [AutoApply] Selected code:', codeInfo.language, codeInfo.code.length, 'chars');
   
   const editor = getMonacoEditorForApply();
   if (!editor) {
-    console.log('⚠️ [AutoApply] No editor open');
-    showAutoApplyToast('⚠️ Open a file first', 'error');
+    console.log('?? [AutoApply] No editor open');
+    showAutoApplyToast('?? Open a file first', 'error');
     return;
   }
   
   const fileValidation = validateFileMatch(targetBlock, codeInfo.code);
-  console.log(`📄 [FileValidation] ${fileValidation.reason}`);
+  console.log(`?? [FileValidation] ${fileValidation.reason}`);
   
   if (!fileValidation.isValid) {
-    console.log(`⚠️ [FileValidation] Mismatch: ${fileValidation.detectedFileName} vs ${fileValidation.currentFileName}`);
+    console.log(`?? [FileValidation] Mismatch: ${fileValidation.detectedFileName} vs ${fileValidation.currentFileName}`);
     
     if (isAIProjectSearchEnabled() && fileValidation.detectedFileName) {
-      console.log(`🔍 [AutoOpen] AI Project Search is ON - attempting auto-open...`);
+      console.log(`?? [AutoOpen] AI Project Search is ON - attempting auto-open...`);
       
       const success = await autoOpenAndApply(fileValidation.detectedFileName, codeInfo.code, blockId, targetBlock);
       if (success) return;
       
-      console.log(`⚠️ [AutoOpen] Auto-open failed, showing manual warning`);
+      console.log(`?? [AutoOpen] Auto-open failed, showing manual warning`);
     }
     
     return new Promise<void>((resolve) => {
       showFileMismatchWarning(
         fileValidation,
         async () => {
-          console.log('🔄 [FileValidation] User chose to apply anyway');
+          console.log('?? [FileValidation] User chose to apply anyway');
           await doApplyCode(targetBlock!, codeInfo.code, blockId);
           resolve();
         },
         () => {
-          console.log('❌ [FileValidation] User cancelled apply');
+          console.log('? [FileValidation] User cancelled apply');
           processedBlockIds.add(blockId);
-          showAutoApplyToast(`⏭️ Skipped - wrong file`, 'success');
+          showAutoApplyToast(`?? Skipped - wrong file`, 'success');
           resolve();
         }
       );
@@ -6657,7 +6783,7 @@ async function autoApplyNewCodeBlock(block: HTMLElement | null = null): Promise<
 }
 
 async function doApplyCode(targetBlock: HTMLElement, code: string, blockId: string): Promise<void> {
-  // 🔬 Pipeline: BEGIN
+  // ?? Pipeline: BEGIN
   surgicalPipeline.begin();
   surgicalPipeline.enter(0, 'Code block found in AI response');
   
@@ -6670,13 +6796,13 @@ async function doApplyCode(targetBlock: HTMLElement, code: string, blockId: stri
   });
   lastProcessedBlockId = blockId;
   
-  // 🔬 Pipeline: Stage 1 — SELECT
+  // ?? Pipeline: Stage 1 � SELECT
   surgicalPipeline.enter(1, 'Best code block selected');
   surgicalPipeline.complete(1, `${code.split('\n').length} lines`);
   
   markMessageProcessed();
   
-  showAutoApplyToast(`🔍 Analyzing changes...`, 'success');
+  showAutoApplyToast(`?? Analyzing changes...`, 'success');
     // Also update center dialog during analysis
     if (statusDialog) { updateStatusText('Analyzing changes...'); updateProgress(15); }
   
@@ -6690,7 +6816,7 @@ async function doApplyCode(targetBlock: HTMLElement, code: string, blockId: stri
     }
   });
   
-  console.log('🚀 [AutoApply] Starting smart update...');
+  console.log('?? [AutoApply] Starting smart update...');
     // Show center progress dialog for single-file too
     showStatusDialog();
     updateStatusText('Applying changes...');
@@ -6700,15 +6826,15 @@ async function doApplyCode(targetBlock: HTMLElement, code: string, blockId: stri
   setTimeout(() => { targetBlock!.style.boxShadow = ''; }, 500);
   
   if (result.success) {
-    showAutoApplyToast(`✅ ${result.message}`, 'success');
-    console.log(`✅ [AutoApply] ${result.message}`);
+    showAutoApplyToast(`? ${result.message}`, 'success');
+    console.log(`? [AutoApply] ${result.message}`);
       // Update center dialog on success
       updateStatusText('Changes applied');
       updateProgress(100);
       addStatusLog('Changes applied successfully', 'success');
       setTimeout(() => closeStatusDialog(), 2500);
     
-    // 🔬 Pipeline: Stage 7 — CONFIRM
+    // ?? Pipeline: Stage 7 � CONFIRM
     surgicalPipeline.enter(7, 'Accept / Reject prompt');
     surgicalPipeline.complete(7, result.message);
     surgicalPipeline.end(true);
@@ -6718,8 +6844,8 @@ async function doApplyCode(targetBlock: HTMLElement, code: string, blockId: stri
     const blockId = targetBlock.getAttribute('data-muf-id') || targetBlock.getAttribute('data-block-id') || '';
     markBlockAsApplied(targetBlock, blockId, result.message);
   } else {
-    console.warn('❌ [AutoApply] Failed:', result.message);
-    showAutoApplyToast(`❌ ${result.message}`, 'error');
+    console.warn('? [AutoApply] Failed:', result.message);
+    showAutoApplyToast(`? ${result.message}`, 'error');
     surgicalPipeline.end(false);
   }
 }
@@ -6736,7 +6862,7 @@ function extractCodeFromBlockForApply(block: HTMLElement): { code: string; langu
   const textarea = block.querySelector('.cbe-data') as HTMLTextAreaElement;
   if (textarea?.value) {
     const lang = block.getAttribute('data-lang') || 'plaintext';
-    console.log(`📝 [ExtractCode] Got code from textarea (${textarea.value.split('\n').length} lines)`);
+    console.log(`?? [ExtractCode] Got code from textarea (${textarea.value.split('\n').length} lines)`);
     return { code: textarea.value, language: lang };
   }
   
@@ -6775,15 +6901,15 @@ function extractCodeFromBlockForApply(block: HTMLElement): { code: string; langu
   if (rawCode) {
     try { 
       code = decodeURIComponent(rawCode); 
-      console.log(`📝 [ExtractCode] Got code from data-raw-code (${code.split('\n').length} lines)`);
+      console.log(`?? [ExtractCode] Got code from data-raw-code (${code.split('\n').length} lines)`);
     } catch { 
       code = ''; 
     }
   }
   
-  // ⭐ FIX: If no raw code, try multiple methods to preserve newlines
+  // ? FIX: If no raw code, try multiple methods to preserve newlines
   if (!code) {
-    // ⭐ IMPORTANT: Make sure we're extracting from the CODE element, not the wrapper
+    // ? IMPORTANT: Make sure we're extracting from the CODE element, not the wrapper
     const actualCodeEl = codeEl as HTMLElement;
     
     // Method A: Use innerText (preserves whitespace in pre elements)
@@ -6817,13 +6943,13 @@ function extractCodeFromBlockForApply(block: HTMLElement): { code: string; langu
     // Choose the best result
     if (innerTextLines >= htmlProcessedLines && innerTextLines >= textContentLines) {
       code = innerText;
-      console.log(`📝 [ExtractCode] Using innerText (${innerTextLines} lines)`);
+      console.log(`?? [ExtractCode] Using innerText (${innerTextLines} lines)`);
     } else if (htmlProcessedLines >= textContentLines) {
       code = htmlProcessedCode;
-      console.log(`📝 [ExtractCode] Using processed innerHTML (${htmlProcessedLines} lines)`);
+      console.log(`?? [ExtractCode] Using processed innerHTML (${htmlProcessedLines} lines)`);
     } else {
       code = textContent;
-      console.log(`📝 [ExtractCode] Using textContent (${textContentLines} lines)`);
+      console.log(`?? [ExtractCode] Using textContent (${textContentLines} lines)`);
     }
     
     // If code looks like it has HTML entities, try to decode them
@@ -6837,11 +6963,11 @@ function extractCodeFromBlockForApply(block: HTMLElement): { code: string; langu
   code = code.trim();
   if (!code) return null;
   
-  // ⭐ FIX: Clean up common garbage characters at the start
+  // ? FIX: Clean up common garbage characters at the start
   // Sometimes HTML extraction picks up stray characters from labels, class names, etc.
   // e.g., "s" from "css", "x" from "tsx", etc.
   const cleanupPatterns = [
-    // ⭐ FIX: Backtick + language identifier (e.g., "`c\n", "`cpp\n", "`typescript\n")
+    // ? FIX: Backtick + language identifier (e.g., "`c\n", "`cpp\n", "`typescript\n")
     /^`[a-z]+\s*\n/i,      // Backtick + language + newline
     /^`\s*\n/i,            // Just backtick + newline
     /^```[a-z]*\s*\n/i,    // Triple backtick fence with optional language
@@ -6854,9 +6980,9 @@ function extractCodeFromBlockForApply(block: HTMLElement): { code: string; langu
   
   for (const pattern of cleanupPatterns) {
     if (pattern.test(code)) {
-      const before = code.substring(0, 20).replace(/\n/g, '↵');
+      const before = code.substring(0, 20).replace(/\n/g, '?');
       code = code.replace(pattern, '');
-      console.log(`🧹 [ExtractCode] Cleaned garbage prefix: "${before}" → "${code.substring(0, 20).replace(/\n/g, '↵')}"`);
+      console.log(`?? [ExtractCode] Cleaned garbage prefix: "${before}" ? "${code.substring(0, 20).replace(/\n/g, '?')}"`);
       break;
     }
   }
@@ -6864,7 +6990,7 @@ function extractCodeFromBlockForApply(block: HTMLElement): { code: string; langu
   code = code.trim();
   if (!code) return null;
   
-  // ⭐ v15 FIX: Defer to MUF if extraction returned broken single-line code
+  // ? v15 FIX: Defer to MUF if extraction returned broken single-line code
   // If code has 100+ chars but NO newlines, and block is NOT yet MUF-enhanced,
   // return null so auto-apply retries after MUF restores proper newlines
   if (!code.includes('\n') && code.length > 100) {
@@ -6872,14 +6998,14 @@ function extractCodeFromBlockForApply(block: HTMLElement): { code: string; langu
                           block.closest('.muf-block') !== null ||
                           block.hasAttribute('data-raw-code');
     if (!isMufEnhanced) {
-      console.warn(`⏳ [ExtractCode] Deferring: ${code.length} chars, 0 newlines, block not MUF-enhanced yet`);
+      console.warn(`? [ExtractCode] Deferring: ${code.length} chars, 0 newlines, block not MUF-enhanced yet`);
       return null; // Let MUF process first, then retry
     }
-    // ⭐ v15+ FIX: If MUF-enhanced but still 1 line, try to restore newlines for HTML content
+    // ? v15+ FIX: If MUF-enhanced but still 1 line, try to restore newlines for HTML content
     const looksLikeHTML = code.includes('<!doctype') || code.includes('<!DOCTYPE') || 
                           code.includes('<html') || code.includes('<head') || code.includes('<body');
     if (looksLikeHTML) {
-      console.log(`🔄 [ExtractCode] Restoring newlines for HTML content (${code.length} chars)`);
+      console.log(`?? [ExtractCode] Restoring newlines for HTML content (${code.length} chars)`);
       // Split on >< boundaries
       code = code.replace(/(?<=>)\s*(?=<)/g, '\n');
       // Add IDE-style indentation
@@ -6894,7 +7020,7 @@ function extractCodeFromBlockForApply(block: HTMLElement): { code: string; langu
         if (/^<[a-zA-Z][^>]*[^/]>$/.test(trimmed) && 
             !/^<(!--|!doctype|meta|link|br|hr|img|input|title|base|col|embed|source|track|wbr)/i.test(trimmed)) htmlIndent++;
       }
-      // Merge empty elements: <tag>\n</tag> → <tag></tag>
+      // Merge empty elements: <tag>\n</tag> ? <tag></tag>
       for (let i = indentedLines.length - 1; i > 0; i--) {
         const curr = indentedLines[i].trim();
         const prev = indentedLines[i - 1].trim();
@@ -6907,10 +7033,10 @@ function extractCodeFromBlockForApply(block: HTMLElement): { code: string; langu
         }
       }
       code = indentedLines.join('\n');
-      console.log(`✅ [ExtractCode] Restored ${indentedLines.length} lines with IDE-style indentation`);
+      console.log(`? [ExtractCode] Restored ${indentedLines.length} lines with IDE-style indentation`);
     }
-    console.warn(`⚠️ [ExtractCode] Code has ${code.length} chars but NO newlines (MUF-enhanced, using as-is)`);
-    console.log(`⚠️ [ExtractCode] First 200 chars: ${code.substring(0, 200)}`);
+    console.warn(`?? [ExtractCode] Code has ${code.length} chars but NO newlines (MUF-enhanced, using as-is)`);
+    console.log(`?? [ExtractCode] First 200 chars: ${code.substring(0, 200)}`);
   }
   
   // Detect language
@@ -6927,9 +7053,9 @@ function extractCodeFromBlockForApply(block: HTMLElement): { code: string; langu
     }
   }
   
-  // ⭐ Auto-detect language from code content if still plaintext
+  // ? Auto-detect language from code content if still plaintext
   if (language === 'plaintext') {
-    // ⭐ v14+FIX: C/C++ detection with more robust patterns
+    // ? v14+FIX: C/C++ detection with more robust patterns
     // Handle possible leading backticks/quotes from markdown issues
     if (code.match(/^[`'\s]*#\s*(include|define|ifndef|ifdef|endif|pragma|undef|if|elif|else)\b/m) ||
         code.match(/#\s*(include|define|ifndef|ifdef|endif)\s/m)) {
@@ -6964,8 +7090,8 @@ export function applyCodeToEditor(code: string, mode: 'replace' | 'insert' | 'ap
   const shellExts = ['.sh', '.bash', '.zsh', '.bat', '.cmd', '.ps1', '.psm1'];
   const isShellFile = shellExts.some(ext => fileName.endsWith(ext));
   if (!isShellFile && _isTerminalCodeGuard(code)) {
-    console.log(`🛡️ [ApplyGuard] BLOCKED at export: Terminal commands cannot replace ${fileName}`);
-    showAutoApplyToast('🛡️ Blocked: bash commands cannot replace source file', 'error');
+    console.log(`??? [ApplyGuard] BLOCKED at export: Terminal commands cannot replace ${fileName}`);
+    showAutoApplyToast('??? Blocked: bash commands cannot replace source file', 'error');
     return { success: false, message: 'Blocked: terminal commands' };
   }
   return applyCodeInstant(code, mode);
@@ -7485,7 +7611,7 @@ function addApplyButtonToBlock(block: HTMLElement): void {
     if (result.success) {
       applyBtn.innerHTML = AUTO_APPLY_ICONS.check;
       applyBtn.classList.add('success');
-      showAutoApplyToast(`✓ ${result.message}`, 'success');
+      showAutoApplyToast(`? ${result.message}`, 'success');
       
       // Mark block with green badge showing changes in header
       const wrapper = block.closest('.cbe-wrapper, .muf-block') || block;
@@ -7498,7 +7624,7 @@ function addApplyButtonToBlock(block: HTMLElement): void {
       }, 2000);
     } else {
       applyBtn.classList.add('error');
-      showAutoApplyToast(`✗ ${result.message}`, 'error');
+      showAutoApplyToast(`? ${result.message}`, 'error');
       setTimeout(() => applyBtn.classList.remove('error'), 2000);
     }
   };
@@ -7510,7 +7636,7 @@ function addApplyButtonToBlock(block: HTMLElement): void {
 }
 
 function processAutoApplyCodeBlocks(): void {
-  // ⭐ FIX: Also target code-content-wrapper and orphaned pre elements (MUF skipped)
+  // ? FIX: Also target code-content-wrapper and orphaned pre elements (MUF skipped)
   const blocks = document.querySelectorAll('.cbe-wrapper, .muf-block, .code-content-wrapper:has(pre)');
   blocks.forEach(block => { if (!block.querySelector('.aca-btn')) addApplyButtonToBlock(block as HTMLElement); });
   
@@ -7525,7 +7651,7 @@ function processAutoApplyCodeBlocks(): void {
 }
 
 // ============================================================================
-// 🔬 SURGICAL PIPELINE TRACKER — Real-time stage-by-stage visibility
+// ?? SURGICAL PIPELINE TRACKER � Real-time stage-by-stage visibility
 // ============================================================================
 
 interface PipelineStage {
@@ -7546,14 +7672,14 @@ class SurgicalPipelineTracker {
   private _pinned: boolean = false;
 
   private readonly STAGE_DEFS = [
-    { name: 'Detect',    icon: '🔍' },  // 0
-    { name: 'Select',    icon: '🎯' },  // 1
-    { name: 'Analyze',   icon: '📊' },  // 2
-    { name: 'Route',     icon: '🔀' },  // 3  Surgical vs Legacy
-    { name: 'Apply',     icon: '💾' },  // 4  Rust disk write + backup
-    { name: 'Sync',      icon: '🔄' },  // 5  Monaco sync from disk
-    { name: 'Decorate',  icon: '🎨' },  // 6  Highlights + gutter icons
-    { name: 'Confirm',   icon: '✅' },  // 7  Accept / Reject
+    { name: 'Detect',    icon: '??' },  // 0
+    { name: 'Select',    icon: '??' },  // 1
+    { name: 'Analyze',   icon: '??' },  // 2
+    { name: 'Route',     icon: '??' },  // 3  Surgical vs Legacy
+    { name: 'Apply',     icon: '??' },  // 4  Rust disk write + backup
+    { name: 'Sync',      icon: '??' },  // 5  Monaco sync from disk
+    { name: 'Decorate',  icon: '??' },  // 6  Highlights + gutter icons
+    { name: 'Confirm',   icon: '?' },  // 7  Accept / Reject
   ];
 
   /** Start a new pipeline run */
@@ -7627,7 +7753,7 @@ class SurgicalPipelineTracker {
     this.logBanner('end', success, elapsed);
 
     if (this.overlayEl) {
-      // Stop the pulse dot — set to solid green (success) or red (error)
+      // Stop the pulse dot � set to solid green (success) or red (error)
       if ((this.overlayEl as any).__dotPulse) {
         clearInterval((this.overlayEl as any).__dotPulse);
       }
@@ -7637,7 +7763,7 @@ class SurgicalPipelineTracker {
         dot.style.opacity = '1';
       }
 
-      // Stop live timer — freeze at final time
+      // Stop live timer � freeze at final time
       if ((this.overlayEl as any).__timerInterval) {
         clearInterval((this.overlayEl as any).__timerInterval);
       }
@@ -7648,7 +7774,7 @@ class SurgicalPipelineTracker {
         (timerEl as HTMLElement).style.fontWeight = '600';
       }
 
-      // Auto-hide overlay after 20s (user can close earlier with × button)
+      // Auto-hide overlay after 20s (user can close earlier with � button)
       if (!this._pinned) {
         (this.overlayEl as any).__autoHide = setTimeout(() => this.hideOverlay(), 20000);
       }
@@ -7667,27 +7793,27 @@ class SurgicalPipelineTracker {
     };
   }
 
-  // ── Console logging ──
+  // -- Console logging --
 
   private logBanner(phase: 'start' | 'end', success?: boolean, elapsed?: string): void {
     if (phase === 'start') {
       console.log(
-        '%c 🔬 SURGICAL PIPELINE #' + this.runCount + ' ▸ STARTED ',
+        '%c ?? SURGICAL PIPELINE #' + this.runCount + ' ? STARTED ',
         'background:#7c3aed;color:#fff;font-weight:bold;padding:4px 12px;border-radius:4px;font-size:13px'
       );
     } else {
       const bg = success ? '#059669' : '#dc2626';
-      const label = success ? '✅ SUCCESS' : '❌ FAILED';
+      const label = success ? '? SUCCESS' : '? FAILED';
       console.log(
-        `%c 🔬 PIPELINE #${this.runCount} ▸ ${label}  (${elapsed}ms) `,
+        `%c ?? PIPELINE #${this.runCount} ? ${label}  (${elapsed}ms) `,
         `background:${bg};color:#fff;font-weight:bold;padding:4px 12px;border-radius:4px;font-size:13px`
       );
       // Print summary table
       console.table(this.stages.map(s => ({
         Stage: `${s.icon} ${s.name}`,
         Status: s.status.toUpperCase(),
-        Detail: s.detail || '—',
-        Time: s.time ? s.time.toFixed(0) + 'ms' : '—',
+        Detail: s.detail || '�',
+        Time: s.time ? s.time.toFixed(0) + 'ms' : '�',
       })));
     }
   }
@@ -7701,12 +7827,12 @@ class SurgicalPipelineTracker {
       pending: 'color:#6b7280',
     };
     console.log(
-      `%c🔬 [Pipeline] Stage ${stage.id}: ${stage.icon} ${stage.name} — ${stage.detail}`,
+      `%c?? [Pipeline] Stage ${stage.id}: ${stage.icon} ${stage.name} � ${stage.detail}`,
       colors[stage.status] || colors.pending
     );
   }
 
-  // ── Visual overlay (INLINE STYLES — no CSS injection needed) ──
+  // -- Visual overlay (INLINE STYLES � no CSS injection needed) --
 
   private injectStyles(): void {
     // No-op: all styles are inline now for WebView2 compatibility
@@ -7729,12 +7855,12 @@ class SurgicalPipelineTracker {
       stale.remove();
     }
     const el = document.createElement('div');
-    // All styles inline — no CSS class dependencies
+    // All styles inline � no CSS class dependencies
     Object.assign(el.style, {
       position: 'fixed',
       top: '32px',
       left: '8px',
-      zIndex: '2147483647',  // max 32-bit int — above EVERYTHING
+      zIndex: '2147483647',  // max 32-bit int � above EVERYTHING
       background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
       border: '1px solid rgba(124, 58, 237, 0.35)',
       borderRadius: '10px',
@@ -7746,14 +7872,14 @@ class SurgicalPipelineTracker {
       fontSize: '12px',
       color: '#e2e8f0',
       pointerEvents: 'auto',
-      opacity: '1',           // INSTANT — no fade-in delay
+      opacity: '1',           // INSTANT � no fade-in delay
       transform: 'translateY(0)',
       transition: 'opacity 0.3s ease, transform 0.3s ease',
       cursor: 'default',
     });
     el.id = 'surgical-pipeline-overlay';
 
-    // ── Header row: dot + title + timer + close ──
+    // -- Header row: dot + title + timer + close --
     const header = document.createElement('div');
     Object.assign(header.style, {
       display: 'flex', alignItems: 'center', gap: '6px',
@@ -7800,9 +7926,9 @@ class SurgicalPipelineTracker {
     }, 100);
     (el as any).__timerInterval = timerInterval;
 
-    // 📌 Pin button
+    // ?? Pin button
     const pinBtn = document.createElement('span');
-    pinBtn.textContent = '📌';
+    pinBtn.textContent = '??';
     pinBtn.title = 'Pin overlay (prevent auto-hide)';
     Object.assign(pinBtn.style, {
       cursor: 'pointer', fontSize: '11px', lineHeight: '1',
@@ -7838,13 +7964,13 @@ class SurgicalPipelineTracker {
       if (!this._pinned && !this._isActive && this.overlayEl) {
         (this.overlayEl as any).__autoHide = setTimeout(() => this.hideOverlay(), 20000);
       }
-      console.log(`🔬 [PipelineUI] ${this._pinned ? '📌 Pinned — will not auto-hide' : '📌 Unpinned — will auto-hide in 20s'}`);
+      console.log(`?? [PipelineUI] ${this._pinned ? '?? Pinned � will not auto-hide' : '?? Unpinned � will auto-hide in 20s'}`);
     });
     header.appendChild(pinBtn);
 
-    // Close button (×)
+    // Close button (�)
     const closeBtn = document.createElement('span');
-    closeBtn.textContent = '×';
+    closeBtn.textContent = '�';
     Object.assign(closeBtn.style, {
       cursor: 'pointer', fontSize: '16px', lineHeight: '1',
       color: '#6b7280', padding: '0 4px', marginLeft: '4px',
@@ -7865,7 +7991,7 @@ class SurgicalPipelineTracker {
     header.appendChild(closeBtn);
     el.appendChild(header);
 
-    // ── Stages container ──
+    // -- Stages container --
     const stagesDiv = document.createElement('div');
     stagesDiv.id = 'sp-stages-list';
     Object.assign(stagesDiv.style, {
@@ -7877,7 +8003,7 @@ class SurgicalPipelineTracker {
     this.overlayEl = el;
     this.updateOverlay();
   if ((window as any).__analysisMode) { console.log('[PipelineUI] Skipped - analysis mode'); return; }
-    console.log('🔬 [PipelineUI] ✅ Overlay SHOWN INSTANTLY (Pipeline #' + this.runCount + ')');
+    console.log('?? [PipelineUI] ? Overlay SHOWN INSTANTLY (Pipeline #' + this.runCount + ')');
   }
 
   private updateOverlay(): void {
@@ -7891,7 +8017,7 @@ class SurgicalPipelineTracker {
       skipped: { bg: 'rgba(146,64,14,0.2)', fg: '#fbbf24' },
     };
     const statusIcons: Record<string, string> = {
-      done: '✓', error: '✗', active: '▸', skipped: '−', pending: '·',
+      done: '?', error: '?', active: '?', skipped: '-', pending: '�',
     };
 
     list.innerHTML = '';
@@ -7932,7 +8058,7 @@ class SurgicalPipelineTracker {
           fontSize: '9px', padding: '1px 5px', borderRadius: '3px',
           fontWeight: '600', background: c.bg, color: c.fg,
         });
-        badge.textContent = `${statusIcons[s.status] || '·'} ${s.time ? s.time.toFixed(0) + 'ms' : ''}`;
+        badge.textContent = `${statusIcons[s.status] || '�'} ${s.time ? s.time.toFixed(0) + 'ms' : ''}`;
         row.appendChild(badge);
       }
       list.appendChild(row);
@@ -7959,7 +8085,7 @@ class SurgicalPipelineTracker {
       // Remove from DOM immediately to prevent stale element collisions
       el.remove();
       this.overlayEl = null;
-      console.log('ðŸ”¬ [PipelineUI] Overlay removed');
+      console.log('🔬 [PipelineUI] Overlay removed');
     }
   }
 }
@@ -7968,9 +8094,9 @@ class SurgicalPipelineTracker {
 const surgicalPipeline = new SurgicalPipelineTracker();
 (window as any).surgicalPipeline = surgicalPipeline;
 
-// 🧪 Manual test: window.testPipeline()
+// ?? Manual test: window.testPipeline()
 (window as any).testPipeline = async () => {
-  console.log('🧪 Testing pipeline overlay...');
+  console.log('?? Testing pipeline overlay...');
   surgicalPipeline.begin();
   surgicalPipeline.enter(0, 'Test: 1 block detected');
   await new Promise(r => setTimeout(r, 300));
@@ -7983,20 +8109,20 @@ const surgicalPipeline = new SurgicalPipelineTracker();
   surgicalPipeline.complete(2, '+5 -2 ~10');
   surgicalPipeline.enter(3, 'Checking...');
   await new Promise(r => setTimeout(r, 200));
-  surgicalPipeline.complete(3, '🔬 Surgical mode');
+  surgicalPipeline.complete(3, '?? Surgical mode');
   surgicalPipeline.enter(4, 'Writing...');
   await new Promise(r => setTimeout(r, 500));
-  surgicalPipeline.complete(4, 'Disk write ✅');
+  surgicalPipeline.complete(4, 'Disk write ?');
   surgicalPipeline.enter(5, 'Syncing...');
   await new Promise(r => setTimeout(r, 200));
-  surgicalPipeline.complete(5, 'Editor synced ✅');
+  surgicalPipeline.complete(5, 'Editor synced ?');
   surgicalPipeline.enter(6, 'Highlighting...');
   await new Promise(r => setTimeout(r, 200));
   surgicalPipeline.complete(6, '17 highlight(s)');
   surgicalPipeline.enter(7, 'Done');
   surgicalPipeline.complete(7, '+5 -2 ~10');
   surgicalPipeline.end(true);
-  console.log('🧪 Test complete! Overlay should be visible for 6 seconds.');
+  console.log('?? Test complete! Overlay should be visible for 6 seconds.');
 };
 
 // ============================================================================
@@ -8220,7 +8346,7 @@ function injectAutoApplyStyles(): void {
 // ============================================================================
 
 export function initAutoCodeApply(): void {
-  console.log('🚀 [AutoCodeApply] Initializing...');
+  console.log('?? [AutoCodeApply] Initializing...');
   injectAutoApplyStyles();
   injectAutonomousToggleStyles();
   injectConfirmationStyles();
@@ -8229,18 +8355,18 @@ export function initAutoCodeApply(): void {
   // Add autonomous toggle button to chat input area
   setTimeout(() => watchForChatInput(), 500);
   
-  // ✅ Always start OFF on page load - do not restore saved state
+  // ? Always start OFF on page load - do not restore saved state
   autoApplyEnabled = false;
   localStorage.removeItem('autonomousMode');
   localStorage.removeItem('aiFileExplorerEnabled');
   (window as any).autoApplyEnabled = false;
   (window as any).aiFileExplorerEnabled = false;
   (window as any).aiSearchEnabled = false;
-  console.log('🤖 [Autonomous] Starting with Auto Mode OFF');
+  console.log('?? [Autonomous] Starting with Auto Mode OFF');
   
   // ========== INTERNAL MULTI-FILE SYSTEM ONLY ==========
   // External multiFileAutonomous module disabled - using internal processMultiFileApply
-  console.log('📚 [AutoApply] Using internal multi-file system only');
+  console.log('?? [AutoApply] Using internal multi-file system only');
   // ========== END MULTI-FILE INIT ==========
   
   setTimeout(processAutoApplyCodeBlocks, 500);
@@ -8258,12 +8384,12 @@ export function initAutoCodeApply(): void {
       mutation.addedNodes.forEach(node => {
         if (!(node instanceof HTMLElement)) return;
         
-        // ⭐ Enhanced wrappers (MUF/CBE processed)
+        // ? Enhanced wrappers (MUF/CBE processed)
         if (node.classList?.contains('cbe-wrapper') || node.classList?.contains('muf-block')) {
           newBlocks.push(node);
         }
         
-        // ⭐ FIX: Also detect raw pre elements and code-content-wrapper
+        // ? FIX: Also detect raw pre elements and code-content-wrapper
         // These appear when MUF skips enhancement (e.g. "file tree" detection)
         if (node.tagName === 'PRE' && !node.closest('.muf-block') && !node.closest('.cbe-wrapper')) {
           const hasCode = node.querySelector('code') || (node.textContent?.trim().length || 0) > 50;
@@ -8305,7 +8431,7 @@ export function initAutoCodeApply(): void {
   ];
   
   const container = containers.find(c => c !== null) || document.body;
-  console.log('👀 [AutoApply] Watching container:', container.className || container.tagName);
+  console.log('?? [AutoApply] Watching container:', container.className || container.tagName);
   
   observer.observe(container, { 
     childList: true, 
@@ -8319,7 +8445,7 @@ export function initAutoCodeApply(): void {
     if (e.key === 'Escape' && isTypingInProgress) {
       e.preventDefault();
       stopAutoApplyTyping();
-      showAutoApplyToast('🛑 Typing stopped', 'error');
+      showAutoApplyToast('?? Typing stopped', 'error');
     }
     
     if (e.ctrlKey && e.shiftKey && e.key === 'A') {
@@ -8335,7 +8461,7 @@ export function initAutoCodeApply(): void {
             const blockId = lastBlock.getAttribute('data-muf-id') || lastBlock.getAttribute('data-block-id') || '';
             markBlockAsApplied(lastBlock as HTMLElement, blockId, result.message);
           }
-          showAutoApplyToast(result.success ? '✓ Applied latest code' : `✗ ${result.message}`, result.success ? 'success' : 'error');
+          showAutoApplyToast(result.success ? '? Applied latest code' : `? ${result.message}`, result.success ? 'success' : 'error');
         }
       } else {
         showAutoApplyToast('No code blocks found', 'error');
@@ -8366,12 +8492,12 @@ export function initAutoCodeApply(): void {
     }
   }, 2000);
   
-  console.log('✅ [AutoCodeApply] Ready!');
-  console.log('   🤖 Autonomous toggle in toolbar');
-  console.log('   📄 File validation: Checks code matches open file');
-  console.log('   📚 Multi-file: Auto-opens files and applies code');
-  console.log('   🎯 Smart: Selects BEST code, skips snippets');
-  console.log('   ✅ After update: Accept (Enter) or Reject (Escape)');
+  console.log('? [AutoCodeApply] Ready!');
+  console.log('   ?? Autonomous toggle in toolbar');
+  console.log('   ?? File validation: Checks code matches open file');
+  console.log('   ?? Multi-file: Auto-opens files and applies code');
+  console.log('   ?? Smart: Selects BEST code, skips snippets');
+  console.log('   ? After update: Accept (Enter) or Reject (Escape)');
 }
 
 // ============================================================================
@@ -8617,7 +8743,7 @@ function showAIDiffViewer(changeIndex: number = 0): void {
   const s2 = document.createElement('span'); s2.className = 'ai-diff-stat del'; s2.textContent = '-' + deleted + ' removed';
   const s3 = document.createElement('span'); s3.className = 'ai-diff-stat mod'; s3.textContent = '~' + modified + ' modified';
   headerStats.appendChild(s1); headerStats.appendChild(s2); headerStats.appendChild(s3);
-  // ⏪ Restore button in diff viewer
+  // ? Restore button in diff viewer
   const restoreDiffBtn = document.createElement('button');
   restoreDiffBtn.title = 'Restore original code';
   Object.assign(restoreDiffBtn.style, {
@@ -8719,7 +8845,7 @@ if (typeof window !== 'undefined') {
   (window as any).applySmartUpdate = applySmartUpdate;
   (window as any).showAIDiffViewer = showAIDiffViewer;
   (window as any).getAIChangeHistory = () => aiChangeHistory;
-  // 🔧 FIX: Expose pendingNewCode getter/setter for FastApply
+  // ?? FIX: Expose pendingNewCode getter/setter for FastApply
   Object.defineProperty(window, '__acaPendingNewCode', {
     get: () => pendingNewCode,
     set: (val: string) => { pendingNewCode = val; },
@@ -8741,13 +8867,13 @@ if (typeof window !== 'undefined') {
   (window as any).rejectAutoApplyChanges = rejectAutoApplyChanges;
   
   // ============================================================================
-  // 🔧 FIX ERRORS - Force apply next code block
+  // ?? FIX ERRORS - Force apply next code block
   // ============================================================================
   (window as any).setForceApplyNext = setForceApplyNext;
   (window as any).forceApplyCodeBlock = forceApplyCodeBlock;
   
   // ============================================================================
-  // ✅ TOOLBAR BUTTON SYNC FUNCTIONS - For professionalIcons.ts compatibility
+  // ? TOOLBAR BUTTON SYNC FUNCTIONS - For professionalIcons.ts compatibility
   // ============================================================================
   
   /**
@@ -8757,7 +8883,7 @@ if (typeof window !== 'undefined') {
     autoApplyEnabled = enabled;
     updateAutoApplyIndicator();
     localStorage.setItem('autonomousMode', String(enabled));
-    console.log(`🤖 [Auto Mode] State set to: ${enabled ? 'ON' : 'OFF'}`);
+    console.log(`?? [Auto Mode] State set to: ${enabled ? 'ON' : 'OFF'}`);
     
     // Sync the toolbar button
     const toolbarBtn = document.getElementById('autonomous-mode-toggle');
@@ -8772,7 +8898,7 @@ if (typeof window !== 'undefined') {
       btn.classList.toggle('active', enabled);
     });
     
-    // ✅ When Auto Mode is ON, also turn ON Project Search
+    // ? When Auto Mode is ON, also turn ON Project Search
     if (enabled) {
       processedBlockIds.clear();
       lastProcessedBlockId = '';
@@ -8788,7 +8914,7 @@ if (typeof window !== 'undefined') {
         searchBtn.classList.add('active', 'ai-active');
         searchBtn.title = 'Project Search: ON';
         searchBtn.style.color = '#10b981';
-        console.log('🔍 [Project Search] Auto-enabled with Auto Mode');
+        console.log('?? [Project Search] Auto-enabled with Auto Mode');
       }
     }
   };
@@ -8804,12 +8930,12 @@ if (typeof window !== 'undefined') {
   (window as any).syncAutoModeButton = () => {
     const toolbarBtn = document.getElementById('autonomous-mode-toggle');
     if (toolbarBtn) {
-      // ✅ Only use internal state, don't restore from localStorage
+      // ? Only use internal state, don't restore from localStorage
       const isEnabled = autoApplyEnabled;
       toolbarBtn.classList.toggle('active', isEnabled);
       toolbarBtn.classList.toggle('auto-active', isEnabled);
       toolbarBtn.title = isEnabled ? 'Auto Mode: ON' : 'Auto Mode: OFF';
-      console.log(`🤖 [Auto Mode] Button synced: ${isEnabled ? 'ON' : 'OFF'}`);
+      console.log(`?? [Auto Mode] Button synced: ${isEnabled ? 'ON' : 'OFF'}`);
     }
   };
   
@@ -8817,7 +8943,7 @@ if (typeof window !== 'undefined') {
    * Toggle AI Project Search (called by professionalIcons.ts)
    */
   (window as any).toggleAISearch = () => {
-    // ✅ Only use internal state, don't restore from localStorage
+    // ? Only use internal state, don't restore from localStorage
     const currentState = (window as any).aiSearchEnabled || 
                          (window as any).aiFileExplorerEnabled || false;
     const newState = !currentState;
@@ -8836,7 +8962,7 @@ if (typeof window !== 'undefined') {
       searchBtn.title = newState ? 'Project Search: ON' : 'Project Search: OFF';
     }
     
-    console.log(`🔍 [AI Search] Toggled to: ${newState ? 'ON' : 'OFF'}`);
+    console.log(`?? [AI Search] Toggled to: ${newState ? 'ON' : 'OFF'}`);
     return newState;
   };
   
@@ -8846,30 +8972,30 @@ if (typeof window !== 'undefined') {
   (window as any).syncAISearchButton = () => {
     const searchBtn = document.getElementById('ai-search-btn');
     if (searchBtn) {
-      // ✅ Only use internal state, don't restore from localStorage
+      // ? Only use internal state, don't restore from localStorage
       const isEnabled = (window as any).aiSearchEnabled || 
                         (window as any).aiFileExplorerEnabled || false;
       searchBtn.classList.toggle('active', isEnabled);
       searchBtn.classList.toggle('ai-active', isEnabled);
       searchBtn.title = isEnabled ? 'Project Search: ON' : 'Project Search: OFF';
-      console.log(`🔍 [AI Search] Button synced: ${isEnabled ? 'ON' : 'OFF'}`);
+      console.log(`?? [AI Search] Button synced: ${isEnabled ? 'ON' : 'OFF'}`);
     }
   };
   
   // ============================================================================
   
-  // 🆕 Reset function for stuck multi-file processing
+  // ?? Reset function for stuck multi-file processing
   (window as any).resetMultiFileProcessing = () => {
-    console.log('🔄 [MultiFile] Manual reset triggered');
+    console.log('?? [MultiFile] Manual reset triggered');
     isProcessingMultiFile = false; (window as any).surgicalBridge?.exitMultiFileGuard();
     processedBlockIds.clear();
     const bar = document.querySelector('.aca-confirm-bar, #aca-confirm-bar, .multi-file-confirm-bar');
     if (bar) bar.remove();
     hasUnapprovedChanges = false;
-    showAutoApplyToast('🔄 Multi-file processing reset', 'info');
+    showAutoApplyToast('?? Multi-file processing reset', 'info');
   };
   
-  // 🆕 State sharing for multi-file system integration
+  // ?? State sharing for multi-file system integration
   (window as any).getAutonomousState = () => ({
     autoApplyEnabled,
     isTypingInProgress,
@@ -8879,11 +9005,11 @@ if (typeof window !== 'undefined') {
   });
   
   (window as any).pauseAutonomousForMultiFile = () => {
-    console.log('⏸️ [AutoApply] Pausing for multi-file processing');
+    console.log('?? [AutoApply] Pausing for multi-file processing');
   };
   
   (window as any).resumeAutonomousAfterMultiFile = () => {
-    console.log('▶️ [AutoApply] Resuming after multi-file processing');
+    console.log('?? [AutoApply] Resuming after multi-file processing');
     processedBlockIds.clear();
   };
 }
@@ -9100,10 +9226,10 @@ function _renderChangeStats(summary: string): string {
   if (addMatch && addMatch[1] !== '0') parts.push('<span class="acd-stat-add">+' + addMatch[1] + '</span>');
   if (delMatch && delMatch[1] !== '0') parts.push('<span class="acd-stat-del">-' + delMatch[1] + '</span>');
   if (modMatch && modMatch[1] !== '0') parts.push('<span class="acd-stat-mod">~' + modMatch[1] + '</span>');
-  return parts.length ? parts.join(' ') : '<span style="color:#555">—</span>';
+  return parts.length ? parts.join(' ') : '<span style="color:#555">�</span>';
 }
 
-// Helper: Focus existing tab or open file — tries tabManager first, then DOM
+// Helper: Focus existing tab or open file � tries tabManager first, then DOM
 function _focusOrOpenFile(filePath: string, fileName: string): void {
   // Strategy 1: Use tabManager.openFile (handles dedup internally)
   const tabMgr = (window as any).tabManager;
@@ -9268,7 +9394,7 @@ function showDiffViewer(specificIndex?: number): void {
   header.innerHTML = '<div><span class="title">AI Changes</span>'
     + '<span class="subtitle">' + records.length + ' file(s)</span></div>'
     + '<div style="display:flex;align-items:center;gap:8px;">'
-    + '<button class="restore-btn" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.25);color:#fca5a5;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px;transition:all 0.15s;">⏪ Restore</button>'
+    + '<button class="restore-btn" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.25);color:#fca5a5;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:500;display:flex;align-items:center;gap:5px;transition:all 0.15s;">? Restore</button>'
     + '<button class="close-btn">\u00d7</button></div>';
   header.querySelector('.close-btn')!.addEventListener('click', () => modal.remove());
   const restoreHeaderBtn = header.querySelector('.restore-btn') as HTMLElement;
@@ -9622,12 +9748,12 @@ async function restoreOriginalCode(changeIndex: number): Promise<boolean> {
     if (invoke) {
       try {
         await invoke('write_file', { path: filePath, contents: originalCode });
-        console.log('⏪ [Restore] Written original code to disk: ' + filePath);
+        console.log('? [Restore] Written original code to disk: ' + filePath);
       } catch (_writeErr: any) {
         try {
           await invoke('surgical_edit', { request: { file_path: filePath, strategy: 'full_replace', new_content: originalCode, dry_run: false, create_backup: true } });
-          console.log('⏪ [Restore] Written via surgical_edit: ' + filePath);
-        } catch (surgErr: any) { console.warn('⏪ [Restore] Disk write failed:', surgErr); }
+          console.log('? [Restore] Written via surgical_edit: ' + filePath);
+        } catch (surgErr: any) { console.warn('? [Restore] Disk write failed:', surgErr); }
       }
     }
     // Sync Monaco editor if this file is currently open
@@ -9639,7 +9765,7 @@ async function restoreOriginalCode(changeIndex: number): Promise<boolean> {
       const normalizedTarget = filePath.replace(/\//g, '\\').toLowerCase();
       if (normalizedCurrent === normalizedTarget || normalizedCurrent.endsWith(change.fileName.toLowerCase())) {
         editor.executeEdits('restore-original', [{ range: model.getFullModelRange(), text: originalCode, forceMoveMarkers: true }]);
-        console.log('⏪ [Restore] Monaco editor synced');
+        console.log('? [Restore] Monaco editor synced');
       }
     }
     // Remove from aiChangedFiles map
@@ -9649,11 +9775,11 @@ async function restoreOriginalCode(changeIndex: number): Promise<boolean> {
     document.querySelectorAll('.ai-changed-dot').forEach(d => d.remove());
     updateChangesBadge();
     addFileTreeDots();
-    showAutoApplyToast('⏪ Restored ' + change.fileName + ' to original', 'success');
-    console.log('⏪ [Restore] ✅ ' + change.fileName + ' restored to original code');
+    showAutoApplyToast('? Restored ' + change.fileName + ' to original', 'success');
+    console.log('? [Restore] ? ' + change.fileName + ' restored to original code');
     return true;
   } catch (err: any) {
-    console.error('⏪ [Restore] Failed:', err);
+    console.error('? [Restore] Failed:', err);
     showAutoApplyToast('Restore failed: ' + (err.message || err), 'error');
     return false;
   }
@@ -9827,7 +9953,7 @@ setTimeout(() => {
   _dotObserver.observe(document.body, { childList: true, subtree: true });
 }, 3000);
 
-console.log('âœ… AI Change Tracker loaded (file dots + badge)');
+console.log('✅ AI Change Tracker loaded (file dots + badge)');
 
 
 (window as any).showAIDiffViewer = showDiffViewer;
@@ -9835,7 +9961,7 @@ console.log('âœ… AI Change Tracker loaded (file dots + badge)');
   (window as any).clearAIChangedFiles = () => { aiChangedFiles.clear(); document.querySelectorAll('.ai-changed-dot').forEach(d => d.remove()); updateChangesBadge(); };
 (window as any).getAIChangeHistory = () => aiChangeHistory;
 
-console.log('âœ… AI Changes Notification + Diff Viewer loaded');
+console.log('✅ AI Changes Notification + Diff Viewer loaded');
 console.log('   Use: window.showAIDiffViewer() to view last changes');
 
 
@@ -9845,4 +9971,4 @@ export function initAutonomousCoding(): void {
   initAutoCodeApply();
 }
 
-console.log('✅ autonomousCoding.ts loaded with multi-file integration');
+console.log('? autonomousCoding.ts loaded with multi-file integration');

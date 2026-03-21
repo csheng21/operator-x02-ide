@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // FILE: src/ide/aiAssistant/quickAICommand.ts
 // PURPOSE: Quick command (Ctrl+K) for fast AI code generation
 // ============================================================================
@@ -18,20 +18,26 @@ import { showNotification } from './notificationManager';
 /**
  * Initialize quick AI command (Ctrl+K)
  */
-export function initializeQuickAICommand(monaco: any): void {
+export function initializeQuickAICommand(monaco: any, editorInstance?: any): void {
   console.log('🚀 Initializing Quick AI Command...');
   
-  // Register Ctrl+K command
-  monaco.editor.addCommand({
-    id: 'ai-quick-command',
-    label: 'AI: Quick Code Generation',
-    keybindings: [
-      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK
-    ],
-    run: async (editor: any) => {
-      await handleQuickCommand(editor);
-    }
-  });
+  // Register on editor instance (addCommand only exists on instance, not namespace)
+  if (editorInstance) {
+    editorInstance.addAction({
+      id: 'ai-quick-command',
+      label: 'AI: Quick Code Generation',
+      keybindings: [
+        monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyK
+      ],
+      contextMenuGroupId: 'ai-actions',
+      contextMenuOrder: 2,
+      run: async (ed: any) => {
+        await handleQuickCommand(ed);
+      }
+    });
+  } else {
+    console.warn('[QuickAI] No editor instance - Ctrl+K not registered.');
+  }
   
   console.log('✅ Quick AI Command initialized (Ctrl+K)');
 }

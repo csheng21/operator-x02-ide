@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // FILE: src/ide/camera/cameraManager.ts
 // DESCRIPTION: Professional Camera Manager with Direct Vision API Support
 // VERSION: 2.4 - Fixed UI Issues (Capture button color, removed help text, analyze always enabled)
@@ -305,7 +305,7 @@ import {
 // ============================================================================
 
 function safeImport(modulePath: string): Promise<any> {
-  return import(modulePath).catch(error => {
+  return import(/* @vite-ignore */ modulePath).catch(error => {
     console.warn(`Failed to import ${modulePath}:`, error);
     return {};
   });

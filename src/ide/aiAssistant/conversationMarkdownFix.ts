@@ -1,4 +1,4 @@
-// conversationMarkdownFix.ts
+﻿// conversationMarkdownFix.ts
 // ============================================================================
 // FIX: Reprocess raw markdown when conversations are loaded from storage
 // 
@@ -232,6 +232,8 @@ export function reprocessRawMarkdownMessages(): number {
     // Get the message ID for tracking
     const messageId = parentMsg?.getAttribute('data-message-id') || `reprocess_${index}`;
     
+    // [X02Fix MDF] Skip already-enhanced messages to prevent exponential DOM growth
+    if (msgEl && (msgEl.getAttribute("data-muf-rendered") || msgEl.querySelector(".muf-block"))) { return; }
     console.log(`🔧 [MarkdownFix] Reprocessing message: ${messageId.substring(0, 8)}...`);
     
     // Process the raw text content through markdown

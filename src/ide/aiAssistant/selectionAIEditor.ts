@@ -1,4 +1,4 @@
-// ============================================================================
+﻿// ============================================================================
 // FILE: src/ide/aiAssistant/selectionAIEditor.ts
 // PURPOSE: AI edits/modifies selected code based on instructions
 // ============================================================================
@@ -101,11 +101,11 @@ function extractCode(response: string, language: string): string | null {
 /**
  * Initialize selection-based AI editor for Monaco
  */
-export function initializeSelectionAIEditor(monaco: any): void {
+export function initializeSelectionAIEditor(monaco: any, editorInstance?: any): void {
   console.log('🚀 Initializing Selection AI Editor...');
   
   // Add context menu action - only when text is selected
-  monaco.editor.addAction({
+  if (editorInstance) editorInstance.addAction({
     id: 'ai-edit-selection',
     label: '✏️ AI: Edit Selection',
     contextMenuGroupId: 'ai-actions',
@@ -117,17 +117,6 @@ export function initializeSelectionAIEditor(monaco: any): void {
   });
   
   // Add keyboard shortcut: Ctrl+Shift+E
-  monaco.editor.addCommand({
-    id: 'ai-edit-selection-cmd',
-    label: 'AI: Edit Selection',
-    keybindings: [
-      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyE
-    ],
-    precondition: 'editorHasSelection',
-    run: async (editor: any) => {
-      await handleSelectionEdit(editor);
-    }
-  });
   
   console.log('✅ Selection AI Editor initialized');
 }
