@@ -28,3 +28,11 @@ diagnose_*.ps1
 
 src/generate tree.txt
 src/*.txt
+
+backup_*.ts
+fix_backups_*/
+fix_errors_*/
+fix_remaining_*/
+inject_*.ps1
+find_*.ps1
+*.bak
