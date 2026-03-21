@@ -343,6 +343,7 @@ Operator X02 is built by **ChangSong Heng**, an automotive embedded engineer wit
 - YouTube: [@csh3003](https://youtube.com/@csh3003)
 - Website: [operatorx02.com](https://operatorx02.com)
 
----
+<img width="74" height="76" alt="heng" src="https://github.com/user-attachments/assets/b8809420-1118-4f4c-a855-3fdbdfeeb6cd" />
+
 
 ⭐ **If Operator X02 helps your workflow, please star the repo!**
