@@ -1,4 +1,4 @@
-﻿// src/ui/buildSystemUI.ts
+// src/ui/buildSystemUI.ts
 // Build System UI - TOP MENU BAR VERSION
 // FIXED: Styling matches other menu items (File, View, Run, etc.)
 
@@ -20,12 +20,12 @@ let cachedScripts: Record<string, string> | null = null;
 // Active serial plotter instance (for feeding data from serial monitor)
 let activePlotter: { start: () => void; stop: () => void; feedLine: (text: string) => void; startDemo: () => void; stopDemo: () => void; destroy: () => void } | null = null;
 
-// ✅ NEW: Mutex to prevent duplicate creation
+// ? NEW: Mutex to prevent duplicate creation
 let isRefreshing = false;
 let refreshDebounceTimer: number | null = null;
 
 // ============================================================================
-// 🔧 ARDUINO CLI AUTO-INSTALL FEATURE
+// ?? ARDUINO CLI AUTO-INSTALL FEATURE
 // ============================================================================
 
 let arduinoCliInstallPromptShown = false;
@@ -61,7 +61,7 @@ function showArduinoCLIManualInstallDialog(error: string): void {
   
   dialog.innerHTML = `
     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-      <span style="font-size: 32px;">📋</span>
+      <span style="font-size: 32px;">??</span>
       <h3 style="margin: 0; color: #f0a000; font-size: 18px;">Manual Installation Required</h3>
     </div>
     <p style="color: #ff6b6b; margin: 0 0 16px 0; font-size: 12px; background: #2d2020; padding: 8px; border-radius: 4px;">
@@ -164,7 +164,7 @@ async function findArduinoSketch(projectPath: string): Promise<{ found: boolean;
     try {
       const expectedExists = await invoke<boolean>('file_exists', { path: expectedPath });
       if (expectedExists) {
-        console.log(`[Arduino] ✓ Found ${expectedFile}`);
+        console.log(`[Arduino] ? Found ${expectedFile}`);
         return { found: true, sketchPath: normalizedPath };
       }
     } catch (e) {
@@ -206,19 +206,19 @@ async function findArduinoSketch(projectPath: string): Promise<{ found: boolean;
       const oldPath = `${normalizedPath}/${actualFile}`;
       const newPath = `${normalizedPath}/${expectedFile}`;
       
-      console.log(`[Arduino] Renaming ${actualFile} → ${expectedFile}`);
-      writeTerminal(`\n\x1b[33m⚠️ Found "${actualFile}" but Arduino requires "${expectedFile}"\x1b[0m`);
-      writeTerminal(`\x1b[36m📝 Auto-renaming file...\x1b[0m\n`);
+      console.log(`[Arduino] Renaming ${actualFile} ? ${expectedFile}`);
+      writeTerminal(`\n\x1b[33m?? Found "${actualFile}" but Arduino requires "${expectedFile}"\x1b[0m`);
+      writeTerminal(`\x1b[36m?? Auto-renaming file...\x1b[0m\n`);
       
       try {
         await invoke('rename_file', { oldPath, newPath });
-        console.log(`[Arduino] ✓ Renamed successfully`);
-        writeTerminal(`\x1b[32m✓ Renamed ${actualFile} → ${expectedFile}\x1b[0m\n`);
-        showNotification(`✅ Renamed ${actualFile} → ${expectedFile}`, 'success');
+        console.log(`[Arduino] ? Renamed successfully`);
+        writeTerminal(`\x1b[32m? Renamed ${actualFile} ? ${expectedFile}\x1b[0m\n`);
+        showNotification(`? Renamed ${actualFile} ? ${expectedFile}`, 'success');
         return { found: true, sketchPath: normalizedPath };
       } catch (renameError: any) {
         console.error(`[Arduino] Rename failed:`, renameError);
-        writeTerminal(`\x1b[31m✗ Auto-rename failed: ${renameError.message || renameError}\x1b[0m\n`);
+        writeTerminal(`\x1b[31m? Auto-rename failed: ${renameError.message || renameError}\x1b[0m\n`);
         writeTerminal(`\x1b[33mPlease manually rename "${actualFile}" to "${expectedFile}"\x1b[0m\n`);
         return {
           found: false,
@@ -272,7 +272,7 @@ async function autoInstallArduinoCore(coreName: string, projectPath: string, fqb
   
   dialog.innerHTML = `
     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-      <span style="font-size: 28px;">📦</span>
+      <span style="font-size: 28px;">??</span>
       <div>
         <h3 style="margin: 0; color: #e0e0e0; font-size: 16px;">Installing Arduino Core</h3>
         <p style="margin: 4px 0 0 0; color: #888; font-size: 13px;">Platform "${coreName}" is required</p>
@@ -321,12 +321,12 @@ async function autoInstallArduinoCore(coreName: string, projectPath: string, fqb
   cancelBtn.onclick = () => {
     cancelled = true;
     modal.remove();
-    writeTerminal(`\n\x1b[33m⚠️ Installation cancelled\x1b[0m\n`);
+    writeTerminal(`\n\x1b[33m?? Installation cancelled\x1b[0m\n`);
   };
   
   try {
     // Step 1: Update index
-    writeTerminal(`\n\x1b[36m📦 Installing Arduino core: ${coreName}\x1b[0m\n`);
+    writeTerminal(`\n\x1b[36m?? Installing Arduino core: ${coreName}\x1b[0m\n`);
     writeTerminal(`\x1b[90m$ arduino-cli core update-index\x1b[0m\n`);
     
     const updateResult = await invoke<any>('arduino_update_core_index');
@@ -344,7 +344,7 @@ async function autoInstallArduinoCore(coreName: string, projectPath: string, fqb
     statusEl.textContent = `Installing ${coreName}... (this may take a few minutes)`;
     commandEl.textContent = `arduino-cli core install ${coreName}`;
     writeTerminal(`\x1b[90m$ arduino-cli core install ${coreName}\x1b[0m\n`);
-    writeTerminal(`\x1b[33m⏳ Downloading and installing... please wait\x1b[0m\n`);
+    writeTerminal(`\x1b[33m? Downloading and installing... please wait\x1b[0m\n`);
     
     const installResult = await invoke<any>('arduino_install_core', { core: coreName });
     
@@ -358,16 +358,16 @@ async function autoInstallArduinoCore(coreName: string, projectPath: string, fqb
         (installResult.stdout && (installResult.stdout.includes('installed') || installResult.stdout.includes('already')))) {
       // Success!
       spinnerEl.style.display = 'none';
-      statusEl.innerHTML = `<span style="color: #4EC9B0;">✓ ${coreName} installed successfully!</span>`;
-      writeTerminal(`\x1b[32m✓ Core ${coreName} installed successfully!\x1b[0m\n`);
-      showNotification(`✅ ${coreName} installed!`, 'success');
+      statusEl.innerHTML = `<span style="color: #4EC9B0;">? ${coreName} installed successfully!</span>`;
+      writeTerminal(`\x1b[32m? Core ${coreName} installed successfully!\x1b[0m\n`);
+      showNotification(`? ${coreName} installed!`, 'success');
       
       // Auto-close and retry compile
       setTimeout(async () => {
         modal.remove();
         
         // Retry compile
-        writeTerminal(`\n\x1b[36m🔄 Retrying compilation...\x1b[0m\n`);
+        writeTerminal(`\n\x1b[36m?? Retrying compilation...\x1b[0m\n`);
         writeTerminal(`\x1b[90m$ arduino-cli compile --fqbn ${fqbn} "${projectPath}"\x1b[0m\n`);
         
         try {
@@ -380,28 +380,28 @@ async function autoInstallArduinoCore(coreName: string, projectPath: string, fqb
           });
           
           if (retryResult.success) {
-            writeTerminal(`\x1b[32m✓ Compilation complete!\x1b[0m\n`);
+            writeTerminal(`\x1b[32m? Compilation complete!\x1b[0m\n`);
             if (retryResult.stdout) {
               const memMatch = retryResult.stdout.match(/Sketch uses.*bytes/);
               if (memMatch) {
                 writeTerminal(`\x1b[90m${memMatch[0]}\x1b[0m\n`);
               }
             }
-            showNotification('✓ Compilation successful!', 'success');
+            showNotification('? Compilation successful!', 'success');
           } else {
-            writeTerminal(`\x1b[31m✗ Compilation failed\x1b[0m\n`);
+            writeTerminal(`\x1b[31m? Compilation failed\x1b[0m\n`);
             writeTerminal(retryResult.stderr || retryResult.stdout || 'Unknown error');
           }
         } catch (compileErr: any) {
-          writeTerminal(`\x1b[31m✗ Compile error: ${compileErr.message || compileErr}\x1b[0m\n`);
+          writeTerminal(`\x1b[31m? Compile error: ${compileErr.message || compileErr}\x1b[0m\n`);
         }
       }, 1500);
       
     } else {
       // Installation failed
       spinnerEl.style.display = 'none';
-      statusEl.innerHTML = `<span style="color: #f14c4c;">✗ Installation failed</span>`;
-      writeTerminal(`\x1b[31m✗ Failed to install ${coreName}\x1b[0m\n`);
+      statusEl.innerHTML = `<span style="color: #f14c4c;">? Installation failed</span>`;
+      writeTerminal(`\x1b[31m? Failed to install ${coreName}\x1b[0m\n`);
       if (installResult.stderr) {
         writeTerminal(`\x1b[31m${installResult.stderr}\x1b[0m\n`);
       }
@@ -430,8 +430,8 @@ async function autoInstallArduinoCore(coreName: string, projectPath: string, fqb
   } catch (e: any) {
     console.error('[Core Install Error]', e);
     spinnerEl.style.display = 'none';
-    statusEl.innerHTML = `<span style="color: #f14c4c;">✗ Error: ${e.message || e}</span>`;
-    writeTerminal(`\x1b[31m✗ Error: ${e.message || e}\x1b[0m\n`);
+    statusEl.innerHTML = `<span style="color: #f14c4c;">? Error: ${e.message || e}</span>`;
+    writeTerminal(`\x1b[31m? Error: ${e.message || e}\x1b[0m\n`);
     cancelBtn.textContent = 'Close';
   }
 }
@@ -471,7 +471,7 @@ function showArduinoCLIInstallDialog(): void {
   
   dialog.innerHTML = `
     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-      <span style="font-size: 32px;">🔧</span>
+      <span style="font-size: 32px;">??</span>
       <h3 style="margin: 0; color: #4EC9B0; font-size: 18px;">Arduino CLI Not Found</h3>
     </div>
     <p style="color: #ccc; margin: 0 0 20px 0; line-height: 1.5;">
@@ -482,7 +482,7 @@ function showArduinoCLIInstallDialog(): void {
     <div style="background: #252526; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
       <div style="margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #3c3c3c;">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-          <span style="color: #89D185; font-size: 16px;">⚡</span>
+          <span style="color: #89D185; font-size: 16px;">?</span>
           <span style="color: #89D185; font-weight: bold; font-size: 14px;">Install Arduino CLI</span>
           <span style="color: #fff; font-size: 10px; background: #0e639c; padding: 2px 6px; border-radius: 3px;">Recommended</span>
         </div>
@@ -493,7 +493,7 @@ function showArduinoCLIInstallDialog(): void {
       
       <div style="margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #3c3c3c;">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-          <span style="color: #569cd6; font-size: 16px;">🖥️</span>
+          <span style="color: #569cd6; font-size: 16px;">???</span>
           <span style="color: #569cd6; font-weight: bold; font-size: 14px;">Use Arduino IDE</span>
         </div>
         <p style="color: #aaa; margin: 0; font-size: 12px; line-height: 1.4; padding-left: 24px;">
@@ -503,7 +503,7 @@ function showArduinoCLIInstallDialog(): void {
       
       <div>
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-          <span style="color: #888; font-size: 16px;">✕</span>
+          <span style="color: #888; font-size: 16px;">?</span>
           <span style="color: #888; font-weight: bold; font-size: 14px;">Cancel</span>
         </div>
         <p style="color: #888; margin: 0; font-size: 12px; line-height: 1.4; padding-left: 24px;">
@@ -532,7 +532,7 @@ function showArduinoCLIInstallDialog(): void {
           cursor: pointer;
           font-size: 14px;
           font-weight: bold;
-        ">⚡ Install Arduino CLI</button>
+        ">? Install Arduino CLI</button>
       </div>
       <div style="display: flex; justify-content: flex-end;">
         <button id="arduino-cli-use-ide" style="
@@ -547,7 +547,7 @@ function showArduinoCLIInstallDialog(): void {
       </div>
     </div>
     <div id="arduino-install-progress" style="display: none; margin-top: 16px;">
-      <div style="color: #4EC9B0; font-size: 13px;">⏳ Installing Arduino CLI...</div>
+      <div style="color: #4EC9B0; font-size: 13px;">? Installing Arduino CLI...</div>
       <div style="background: #3c3c3c; height: 4px; border-radius: 2px; margin-top: 8px; overflow: hidden;">
         <div id="arduino-install-bar" style="background: #4EC9B0; height: 100%; width: 0%; transition: width 0.3s;"></div>
       </div>
@@ -598,7 +598,7 @@ function showArduinoCLIInstallDialog(): void {
         // Success!
         setTimeout(() => {
           modal.remove();
-          showNotification('✅ ' + result.stdout, 'success');
+          showNotification('? ' + result.stdout, 'success');
           // Offer to restart
           setTimeout(() => {
             if (confirm('Arduino CLI installed! Restart IDE to use it?')) {
@@ -669,7 +669,7 @@ function setupArduinoCLIAutoInstallDetection(): void {
         });
       });
       observer.observe(terminalOutput, { childList: true, subtree: true });
-      console.log('[BuildSystemUI] 🔧 Arduino CLI auto-install detection enabled');
+      console.log('[BuildSystemUI] ?? Arduino CLI auto-install detection enabled');
     }
   };
   
@@ -724,7 +724,7 @@ async function getProjectScripts(): Promise<Record<string, string> | null> {
     return await getArduinoFiles(projectPath);
   }
 
-  // CMake projects — return cmake/make scripts, NOT Gradle
+  // CMake projects � return cmake/make scripts, NOT Gradle
   if (buildSystem?.name === 'cmake' || buildSystem?.displayName === 'CMake') {
     const binaryName = projectPath.split(/[\\/]/).pop() || 'app';
     return {
@@ -757,11 +757,18 @@ async function getProjectScripts(): Promise<Record<string, string> | null> {
     };
   }
   
-  // Gradle-based projects (Android, Java, Kotlin) — only if Gradle files exist IN this folder
+  // Gradle-based projects (Android, Java, Kotlin) � only if not already detected as npm/yarn
+  // Skip Gradle probe entirely for known JS/TS projects to avoid noisy file-not-found errors
+  const alreadyDetectedAsNode = (
+    typeof (window as any).__buildSystemCache?.[projectPath] === "string" &&
+    ["npm", "yarn", "pnpm"].includes((window as any).__buildSystemCache?.[projectPath])
+  );
+  if (alreadyDetectedAsNode) return {};
+
   try {
     const fileSystem = (window as any).fileSystem;
     if (fileSystem?.readFile) {
-      // Check for Gradle wrapper or build files — strictly in projectPath only, no parent walk
+      // Check for Gradle wrapper or build files � strictly in projectPath only, no parent walk
       let hasGradle = false;
       try { const _g = await fileSystem.readFile(`${projectPath}/gradlew.bat`); hasGradle = !!_g; } catch { hasGradle = false; } // [X02Fix 3] silent
       if (!hasGradle) try { await fileSystem.readFile(`${projectPath}/build.gradle.kts`); hasGradle = true; } catch {}
@@ -858,10 +865,10 @@ async function getArduinoFiles(projectPath: string): Promise<Record<string, stri
     });
     
     // Add standard Arduino actions
-    result['──────────'] = ''; // Separator
-    result['✓ Verify'] = 'arduino-cli compile';
-    result['➤ Upload'] = 'arduino-cli upload';
-    result['🔌 Serial'] = 'Open Serial Monitor (Beta)';
+    result['----------'] = ''; // Separator
+    result['? Verify'] = 'arduino-cli compile';
+    result['? Upload'] = 'arduino-cli upload';
+    result['?? Serial'] = 'Open Serial Monitor (Beta)';
     
     return result;
   } catch (error) {
@@ -900,7 +907,7 @@ function writeTerminalInline(text: string): void {
  */
 function startTerminalLoading(message: string = 'Processing'): () => void {
   const terminal = (window as any).terminal;
-  const frames = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+  const frames = ['?', '?', '?', '?', '?', '?', '?', '?', '?', '?'];
   let frameIndex = 0;
   let dotCount = 0;
   let isRunning = true;
@@ -957,26 +964,26 @@ function showCommandInTerminal(command: string, projectPath: string, status: 'ru
   
   if (status === 'running') {
     writeTerminal('');
-    writeTerminal('  ╭─────────────────────────────────────────────╮');
-    writeTerminal('  │  ▶ RUNNING                                  │');
-    writeTerminal('  ╰─────────────────────────────────────────────╯');
+    writeTerminal('  ?---------------------------------------------?');
+    writeTerminal('  �  ? RUNNING                                  �');
+    writeTerminal('  ?---------------------------------------------?');
     writeTerminal('');
     writeTerminal(`  Command:   ${command}`);
     writeTerminal(`  Project:   ${projectName}`);
     writeTerminal(`  Time:      ${time}`);
     writeTerminal('');
-    writeTerminal('  ─────────────────────────────────────────────');
+    writeTerminal('  ---------------------------------------------');
     writeTerminal('');
   } else {
     writeTerminal('');
-    writeTerminal('  ╭─────────────────────────────────────────────╮');
-    writeTerminal('  │  ⚡ CUSTOM SCRIPT                           │');
-    writeTerminal('  ╰─────────────────────────────────────────────╯');
+    writeTerminal('  ?---------------------------------------------?');
+    writeTerminal('  �  ? CUSTOM SCRIPT                           �');
+    writeTerminal('  ?---------------------------------------------?');
     writeTerminal('');
     writeTerminal(`  Command:   ${command}`);
     writeTerminal(`  Project:   ${projectName}`);
     writeTerminal('');
-    writeTerminal('  → Run this command in your terminal');
+    writeTerminal('  ? Run this command in your terminal');
     writeTerminal('');
   }
 }
@@ -1032,7 +1039,7 @@ async function showBuildInfoDialog(): Promise<void> {
   }
   
   const buildSystem = await detectBuildSystem(projectPath);
-  const scripts = await getProjectScripts(); // always fresh — no stale cache
+  const scripts = await getProjectScripts(); // always fresh � no stale cache
   const projectName = projectPath.split(/[/\\]/).pop() || 'project';
   
   document.getElementById('build-info-modal')?.remove();
@@ -1095,7 +1102,7 @@ async function showBuildInfoDialog(): Promise<void> {
       padding: 4px 8px;
       border-radius: 4px;
       transition: all 0.15s;
-    ">×</button>
+    ">�</button>
   `;
   dialog.appendChild(header);
   
@@ -1165,7 +1172,7 @@ async function showBuildInfoDialog(): Promise<void> {
   } else {
     content.innerHTML = `
       <div style="text-align: center; padding: 20px; color: #888;">
-        <div style="font-size: 40px; margin-bottom: 12px;">📦</div>
+        <div style="font-size: 40px; margin-bottom: 12px;">??</div>
         <div style="font-size: 14px;">No build system detected</div>
         <div style="font-size: 12px; margin-top: 8px; color: #666;">Add a package.json, Cargo.toml, or other config file</div>
       </div>
@@ -1251,7 +1258,7 @@ function showNotification(message: string, type: 'success' | 'error' | 'info' = 
  * Remove build system indicator
  */
 export function removeBuildSystemIndicator(): void {
-  // ✅ Remove ALL instances (not just by ID) to prevent duplicates
+  // ? Remove ALL instances (not just by ID) to prevent duplicates
   document.querySelectorAll('#build-system-menu-item').forEach(el => el.remove());
   document.querySelectorAll('#build-system-dropdown-menu').forEach(el => el.remove());
   document.querySelectorAll('.build-system-dropdown').forEach(el => el.remove());
@@ -1279,22 +1286,22 @@ export function removeBuildSystemIndicator(): void {
  */
 function getScriptStyle(scriptName: string): { icon: string; color: string; priority: number } {
   const styles: Record<string, { icon: string; color: string; priority: number }> = {
-    'dev': { icon: '▶', color: '#4EC9B0', priority: 1 },
-    'start': { icon: '▶', color: '#4EC9B0', priority: 2 },
-    'serve': { icon: '▶', color: '#4EC9B0', priority: 3 },
-    'build': { icon: '⚙', color: '#CE9178', priority: 10 },
-    'preview': { icon: '👁', color: '#89D185', priority: 20 },
-    'test': { icon: '✓', color: '#DCDCAA', priority: 30 },
-    'lint': { icon: '⚡', color: '#569CD6', priority: 40 },
-    'format': { icon: '✎', color: '#569CD6', priority: 42 },
-    'clean': { icon: '✕', color: '#F48771', priority: 50 },
+    'dev': { icon: '?', color: '#4EC9B0', priority: 1 },
+    'start': { icon: '?', color: '#4EC9B0', priority: 2 },
+    'serve': { icon: '?', color: '#4EC9B0', priority: 3 },
+    'build': { icon: '?', color: '#CE9178', priority: 10 },
+    'preview': { icon: '??', color: '#89D185', priority: 20 },
+    'test': { icon: '?', color: '#DCDCAA', priority: 30 },
+    'lint': { icon: '?', color: '#569CD6', priority: 40 },
+    'format': { icon: '?', color: '#569CD6', priority: 42 },
+    'clean': { icon: '?', color: '#F48771', priority: 50 },
   };
   
   if (styles[scriptName]) return styles[scriptName];
   for (const [key, style] of Object.entries(styles)) {
     if (scriptName.includes(key)) return { ...style, priority: style.priority + 100 };
   }
-  return { icon: '›', color: '#888', priority: 200 };
+  return { icon: '�', color: '#888', priority: 200 };
 }
 
 /**
@@ -1307,21 +1314,21 @@ async function createArduinoDropdownContent(
 ): Promise<void> {
   // Arduino action items
   const arduinoActions = [
-    { icon: '✓', label: 'Verify / Compile', action: 'compile', color: '#4EC9B0', shortcut: 'Ctrl+R' },
-    { icon: '➤', label: 'Upload', action: 'upload', color: '#89D185', shortcut: 'Ctrl+U' },
+    { icon: '?', label: 'Verify / Compile', action: 'compile', color: '#4EC9B0', shortcut: 'Ctrl+R' },
+    { icon: '?', label: 'Upload', action: 'upload', color: '#89D185', shortcut: 'Ctrl+U' },
     { divider: true },
-    { icon: '🔌', label: 'Serial Monitor (Beta)', action: 'serial', color: '#CE9178', shortcut: 'Ctrl+Shift+M' },
-    { icon: '📊', label: 'Serial Plotter AI', action: 'plotter', color: '#569CD6' },
-    { icon: '🔌', label: 'Pin Visualizer', action: 'pin-visualizer', color: '#4EC9B0' },
+    { icon: '??', label: 'Serial Monitor (Beta)', action: 'serial', color: '#CE9178', shortcut: 'Ctrl+Shift+M' },
+    { icon: '??', label: 'Serial Plotter AI', action: 'plotter', color: '#569CD6' },
+    { icon: '??', label: 'Pin Visualizer', action: 'pin-visualizer', color: '#4EC9B0' },
     { divider: true },
-    { icon: '📋', label: 'Select Board...', action: 'board', color: '#888' },
-    { icon: '🔗', label: 'Select Port...', action: 'port', color: '#888' },
+    { icon: '??', label: 'Select Board...', action: 'board', color: '#888' },
+    { icon: '??', label: 'Select Port...', action: 'port', color: '#888' },
     { divider: true },
-    { icon: '📦', label: 'Library Manager', action: 'libraries', color: '#DCDCAA' },
-    { icon: '⚙️', label: 'Board Manager', action: 'boards', color: '#DCDCAA' },
+    { icon: '??', label: 'Library Manager', action: 'libraries', color: '#DCDCAA' },
+    { icon: '??', label: 'Board Manager', action: 'boards', color: '#DCDCAA' },
     { divider: true },
-    { icon: 'ℹ️', label: 'CLI Info', action: 'cli-info', color: '#888' },
-    { icon: '🗑️', label: 'Uninstall CLI...', action: 'uninstall-cli', color: '#f48771' },
+    { icon: '??', label: 'CLI Info', action: 'cli-info', color: '#888' },
+    { icon: '???', label: 'Uninstall CLI...', action: 'uninstall-cli', color: '#f48771' },
   ];
   
   arduinoActions.forEach(item => {
@@ -1394,7 +1401,7 @@ async function createArduinoDropdownContent(
           background: transparent;
         `;
         fileItem.innerHTML = `
-          <span style="width: 18px; text-align: center; color: #4FC1FF; font-size: 14px;">📄</span>
+          <span style="width: 18px; text-align: center; color: #4FC1FF; font-size: 14px;">??</span>
           <span style="color: #e0e0e0;">${fileName}</span>
         `;
         
@@ -1439,7 +1446,7 @@ async function createArduinoDropdownContent(
     background: transparent;
   `;
   infoItem.innerHTML = `
-    <span style="width: 18px; text-align: center; font-size: 14px;">ⓘ</span>
+    <span style="width: 18px; text-align: center; font-size: 14px;">?</span>
     <span>Build System Info</span>
   `;
   infoItem.addEventListener('mouseenter', () => infoItem.style.background = '#094771');
@@ -1477,13 +1484,13 @@ async function handleArduinoMenuAction(action: string, buildSystem: any): Promis
           // Check for proper sketch file first
           const sketchCheck = await findArduinoSketch(normalizedPath);
           if (!sketchCheck.found && sketchCheck.error) {
-            writeTerminal(`\n\x1b[31m✗ ${sketchCheck.error}\x1b[0m\n`);
-            showNotification(`⚠️ ${sketchCheck.error}`, 'warning');
+            writeTerminal(`\n\x1b[31m? ${sketchCheck.error}\x1b[0m\n`);
+            showNotification(`?? ${sketchCheck.error}`, 'warning');
             break;
           }
           
           // Show in terminal
-          writeTerminal(`\n\x1b[36m🔨 Compiling for ${selectedBoard}...\x1b[0m`);
+          writeTerminal(`\n\x1b[36m?? Compiling for ${selectedBoard}...\x1b[0m`);
           writeTerminal(`\x1b[90m$ arduino-cli compile --fqbn ${selectedBoard} "${normalizedPath}"\x1b[0m\n`);
           
           // Start loading animation
@@ -1501,7 +1508,7 @@ async function handleArduinoMenuAction(action: string, buildSystem: any): Promis
           if (stopLoading) { stopLoading(); stopLoading = null; }
           
           if (result.success) {
-            writeTerminal(`\x1b[32m✓ Compilation complete!\x1b[0m\n`);
+            writeTerminal(`\x1b[32m? Compilation complete!\x1b[0m\n`);
             if (result.stdout) {
               // Parse and display memory usage if present
               const memMatch = result.stdout.match(/Sketch uses.*bytes/);
@@ -1509,9 +1516,9 @@ async function handleArduinoMenuAction(action: string, buildSystem: any): Promis
                 writeTerminal(`\x1b[90m${memMatch[0]}\x1b[0m\n`);
               }
             }
-            showNotification('✓ Compilation successful!', 'success');
+            showNotification('? Compilation successful!', 'success');
           } else {
-            writeTerminal(`\x1b[31m✗ Compilation failed\x1b[0m\n`);
+            writeTerminal(`\x1b[31m? Compilation failed\x1b[0m\n`);
             writeTerminal(result.stderr || result.stdout || 'Unknown error');
             
             const errorOutput = (result.stderr || '') + (result.stdout || '');
@@ -1529,13 +1536,13 @@ async function handleArduinoMenuAction(action: string, buildSystem: any): Promis
             else if (errorOutput.includes("main file missing")) {
               // Filename mismatch error
               const folderName = normalizedPath.split(/[/\\]/).pop() || 'sketch';
-              showNotification(`⚠️ Rename your .ino file to "${folderName}.ino"`, 'warning');
+              showNotification(`?? Rename your .ino file to "${folderName}.ino"`, 'warning');
             }
           }
         } catch (e: any) {
           if (stopLoading) { stopLoading(); }
           console.error('[Compile Error]', e);
-          writeTerminal(`\x1b[31m✗ Error: ${e.message || e}\x1b[0m\n`);
+          writeTerminal(`\x1b[31m? Error: ${e.message || e}\x1b[0m\n`);
           
           if (e.message?.includes("not recognized") || e.message?.includes("command not found")) {
             showArduinoCLIInstallDialog();
@@ -1559,20 +1566,20 @@ async function handleArduinoMenuAction(action: string, buildSystem: any): Promis
           // Check for proper sketch file first
           const sketchCheck = await findArduinoSketch(normalizedPath);
           if (!sketchCheck.found && sketchCheck.error) {
-            writeTerminal(`\n\x1b[31m✗ ${sketchCheck.error}\x1b[0m\n`);
-            showNotification(`⚠️ ${sketchCheck.error}`, 'warning');
+            writeTerminal(`\n\x1b[31m? ${sketchCheck.error}\x1b[0m\n`);
+            showNotification(`?? ${sketchCheck.error}`, 'warning');
             break;
           }
           
           // Check if port is selected
           if (!selectedPort || selectedPort === '{port}') {
-            showNotification('⚠️ Please select a port first (Arduino menu → Select Port)', 'warning');
+            showNotification('?? Please select a port first (Arduino menu ? Select Port)', 'warning');
             await showPortSelectionDialog();
             break;
           }
           
           // Show in terminal
-          writeTerminal(`\n\x1b[36m▶️ Uploading to ${selectedPort}...\x1b[0m`);
+          writeTerminal(`\n\x1b[36m?? Uploading to ${selectedPort}...\x1b[0m`);
           writeTerminal(`\x1b[90m$ arduino-cli upload -p ${selectedPort} --fqbn ${selectedBoard} "${normalizedPath}"\x1b[0m\n`);
           
           // Start loading animation
@@ -1590,10 +1597,10 @@ async function handleArduinoMenuAction(action: string, buildSystem: any): Promis
           if (stopLoading) { stopLoading(); stopLoading = null; }
           
           if (result.success) {
-            writeTerminal(`\x1b[32m✓ Upload complete!\x1b[0m\n`);
-            showNotification('✓ Upload complete!', 'success');
+            writeTerminal(`\x1b[32m? Upload complete!\x1b[0m\n`);
+            showNotification('? Upload complete!', 'success');
           } else {
-            writeTerminal(`\x1b[31m✗ Upload failed\x1b[0m\n`);
+            writeTerminal(`\x1b[31m? Upload failed\x1b[0m\n`);
             writeTerminal(result.stderr || result.stdout || 'Unknown error');
             
             const errorOutput = (result.stderr || '') + (result.stdout || '');
@@ -1611,13 +1618,13 @@ async function handleArduinoMenuAction(action: string, buildSystem: any): Promis
             else if (errorOutput.includes("main file missing")) {
               // Filename mismatch error
               const folderName = normalizedPath.split(/[/\\]/).pop() || 'sketch';
-              showNotification(`⚠️ Rename your .ino file to "${folderName}.ino"`, 'warning');
+              showNotification(`?? Rename your .ino file to "${folderName}.ino"`, 'warning');
             }
           }
         } catch (e: any) {
           if (stopLoading) { stopLoading(); }
           console.error('[Upload Error]', e);
-          writeTerminal(`\x1b[31m✗ Error: ${e.message || e}\x1b[0m\n`);
+          writeTerminal(`\x1b[31m? Error: ${e.message || e}\x1b[0m\n`);
           
           if (e.message?.includes("not recognized") || e.message?.includes("command not found")) {
             showArduinoCLIInstallDialog();
@@ -1713,11 +1720,11 @@ async function showBoardSelectionDialog(): Promise<void> {
   // Show loading state immediately
   dialog.innerHTML = `
     <div style="padding: 16px 20px; background: #2d2d2d; border-bottom: 1px solid #454545; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 10px;">
-      <span style="font-size: 20px;">📋</span>
+      <span style="font-size: 20px;">??</span>
       <span style="color: #fff; font-weight: 600; font-size: 15px;">Select Board</span>
     </div>
     <div style="padding: 40px 20px; text-align: center;">
-      <div style="color: #4EC9B0; font-size: 24px; margin-bottom: 12px;">⏳</div>
+      <div style="color: #4EC9B0; font-size: 24px; margin-bottom: 12px;">?</div>
       <div style="color: #888;">Loading boards...</div>
     </div>
   `;
@@ -1772,7 +1779,7 @@ async function showBoardSelectionDialog(): Promise<void> {
         background: ${isSelected ? '#094771' : 'transparent'};
         transition: background 0.15s;
       ">
-        <span style="color: ${isSelected ? '#4FC1FF' : '#888'};">${isSelected ? '●' : '○'}</span>
+        <span style="color: ${isSelected ? '#4FC1FF' : '#888'};">${isSelected ? '?' : '?'}</span>
         <span style="color: #e0e0e0; flex: 1;">${board.name}</span>
         <span style="color: #666; font-size: 11px;">${board.fqbn.split(':').pop()}</span>
       </div>
@@ -1781,7 +1788,7 @@ async function showBoardSelectionDialog(): Promise<void> {
   
   dialog.innerHTML = `
     <div style="padding: 16px 20px; background: #2d2d2d; border-bottom: 1px solid #454545; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 10px;">
-      <span style="font-size: 20px;">📋</span>
+      <span style="font-size: 20px;">??</span>
       <span style="color: #fff; font-weight: 600; font-size: 15px;">Select Board</span>
     </div>
     <div style="padding: 12px; max-height: 300px; overflow-y: auto;">
@@ -1858,11 +1865,11 @@ async function showPortSelectionDialog(): Promise<void> {
   // Show loading state immediately
   dialog.innerHTML = `
     <div style="padding: 16px 20px; background: #2d2d2d; border-bottom: 1px solid #454545; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 10px;">
-      <span style="font-size: 20px;">🔗</span>
+      <span style="font-size: 20px;">??</span>
       <span style="color: #fff; font-weight: 600; font-size: 15px;">Select Port</span>
     </div>
     <div style="padding: 40px 20px; text-align: center;">
-      <div style="color: #4EC9B0; font-size: 24px; margin-bottom: 12px;">⏳</div>
+      <div style="color: #4EC9B0; font-size: 24px; margin-bottom: 12px;">?</div>
       <div style="color: #888;">Scanning ports...</div>
     </div>
   `;
@@ -1903,7 +1910,7 @@ async function showPortSelectionDialog(): Promise<void> {
   if (ports.length === 0) {
     portListHtml = `
       <div style="padding: 20px; text-align: center; color: #888;">
-        <div style="font-size: 32px; margin-bottom: 10px;">🔌</div>
+        <div style="font-size: 32px; margin-bottom: 10px;">??</div>
         <div>No ports detected</div>
         <div style="font-size: 12px; margin-top: 8px;">Connect your Arduino board</div>
       </div>
@@ -1923,7 +1930,7 @@ async function showPortSelectionDialog(): Promise<void> {
           background: ${isSelected ? '#094771' : 'transparent'};
           transition: background 0.15s;
         ">
-          <span style="color: ${isSelected ? '#4FC1FF' : '#888'};">${isSelected ? '●' : '○'}</span>
+          <span style="color: ${isSelected ? '#4FC1FF' : '#888'};">${isSelected ? '?' : '?'}</span>
           <span style="color: #e0e0e0; flex: 1; font-family: monospace;">${portInfo.port}</span>
           <span style="color: #666; font-size: 11px;">${portInfo.description}</span>
         </div>
@@ -1934,7 +1941,7 @@ async function showPortSelectionDialog(): Promise<void> {
   // Update dialog with port list
   dialog.innerHTML = `
     <div style="padding: 16px 20px; background: #2d2d2d; border-bottom: 1px solid #454545; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 10px;">
-      <span style="font-size: 20px;">🔗</span>
+      <span style="font-size: 20px;">??</span>
       <span style="color: #fff; font-weight: 600; font-size: 15px;">Select Port</span>
     </div>
     <div style="padding: 12px; max-height: 250px; overflow-y: auto;">
@@ -1950,7 +1957,7 @@ async function showPortSelectionDialog(): Promise<void> {
       color: #4EC9B0;
       font-size: 12px;
       transition: background 0.15s;
-    ">🔄 Refresh Ports</div>
+    ">?? Refresh Ports</div>
     <div style="padding: 12px 16px; background: #252526; border-top: 1px solid #454545; border-radius: 0 0 8px 8px; display: flex; justify-content: flex-end;">
       <button id="port-dialog-cancel" style="
         padding: 8px 16px;
@@ -2028,11 +2035,11 @@ async function showCLIInfoDialog(): Promise<void> {
   // Loading state
   dialog.innerHTML = `
     <div style="padding: 16px; background: #2d2d2d; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 12px;">
-      <span style="font-size: 20px;">ℹ️</span>
+      <span style="font-size: 20px;">??</span>
       <span style="color: #fff; font-weight: 600; font-size: 16px;">Arduino CLI Information</span>
     </div>
     <div style="padding: 20px; color: #888;">
-      <div style="text-align: center;">⏳ Loading CLI information...</div>
+      <div style="text-align: center;">? Loading CLI information...</div>
     </div>
   `;
   
@@ -2139,14 +2146,14 @@ async function showCLIInfoDialog(): Promise<void> {
   // Update dialog with info
   dialog.innerHTML = `
     <div style="padding: 16px; background: #2d2d2d; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 12px;">
-      <span style="font-size: 20px;">ℹ️</span>
+      <span style="font-size: 20px;">??</span>
       <span style="color: #fff; font-weight: 600; font-size: 16px;">Arduino CLI Information</span>
     </div>
     <div style="padding: 20px;">
       <div style="display: grid; gap: 12px;">
         <div style="display: flex; justify-content: space-between; padding: 10px 14px; background: #252526; border-radius: 4px;">
           <span style="color: #888;">Status:</span>
-          <span style="color: ${versionColor}; font-weight: 500;">${isInstalled ? '✓ Installed' : '✗ Not Installed'}</span>
+          <span style="color: ${versionColor}; font-weight: 500;">${isInstalled ? '? Installed' : '? Not Installed'}</span>
         </div>
         <div style="display: flex; justify-content: space-between; padding: 10px 14px; background: #252526; border-radius: 4px;">
           <span style="color: #888;">Version:</span>
@@ -2172,7 +2179,7 @@ async function showCLIInfoDialog(): Promise<void> {
       ${!isInstalled ? `
         <div style="margin-top: 16px; padding: 12px; background: #5a1d1d; border-radius: 6px; border: 1px solid #f48771;">
           <div style="color: #f48771; font-size: 13px;">
-            ⚠️ Arduino CLI not found. Install it from the Arduino menu when you open an Arduino project.
+            ?? Arduino CLI not found. Install it from the Arduino menu when you open an Arduino project.
           </div>
         </div>
       ` : ''}
@@ -2225,7 +2232,7 @@ async function showUninstallCLIDialog(): Promise<void> {
   
   dialog.innerHTML = `
     <div style="padding: 16px; background: #5a1d1d; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 12px;">
-      <span style="font-size: 20px;">🗑️</span>
+      <span style="font-size: 20px;">???</span>
       <span style="color: #f48771; font-weight: 600; font-size: 16px;">Uninstall Arduino CLI</span>
     </div>
     <div style="padding: 20px;">
@@ -2233,7 +2240,7 @@ async function showUninstallCLIDialog(): Promise<void> {
         Are you sure you want to uninstall Arduino CLI?
       </div>
       <div style="background: #252526; border-radius: 6px; padding: 12px; margin-bottom: 16px;">
-        <div style="color: #f48771; font-weight: 500; margin-bottom: 8px;">⚠️ This will remove:</div>
+        <div style="color: #f48771; font-weight: 500; margin-bottom: 8px;">?? This will remove:</div>
         <ul style="color: #888; margin: 0; padding-left: 20px; line-height: 1.8;">
           <li>Arduino CLI executable</li>
           <li>All installed Arduino cores</li>
@@ -2242,7 +2249,7 @@ async function showUninstallCLIDialog(): Promise<void> {
         </ul>
       </div>
       <div style="color: #888; font-size: 12px;">
-        💡 You can reinstall Arduino CLI anytime from the Arduino menu.
+        ?? You can reinstall Arduino CLI anytime from the Arduino menu.
       </div>
     </div>
     <div style="padding: 16px; background: #252526; border-radius: 0 0 8px 8px; display: flex; justify-content: flex-end; gap: 8px;">
@@ -2262,7 +2269,7 @@ async function showUninstallCLIDialog(): Promise<void> {
         color: #fff;
         font-weight: 500;
         cursor: pointer;
-      ">🗑️ Uninstall</button>
+      ">??? Uninstall</button>
     </div>
   `;
   
@@ -2275,7 +2282,7 @@ async function showUninstallCLIDialog(): Promise<void> {
   dialog.querySelector('#uninstall-confirm')?.addEventListener('click', async () => {
     const confirmBtn = dialog.querySelector('#uninstall-confirm') as HTMLButtonElement;
     confirmBtn.disabled = true;
-    confirmBtn.innerHTML = '⏳ Uninstalling...';
+    confirmBtn.innerHTML = '? Uninstalling...';
     
     try {
       const { invoke } = await import('@tauri-apps/api/core');
@@ -2303,7 +2310,7 @@ async function showUninstallCLIDialog(): Promise<void> {
       // Show progress
       dialog.innerHTML = `
         <div style="padding: 16px; background: #2d2d2d; border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 12px;">
-          <span style="font-size: 20px;">🗑️</span>
+          <span style="font-size: 20px;">???</span>
           <span style="color: #fff; font-weight: 600; font-size: 16px;">Uninstalling Arduino CLI</span>
         </div>
         <div style="padding: 20px;">
@@ -2323,9 +2330,9 @@ async function showUninstallCLIDialog(): Promise<void> {
             command: `del /f "${cliPath}"`, 
             cwd: '.' 
           });
-          log.textContent += '✅ Arduino CLI executable removed\n';
+          log.textContent += '? Arduino CLI executable removed\n';
         } catch (e) {
-          log.textContent += `⚠️ Could not remove executable (may need admin)\n`;
+          log.textContent += `?? Could not remove executable (may need admin)\n`;
         }
       }
       
@@ -2337,14 +2344,14 @@ async function showUninstallCLIDialog(): Promise<void> {
             command: `rmdir /s /q "${arduino15Path}"`, 
             cwd: '.' 
           });
-          log.textContent += '✅ Arduino15 folder removed\n';
+          log.textContent += '? Arduino15 folder removed\n';
         } catch (e) {
-          log.textContent += `⚠️ Could not remove Arduino15 folder\n`;
+          log.textContent += `?? Could not remove Arduino15 folder\n`;
         }
       }
       
-      log.textContent += '\n✅ Uninstall complete!\n';
-      log.textContent += '💡 Restart IDE to complete removal.\n';
+      log.textContent += '\n? Uninstall complete!\n';
+      log.textContent += '?? Restart IDE to complete removal.\n';
       
       // Add close button
       const footer = document.createElement('div');
@@ -2521,7 +2528,7 @@ async function showSerialPlotter(): Promise<void> {
   // Title
   const titleSpan = document.createElement('span');
   titleSpan.style.cssText = 'color:#fff; font-weight:600; font-size:13px;';
-  titleSpan.innerHTML = `📊 Serial Plotter <span style="color:#22c55e; font-size:10px; font-weight:normal; background:rgba(34,197,94,0.15); padding:1px 5px; border-radius:3px; margin-left:6px;">AI</span>`;
+  titleSpan.innerHTML = `?? Serial Plotter <span style="color:#22c55e; font-size:10px; font-weight:normal; background:rgba(34,197,94,0.15); padding:1px 5px; border-radius:3px; margin-left:6px;">AI</span>`;
   header.appendChild(titleSpan);
 
   // Connect button
@@ -2531,7 +2538,7 @@ async function showSerialPlotter(): Promise<void> {
     color: #000; font-weight: 600; font-size: 10px; cursor: pointer;
     transition: all 0.15s; font-family: inherit; margin-left: 4px;
   `;
-  connectBtn.textContent = '⚡ Connect';
+  connectBtn.textContent = '? Connect';
   header.appendChild(connectBtn);
 
   // Status dot
@@ -2547,20 +2554,20 @@ async function showSerialPlotter(): Promise<void> {
   // Port/Baud info
   const infoSpan = document.createElement('span');
   infoSpan.style.cssText = 'color:#666; font-size:11px;';
-  infoSpan.innerHTML = `<span style="color:#4EC9B0;">${currentPort}</span> · ${baudRate}`;
+  infoSpan.innerHTML = `<span style="color:#4EC9B0;">${currentPort}</span> � ${baudRate}`;
   header.appendChild(infoSpan);
 
   // Minimize button
   const minBtn = document.createElement('button');
   minBtn.style.cssText = 'background:none; border:none; color:#888; font-size:14px; cursor:pointer; padding:2px 6px; line-height:1;';
-  minBtn.textContent = '─';
+  minBtn.textContent = '-';
   minBtn.title = 'Minimize';
   header.appendChild(minBtn);
 
   // Close button
   const closeBtn = document.createElement('button');
   closeBtn.style.cssText = 'background:none; border:none; color:#888; font-size:16px; cursor:pointer; padding:2px 6px; line-height:1;';
-  closeBtn.textContent = '×';
+  closeBtn.textContent = '�';
   closeBtn.title = 'Close';
   closeBtn.onmouseenter = () => { closeBtn.style.color = '#ff5555'; closeBtn.style.background = 'rgba(255,85,85,0.15)'; closeBtn.style.borderRadius = '3px'; };
   closeBtn.onmouseleave = () => { closeBtn.style.color = '#888'; closeBtn.style.background = 'none'; };
@@ -2629,7 +2636,7 @@ async function showSerialPlotter(): Promise<void> {
       panel.style.height = savedHeight;
       panel.style.resize = 'both';
       plotterContainer.style.display = 'flex';
-      minBtn.textContent = '─';
+      minBtn.textContent = '-';
       minBtn.title = 'Minimize';
       isMinimized = false;
       setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
@@ -2638,7 +2645,7 @@ async function showSerialPlotter(): Promise<void> {
       plotterContainer.style.display = 'none';
       panel.style.height = 'auto';
       panel.style.resize = 'none';
-      minBtn.textContent = '□';
+      minBtn.textContent = '?';
       minBtn.title = 'Restore';
       isMinimized = true;
     }
@@ -2688,7 +2695,7 @@ async function showSerialPlotter(): Promise<void> {
       }
 
       isConnected = true;
-      connectBtn.textContent = '⏹ Disconnect';
+      connectBtn.textContent = '? Disconnect';
       connectBtn.style.background = '#d32f2f';
       connectBtn.style.color = '#fff';
       statusDot.style.background = '#22c55e';
@@ -2698,13 +2705,13 @@ async function showSerialPlotter(): Promise<void> {
       console.error('[PlotterAI] Connection failed:', e);
       if (plotterUnlisten) { plotterUnlisten(); plotterUnlisten = null; }
       if (activePlotter) activePlotter.startDemo();
-      showNotification(`Could not connect to ${currentPort} — running demo mode. Close Arduino IDE or check port.`, 'info');
+      showNotification(`Could not connect to ${currentPort} � running demo mode. Close Arduino IDE or check port.`, 'info');
     }
   }
 
   function setDisconnected() {
     isConnected = false;
-    connectBtn.textContent = '⚡ Connect';
+    connectBtn.textContent = '? Connect';
     connectBtn.style.background = '#4EC9B0';
     connectBtn.style.color = '#000';
     statusDot.style.background = '#555';
@@ -2808,7 +2815,7 @@ async function showSerialMonitor(): Promise<void> {
     gap: 12px;
   `;
   header.innerHTML = `
-    <span style="font-size: 18px;">🔌</span>
+    <span style="font-size: 18px;">??</span>
     <span style="color: #fff; font-weight: 600; font-size: 14px;">Serial Monitor <span style="color: #f48771; font-size: 11px; font-weight: normal; background: #5a1d1d; padding: 2px 6px; border-radius: 3px; margin-left: 8px;">LIVE</span></span>
     <div style="flex: 1;"></div>
     <span style="color: #888; font-size: 12px;">Port: <span style="color: #4EC9B0;">${currentPort}</span></span>
@@ -2821,7 +2828,7 @@ async function showSerialMonitor(): Promise<void> {
       cursor: pointer;
       padding: 4px 8px;
       margin-left: 10px;
-    ">×</button>
+    ">�</button>
   `;
   dialog.appendChild(header);
 
@@ -2867,7 +2874,7 @@ async function showSerialMonitor(): Promise<void> {
       color: #fff;
       font-size: 11px;
       cursor: pointer;
-    ">🖥️ PuTTY</button>
+    ">??? PuTTY</button>
     <button id="monitor-arduino" style="
       padding: 4px 10px;
       background: #00979D;
@@ -2876,7 +2883,7 @@ async function showSerialMonitor(): Promise<void> {
       color: #fff;
       font-size: 11px;
       cursor: pointer;
-    ">📟 Arduino IDE</button>
+    ">?? Arduino IDE</button>
     <button id="monitor-terminal" style="
       padding: 4px 10px;
       background: #3c3c3c;
@@ -2885,7 +2892,7 @@ async function showSerialMonitor(): Promise<void> {
       color: #ccc;
       font-size: 11px;
       cursor: pointer;
-    ">⌨️ Terminal</button>
+    ">?? Terminal</button>
   `;
   dialog.appendChild(toolsBar);
   
@@ -2905,19 +2912,19 @@ async function showSerialMonitor(): Promise<void> {
     white-space: pre-wrap;
     word-break: break-all;
   `;
-  outputArea.innerHTML = `<span style="color: #666;">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-<span style="color: #FF6B6B; font-weight: bold; font-size: 14px;">  ⚠️  Serial Monitor - Real-time Mode</span>
-<span style="color: #666;">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+  outputArea.innerHTML = `<span style="color: #666;">?????????????????????????????????????????????????????</span>
+<span style="color: #FF6B6B; font-weight: bold; font-size: 14px;">  ??  Serial Monitor - Real-time Mode</span>
+<span style="color: #666;">?????????????????????????????????????????????????????</span>
 
 <span style="color: #888;">Port:</span> <span style="color: #4EC9B0;">${currentPort}</span> <span style="color: #888;">@</span> <span style="color: #4EC9B0;">${baudRate}</span> <span style="color: #888;">baud</span>
 <span style="color: #888;">Mode: Real-time event streaming (~60fps)</span>
 
-<span style="color: #DCDCAA;">💡 For real-time serial monitoring, use the buttons above:</span>
-<span style="color: #888;">   • PuTTY - Fast, lightweight terminal</span>
-<span style="color: #888;">   • Arduino IDE - Official serial monitor</span>
-<span style="color: #888;">   • Terminal - PowerShell serial reader</span>
+<span style="color: #DCDCAA;">?? For real-time serial monitoring, use the buttons above:</span>
+<span style="color: #888;">   � PuTTY - Fast, lightweight terminal</span>
+<span style="color: #888;">   � Arduino IDE - Official serial monitor</span>
+<span style="color: #888;">   � Terminal - PowerShell serial reader</span>
 
-<span style="color: #569CD6;">Click [▶ Start] to begin monitoring...</span>
+<span style="color: #569CD6;">Click [? Start] to begin monitoring...</span>
 `;
   dialog.appendChild(outputArea);
 
@@ -2993,7 +3000,7 @@ async function showSerialMonitor(): Promise<void> {
       color: #000;
       font-weight: 500;
       cursor: pointer;
-    ">▶ Start</button>
+    ">? Start</button>
     <button id="monitor-stop" style="
       padding: 8px 16px;
       background: #d32f2f;
@@ -3003,7 +3010,7 @@ async function showSerialMonitor(): Promise<void> {
       font-weight: 500;
       cursor: pointer;
       display: none;
-    ">⏹ Stop</button>
+    ">? Stop</button>
     <button id="monitor-clear" style="
       padding: 8px 16px;
       background: #3c3c3c;
@@ -3251,11 +3258,11 @@ async function showSerialMonitor(): Promise<void> {
   document.getElementById('monitor-clear')?.addEventListener('click', () => {
     const output = document.getElementById('monitor-output');
     if (output) {
-      output.innerHTML = `<span style="color: #666;">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
-<span style="color: #FF6B6B; font-weight: bold; font-size: 14px;">  ⚠️  Serial Monitor - Real-time Mode</span>
-<span style="color: #666;">━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+      output.innerHTML = `<span style="color: #666;">?????????????????????????????????????????????????????</span>
+<span style="color: #FF6B6B; font-weight: bold; font-size: 14px;">  ??  Serial Monitor - Real-time Mode</span>
+<span style="color: #666;">?????????????????????????????????????????????????????</span>
 
-<span style="color: #888;">Cleared. Click [▶ Start] to begin monitoring...</span>
+<span style="color: #888;">Cleared. Click [? Start] to begin monitoring...</span>
 `;
     }
   });
@@ -3275,9 +3282,9 @@ async function showSerialMonitor(): Promise<void> {
       // Launch PuTTY with serial settings
       const cmd = `start "" "putty" -serial ${currentPort} -sercfg ${baudRate},8,n,1,N`;
       await invoke<any>('run_command', { command: cmd, cwd: '.' });
-      showNotification(`🖥️ Launching PuTTY for ${currentPort}...`, 'info');
+      showNotification(`??? Launching PuTTY for ${currentPort}...`, 'info');
     } catch (e) {
-      showNotification('💡 Install PuTTY: https://putty.org', 'info');
+      showNotification('?? Install PuTTY: https://putty.org', 'info');
     }
   });
   
@@ -3286,9 +3293,9 @@ async function showSerialMonitor(): Promise<void> {
       const { invoke } = await import('@tauri-apps/api/core');
       // Try Arduino IDE 2.x
       await invoke<any>('run_command', { command: 'start "" "arduino-ide"', cwd: '.' });
-      showNotification('📟 Opening Arduino IDE - use Tools → Serial Monitor', 'info');
+      showNotification('?? Opening Arduino IDE - use Tools ? Serial Monitor', 'info');
     } catch (e) {
-      showNotification('💡 Open Arduino IDE → Tools → Serial Monitor', 'info');
+      showNotification('?? Open Arduino IDE ? Tools ? Serial Monitor', 'info');
     }
   });
   
@@ -3308,9 +3315,9 @@ while ($true) {
 }`;
       const cmd = `start powershell -NoExit -Command "${script.replace(/\n/g, '; ')}"`;
       await invoke<any>('run_command', { command: cmd, cwd: '.' });
-      showNotification('⌨️ Opening PowerShell serial terminal...', 'info');
+      showNotification('?? Opening PowerShell serial terminal...', 'info');
     } catch (e) {
-      showNotification(`💡 Use PowerShell: [System.IO.Ports.SerialPort]::new("${currentPort}",${baudRate})`, 'info');
+      showNotification(`?? Use PowerShell: [System.IO.Ports.SerialPort]::new("${currentPort}",${baudRate})`, 'info');
     }
   });
   
@@ -3354,7 +3361,7 @@ async function createDropdownMenu(buildSystem: any): Promise<HTMLElement> {
   cachedScripts = scripts;
   
   const isArduino = buildSystem?.isEmbedded;
-  const itemCount = scripts ? Object.keys(scripts).filter(k => !k.startsWith('──')).length : 0;
+  const itemCount = scripts ? Object.keys(scripts).filter(k => !k.startsWith('--')).length : 0;
   const countLabel = isArduino ? 'files' : 'scripts';
   
   // Header (compact)
@@ -3459,7 +3466,7 @@ async function createDropdownMenu(buildSystem: any): Promise<HTMLElement> {
     align-items: center;
     gap: 8px;
   `;
-  infoItem.innerHTML = '<span style="font-size: 11px; width: 14px; text-align: center;">ⓘ</span><span>Build System Info</span>';
+  infoItem.innerHTML = '<span style="font-size: 11px; width: 14px; text-align: center;">?</span><span>Build System Info</span>';
   
   infoItem.addEventListener('mouseenter', () => { infoItem.style.background = '#37373d'; infoItem.style.color = '#ccc'; });
   infoItem.addEventListener('mouseleave', () => { infoItem.style.background = 'transparent'; infoItem.style.color = '#888'; });
@@ -3480,7 +3487,7 @@ async function createDropdownMenu(buildSystem: any): Promise<HTMLElement> {
     menu.insertBefore(sep, infoItem);
     const androidBtn = document.createElement('div');
     androidBtn.style.cssText = 'padding: 6px 12px; cursor: pointer; color: #4FC3F7; font-size: 12px; border-radius: 3px; transition: background 0.1s; display: flex; align-items: center; gap: 8px;';
-    androidBtn.innerHTML = '<span style="font-size: 13px;">📱</span><span>Android Panel</span><span style="color: #666; font-size: 10px; margin-left: auto;">Ctrl+Shift+D</span>';
+    androidBtn.innerHTML = '<span style="font-size: 13px;">??</span><span>Android Panel</span><span style="color: #666; font-size: 10px; margin-left: auto;">Ctrl+Shift+D</span>';
     androidBtn.addEventListener('mouseenter', () => { androidBtn.style.background = '#37373d'; });
     androidBtn.addEventListener('mouseleave', () => { androidBtn.style.background = 'transparent'; });
     androidBtn.addEventListener('click', (e: MouseEvent) => {
@@ -3500,27 +3507,27 @@ async function createDropdownMenu(buildSystem: any): Promise<HTMLElement> {
 
 
 export async function addBuildSystemIndicator(): Promise<void> {
-  // ✅ NEW: Prevent concurrent execution
+  // ? NEW: Prevent concurrent execution
   if (isRefreshing) {
     console.log('[BuildSystem] Already refreshing, skipping...');
     return;
   }
   
-  // ✅ NEW: Check if indicator already exists
+  // ? NEW: Check if indicator already exists
   const existing = document.getElementById('build-system-menu-item');
   if (existing) {
     console.log('[BuildSystem] Indicator already exists, removing first...');
   }
   
   isRefreshing = true;
-  console.log('[BuildSystem] 📋 Adding to menu bar...');
+  console.log('[BuildSystem] ?? Adding to menu bar...');
   
   try {
     removeBuildSystemIndicator();
   
   const projectPath = getActualProjectPath();
   if (!projectPath) {
-    console.log('[BuildSystem] ⚠️ No project path found');
+    console.log('[BuildSystem] ?? No project path found');
     isRefreshing = false;
     return;
   }
@@ -3528,19 +3535,19 @@ export async function addBuildSystemIndicator(): Promise<void> {
   
   const buildSystem = await detectBuildSystem(projectPath);
   if (!buildSystem) {
-    console.log('[BuildSystem] ⚠️ No build system detected for:', projectPath);
+    console.log('[BuildSystem] ?? No build system detected for:', projectPath);
     isRefreshing = false;
     return;
   }
-  console.log('[BuildSystem] ✅ Detected build system:', buildSystem.displayName, buildSystem.isEmbedded ? '(embedded)' : '');
+  console.log('[BuildSystem] ? Detected build system:', buildSystem.displayName, buildSystem.isEmbedded ? '(embedded)' : '');
   
   const menuBar = document.querySelector('.menu-bar') as HTMLElement;
   if (!menuBar) {
-    console.log('[BuildSystem] ⚠️ Menu bar not found in DOM');
+    console.log('[BuildSystem] ?? Menu bar not found in DOM');
     isRefreshing = false;
     return;
   }
-  console.log('[BuildSystem] ✅ Menu bar found');
+  console.log('[BuildSystem] ? Menu bar found');
   
   // Find the Run button
   const runButton = menuBar.querySelector('[data-menu="run"]') || 
@@ -3549,7 +3556,7 @@ export async function addBuildSystemIndicator(): Promise<void> {
                     );
   
   const scripts = await getProjectScripts();
-  const scriptCount = scripts ? Object.keys(scripts).filter(k => !k.startsWith('──')).length : 0;
+  const scriptCount = scripts ? Object.keys(scripts).filter(k => !k.startsWith('--')).length : 0;
   const countLabel = buildSystem.isEmbedded ? 'files' : 'scripts';
   
   // Create menu button - SAME STYLE AS OTHER MENU ITEMS
@@ -3582,7 +3589,7 @@ export async function addBuildSystemIndicator(): Promise<void> {
     ${iconHtml}
     <span style="color: #4EC9B0;">${buildSystem.displayName}</span>
     <span style="color: #888; font-size: 11px;">(${scriptCount} ${countLabel})</span>
-    <span style="color: #888; font-size: 8px; margin-left: 2px;">▼</span>
+    <span style="color: #888; font-size: 8px; margin-left: 2px;">?</span>
   `;
   
   menuButton.title = `${buildSystem.displayName} - ${scriptCount} ${countLabel}`;
@@ -3635,7 +3642,7 @@ export async function addBuildSystemIndicator(): Promise<void> {
   
   console.log('[BuildSystem] Added to menu bar');
   } finally {
-    // ✅ NEW: Always reset the mutex
+    // ? NEW: Always reset the mutex
     isRefreshing = false;
   }
 }
@@ -3666,11 +3673,11 @@ export async function onProjectChanged(projectPath: string | null, forceRefresh:
   cachedScripts = null; // clear stale cache on project switch
   // Skip only if same path AND not forcing refresh
   if (projectPath === lastProjectPath && !forceRefresh) {
-    console.log('🔄 [BuildSystemUI] Same project path, skipping refresh');
+    console.log('?? [BuildSystemUI] Same project path, skipping refresh');
     return;
   }
   
-  console.log('🔄 [BuildSystemUI] onProjectChanged:', projectPath);
+  console.log('?? [BuildSystemUI] onProjectChanged:', projectPath);
   lastProjectPath = projectPath;
   cachedScripts = null;
   
@@ -3686,11 +3693,11 @@ export async function onProjectChanged(projectPath: string | null, forceRefresh:
  * Setup listeners
  */
 function setupProjectChangeListeners(): void {
-  console.log('🔄 [BuildSystemUI] Setting up project change listeners...');
+  console.log('?? [BuildSystemUI] Setting up project change listeners...');
   
   // Listen for project-opened
   window.addEventListener('project-opened', async (e: Event) => {
-    console.log('🔄 [BuildSystemUI] project-opened event');
+    console.log('?? [BuildSystemUI] project-opened event');
     cachedScripts = null; // Clear cache
     await onProjectChanged((e as CustomEvent).detail?.path || (window as any).currentFolderPath);
   });
@@ -3703,7 +3710,7 @@ function setupProjectChangeListeners(): void {
   
   // Listen for project-created - Force refresh when new project is created
   document.addEventListener('project-created', async (e: Event) => {
-    console.log('🔄 [BuildSystemUI] project-created event - forcing refresh');
+    console.log('?? [BuildSystemUI] project-created event - forcing refresh');
     cachedScripts = null;
     lastProjectPath = null;
     // Single call - forceRefreshBuildSystem has debouncing built-in
@@ -3712,27 +3719,27 @@ function setupProjectChangeListeners(): void {
   
   // Listen for folder-opened
   document.addEventListener('folder-opened', async (e: Event) => {
-    console.log('🔄 [BuildSystemUI] folder-opened event');
+    console.log('?? [BuildSystemUI] folder-opened event');
     cachedScripts = null;
     const newPath = (e as CustomEvent).detail?.path || (window as any).currentFolderPath;
     await onProjectChanged(newPath);
   });
   
-  // ✅ NEW: Listen for project-path-changed (dispatched by fileExplorer.ts)
+  // ? NEW: Listen for project-path-changed (dispatched by fileExplorer.ts)
   document.addEventListener('project-path-changed', async (e: Event) => {
-    console.log('🔄 [BuildSystemUI] project-path-changed event');
+    console.log('?? [BuildSystemUI] project-path-changed event');
     const newPath = (e as CustomEvent).detail?.path;
     if (newPath && newPath !== lastProjectPath) {
-      console.log('🔄 [BuildSystemUI] Path changed, forcing refresh');
+      console.log('?? [BuildSystemUI] Path changed, forcing refresh');
       cachedScripts = null;
       lastProjectPath = null;
       setTimeout(() => forceRefreshBuildSystem(), 100);
     }
   });
   
-  // ✅ NEW: Listen for folder-changed (dispatched by fileExplorer.ts)
+  // ? NEW: Listen for folder-changed (dispatched by fileExplorer.ts)
   window.addEventListener('folder-changed', async (e: Event) => {
-    console.log('🔄 [BuildSystemUI] folder-changed event');
+    console.log('?? [BuildSystemUI] folder-changed event');
     const newPath = (e as CustomEvent).detail?.path;
     if (newPath && newPath !== lastProjectPath) {
       cachedScripts = null;
@@ -3746,21 +3753,21 @@ function setupProjectChangeListeners(): void {
   setInterval(async () => {
     const currentPath = (window as any).currentFolderPath || localStorage.getItem('currentProjectPath');
     if (currentPath !== lastCheckedPath) {
-      console.log('🔄 [BuildSystemUI] Path changed:', lastCheckedPath, '->', currentPath);
+      console.log('?? [BuildSystemUI] Path changed:', lastCheckedPath, '->', currentPath);
       lastCheckedPath = currentPath;
       cachedScripts = null; // Clear cache on path change
       await onProjectChanged(currentPath || null, true);
     }
   }, 1000); // Check every 1 second
   
-  // ✅ NEW: Watch for project header changes in file explorer
+  // ? NEW: Watch for project header changes in file explorer
   const setupProjectHeaderObserver = () => {
     const projectHeader = document.querySelector('.project-header, .fcm-header, .fcm-header-name');
     if (projectHeader) {
       const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
           if (mutation.type === 'characterData' || mutation.type === 'childList') {
-            console.log('🔄 [BuildSystemUI] Project header changed, refreshing...');
+            console.log('?? [BuildSystemUI] Project header changed, refreshing...');
             setTimeout(() => forceRefreshBuildSystem(), 500);
           }
         });
@@ -3770,7 +3777,7 @@ function setupProjectChangeListeners(): void {
         childList: true, 
         subtree: true 
       });
-      console.log('🔄 [BuildSystemUI] ✅ Project header observer attached');
+      console.log('?? [BuildSystemUI] ? Project header observer attached');
     } else {
       // Retry later if header not found
       setTimeout(setupProjectHeaderObserver, 2000);
@@ -3778,22 +3785,22 @@ function setupProjectChangeListeners(): void {
   };
   setTimeout(setupProjectHeaderObserver, 2000);
   
-  console.log('🔄 [BuildSystemUI] ✅ Project change listeners ready');
+  console.log('?? [BuildSystemUI] ? Project change listeners ready');
 }
 
 /**
  * Force refresh - clears everything and rebuilds
  */
 async function forceRefreshBuildSystem(): Promise<void> {
-  // ✅ NEW: Debounce - cancel previous pending refresh
+  // ? NEW: Debounce - cancel previous pending refresh
   if (refreshDebounceTimer) {
     clearTimeout(refreshDebounceTimer);
     refreshDebounceTimer = null;
   }
   
-  // ✅ NEW: Skip if already refreshing
+  // ? NEW: Skip if already refreshing
   if (isRefreshing) {
-    console.log('🔄 [BuildSystemUI] Already refreshing, debouncing...');
+    console.log('?? [BuildSystemUI] Already refreshing, debouncing...');
     return new Promise(resolve => {
       refreshDebounceTimer = window.setTimeout(async () => {
         await forceRefreshBuildSystem();
@@ -3802,7 +3809,7 @@ async function forceRefreshBuildSystem(): Promise<void> {
     });
   }
   
-  console.log('🔄 [BuildSystemUI] Force refresh triggered');
+  console.log('?? [BuildSystemUI] Force refresh triggered');
   
   // Clear all caches
   cachedScripts = null;
@@ -3814,7 +3821,7 @@ async function forceRefreshBuildSystem(): Promise<void> {
     dropdownMenu = null;
   }
   
-  // ✅ NEW: Remove ALL existing menu items (more aggressive)
+  // ? NEW: Remove ALL existing menu items (more aggressive)
   document.querySelectorAll('#build-system-menu-item').forEach(el => el.remove());
   document.querySelectorAll('#build-system-dropdown-menu').forEach(el => el.remove());
   document.querySelectorAll('.build-system-dropdown, #build-system-indicator').forEach(el => el.remove());
@@ -3828,14 +3835,14 @@ async function forceRefreshBuildSystem(): Promise<void> {
     await onProjectChanged(currentProject, true); // Force refresh
   }
   
-  console.log('🔄 [BuildSystemUI] ✅ Force refresh complete');
+  console.log('?? [BuildSystemUI] ? Force refresh complete');
 }
 
 /**
  * Initialize
  */
 export async function initializeBuildSystemUI(): Promise<void> {
-  console.log('[BuildSystem] 🚀 Initializing Build System UI...');
+  console.log('[BuildSystem] ?? Initializing Build System UI...');
   
   // Wait for DOM to be ready
   await new Promise(resolve => setTimeout(resolve, 2000));
@@ -3861,7 +3868,7 @@ export async function initializeBuildSystemUI(): Promise<void> {
       console.log('[BuildSystem] No project detected yet');
     }
     
-    console.log('[BuildSystem] ✅ Ready!');
+    console.log('[BuildSystem] ? Ready!');
     
     // Add global function for manual refresh
     (window as any).refreshArduinoMenu = async () => {
@@ -3870,15 +3877,15 @@ export async function initializeBuildSystemUI(): Promise<void> {
       lastProjectPath = null;
       await addBuildSystemIndicator();
     };
-    console.log('[BuildSystem] 💡 Tip: Call window.refreshArduinoMenu() to manually refresh');
+    console.log('[BuildSystem] ?? Tip: Call window.refreshArduinoMenu() to manually refresh');
     
   } catch (error) {
-    console.error('[BuildSystem] ❌ Error during initialization:', error);
+    console.error('[BuildSystem] ? Error during initialization:', error);
   }
 }
 
 /**
- * ✅ NEW: Setup Run button handler to work without file open
+ * ? NEW: Setup Run button handler to work without file open
  * Also adds Stop button for terminating running processes
  */
 function setupRunButtonHandler(): void {
@@ -3904,7 +3911,7 @@ function setupRunButtonHandler(): void {
     return;
   }
   
-  console.log('[BuildSystem] ✅ Found Run button:', runButton.className);
+  console.log('[BuildSystem] ? Found Run button:', runButton.className);
   
   // ========================================
   // CREATE STOP BUTTON
@@ -3917,7 +3924,7 @@ function setupRunButtonHandler(): void {
   const stopButton = document.createElement('button');
   stopButton.id = 'stop-process-button';
   stopButton.className = 'stop-button toolbar-button';
-  stopButton.innerHTML = '⏹ Stop';
+  stopButton.innerHTML = '? Stop';
   stopButton.title = 'Stop running process (Shift+F5)';
   stopButton.style.cssText = `
     display: none;
@@ -3966,20 +3973,20 @@ function setupRunButtonHandler(): void {
   window.addEventListener('process-started', () => {
     stopButton.style.display = 'inline-flex';
     (runButton as HTMLElement).style.opacity = '0.5';
-    console.log('[BuildSystem] 🟢 Process started - Stop button shown');
+    console.log('[BuildSystem] ?? Process started - Stop button shown');
   });
   
   // Hide Stop button when process ends
   window.addEventListener('process-ended', () => {
     stopButton.style.display = 'none';
     (runButton as HTMLElement).style.opacity = '1';
-    console.log('[BuildSystem] 🔴 Process ended - Stop button hidden');
+    console.log('[BuildSystem] ?? Process ended - Stop button hidden');
   });
   
   window.addEventListener('process-stopped', () => {
     stopButton.style.display = 'none';
     (runButton as HTMLElement).style.opacity = '1';
-    console.log('[BuildSystem] ⏹ Process stopped - Stop button hidden');
+    console.log('[BuildSystem] ? Process stopped - Stop button hidden');
   });
   
   // Check initial state
@@ -4007,7 +4014,7 @@ function setupRunButtonHandler(): void {
       return;
     }
     
-    // ✅ FIX: Check if Arduino project and use proper upload with port replacement
+    // ? FIX: Check if Arduino project and use proper upload with port replacement
     if (bs?.isEmbedded) {
       console.log('[BuildSystem] Arduino project detected - using handleArduinoMenuAction');
       e.preventDefault();
@@ -4062,7 +4069,7 @@ function setupRunButtonHandler(): void {
       e.preventDefault();
       console.log('[BuildSystem] F5 pressed - running project...');
       
-      // ✅ FIX: Check if Arduino project and use proper upload
+      // ? FIX: Check if Arduino project and use proper upload
       if (bs?.isEmbedded) {
         console.log('[BuildSystem] Arduino project - using handleArduinoMenuAction');
         await handleArduinoMenuAction('upload', bs);
@@ -4090,7 +4097,7 @@ function setupRunButtonHandler(): void {
     console.log('[BuildSystem] runProjectFromMenu called');
     const bs = (window as any).buildSystem;
     
-    // ✅ FIX: Check if Arduino project
+    // ? FIX: Check if Arduino project
     if (bs?.isEmbedded) {
       await handleArduinoMenuAction('upload', bs);
     } else if (bs?.runProject) {
@@ -4106,8 +4113,8 @@ function setupRunButtonHandler(): void {
     }
   };
   
-  console.log('[BuildSystem] ✅ Run/Stop buttons setup complete');
-  console.log('[BuildSystem] 💡 F5 = Run | Shift+F5 = Stop | Escape = Stop');
+  console.log('[BuildSystem] ? Run/Stop buttons setup complete');
+  console.log('[BuildSystem] ?? F5 = Run | Shift+F5 = Stop | Escape = Stop');
 }
 
 /**
@@ -4131,11 +4138,11 @@ if (typeof window !== 'undefined') {
     getProjectScripts,
     runNpmScript,
     showBuildInfoDialog,
-    setupRunButtonHandler // ✅ NEW
+    setupRunButtonHandler // ? NEW
   };
   
-  console.log('[BuildSystemUI] ✅ window.__buildSystemUI ready');
-  console.log('[BuildSystemUI] 🔄 Use window.__buildSystemUI.forceRefreshBuildSystem() to manually refresh');
+  console.log('[BuildSystemUI] ? window.__buildSystemUI ready');
+  console.log('[BuildSystemUI] ?? Use window.__buildSystemUI.forceRefreshBuildSystem() to manually refresh');
   
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => setTimeout(initializeBuildSystemUI, 3500));
