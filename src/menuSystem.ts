@@ -1,4 +1,4 @@
-﻿// menuSystem.ts - Menu System and File Operations
+// menuSystem.ts - Menu System and File Operations
 // At the top of menuSystem.ts, add import
 import { markFileAsSaved, markFileAsModified, renderFileTree as renderFileTreeIDE } from './ide/fileExplorer/fileTreeRenderer';
 import { tabManager } from './editor/tabManager';
@@ -22,7 +22,7 @@ import {
 import { toggleCameraPanel } from './ide/camera/cameraManager';
 
 // ============================================================================
-// ⚡ PERFORMANCE FIX: Folder filtering configuration
+// ? PERFORMANCE FIX: Folder filtering configuration
 // ============================================================================
 
 // Folders to COMPLETELY HIDE (never show, never recurse)
@@ -73,7 +73,7 @@ let projectActionTimeout: number | null = null;
 const actionDebounce = new Map<string, number>();
 let currentProjectPath = '';
 
-// ✅ Menu initialization flags - prevent duplicate menu creation
+// ? Menu initialization flags - prevent duplicate menu creation
 let fileMenuInitialized = false;
 let projectMenuInitialized = false;
 let viewMenuInitialized = false;
@@ -210,7 +210,7 @@ export function cleanupMenus(): void {
   // Remove ALL existing submenus to prevent duplicates
   document.querySelectorAll('.menu-submenu').forEach(el => el.remove());
   
-  // ✅ Reset menu initialization flags (allows re-creation after cleanup)
+  // ? Reset menu initialization flags (allows re-creation after cleanup)
   fileMenuInitialized = false;
   projectMenuInitialized = false;
   viewMenuInitialized = false;
@@ -226,7 +226,7 @@ export function cleanupMenus(): void {
   // Clear debounce map
   actionDebounce.clear();
   
-  console.log('✅ Cleaned up all existing menus and reset initialization flags');
+  console.log('? Cleaned up all existing menus and reset initialization flags');
 }
 
 /**
@@ -235,7 +235,7 @@ export function cleanupMenus(): void {
 function removeDuplicateMenus(menuId: string): void {
   const existingMenus = document.querySelectorAll(`#${menuId}`);
   if (existingMenus.length > 1) {
-    console.warn(`⚠️ Found ${existingMenus.length} duplicate menus with ID: ${menuId}, removing extras`);
+    console.warn(`?? Found ${existingMenus.length} duplicate menus with ID: ${menuId}, removing extras`);
     // Keep only the last one
     for (let i = 0; i < existingMenus.length - 1; i++) {
       existingMenus[i].remove();
@@ -245,10 +245,10 @@ function removeDuplicateMenus(menuId: string): void {
 
 /**
  * COMPLETE FILE MENU SETUP - INTEGRATED SOLUTION
- * ✅ FIXED: Singleton pattern - only creates menu once
+ * ? FIXED: Singleton pattern - only creates menu once
  */
 export function setupCompleteFileMenu(): void {
-  // ✅ SINGLETON: Prevent multiple initializations
+  // ? SINGLETON: Prevent multiple initializations
   if (fileMenuInitialized) {
     console.log('File menu already initialized, skipping...');
     return;
@@ -278,7 +278,7 @@ export function setupCompleteFileMenu(): void {
     return;
   }
   
-  // ✅ CLEANUP: Remove any stale File menu items (shouldn't exist, but just in case)
+  // ? CLEANUP: Remove any stale File menu items (shouldn't exist, but just in case)
   menuBar.querySelectorAll('.menu-item').forEach(item => {
     if (item.textContent?.trim() === 'File') {
       item.remove();
@@ -445,12 +445,12 @@ export function setupCompleteFileMenu(): void {
     
     console.log('File menu clicked');
     
-    // ✅ CRITICAL FIX: Hide the OLD menu-dropdown that causes shadow
+    // ? CRITICAL FIX: Hide the OLD menu-dropdown that causes shadow
     document.querySelectorAll('.menu-dropdown').forEach(el => {
       (el as HTMLElement).style.display = 'none';
     });
     
-    // ✅ CLEANUP: Remove any leftover overlays that might cause shadows
+    // ? CLEANUP: Remove any leftover overlays that might cause shadows
     document.querySelectorAll('.project-selector-overlay').forEach(el => {
       console.log('Removing leftover .project-selector-overlay');
       el.remove();
@@ -462,7 +462,7 @@ export function setupCompleteFileMenu(): void {
       }
     });
     
-    // ✅ AGGRESSIVE FIX: Remove ALL duplicate file-submenu-complete elements first
+    // ? AGGRESSIVE FIX: Remove ALL duplicate file-submenu-complete elements first
     const allFileSubmenus = document.querySelectorAll('#file-submenu-complete');
     console.log(`Found ${allFileSubmenus.length} file submenus`);
     if (allFileSubmenus.length > 1) {
@@ -501,17 +501,17 @@ export function setupCompleteFileMenu(): void {
     fileMenuItem.style.backgroundColor = 'transparent';
   });
   
-  // ✅ Mark as initialized to prevent duplicate creation
+  // ? Mark as initialized to prevent duplicate creation
   fileMenuInitialized = true;
   console.log('Complete File menu setup finished');
 }
 
 /**
  * Setup Project Menu - Fixed to prevent duplicate actions
- * ✅ FIXED: Singleton pattern
+ * ? FIXED: Singleton pattern
  */
 export function setupProjectMenu(): void {
-  // ✅ SINGLETON: Prevent multiple initializations
+  // ? SINGLETON: Prevent multiple initializations
   if (projectMenuInitialized) {
     console.log('Project menu already initialized, skipping...');
     return;
@@ -536,7 +536,7 @@ export function setupProjectMenu(): void {
     return;
   }
   
-  // ✅ CRITICAL: Remove ALL existing project submenus first
+  // ? CRITICAL: Remove ALL existing project submenus first
   document.querySelectorAll('#project-submenu').forEach(el => el.remove());
   document.querySelectorAll('.menu-submenu[data-menu-type="project"]').forEach(el => el.remove());
   
@@ -656,17 +656,17 @@ export function setupProjectMenu(): void {
     projectSubmenu.style.display = 'block';
   });
   
-  // ✅ Mark as initialized
+  // ? Mark as initialized
   projectMenuInitialized = true;
   console.log('Project menu setup complete');
 }
 
 /**
  * Enhanced View Menu Setup with Visual Indicators (FIXED - Single instance)
- * ✅ FIXED: Singleton pattern
+ * ? FIXED: Singleton pattern
  */
 export function setupEnhancedViewMenu(): void {
-  // ✅ SINGLETON: Prevent multiple initializations
+  // ? SINGLETON: Prevent multiple initializations
   if (viewMenuInitialized) {
     console.log('View menu already initialized, skipping...');
     return;
@@ -894,7 +894,7 @@ export function setupEnhancedViewMenu(): void {
     viewMenuItem.style.backgroundColor = 'transparent';
   });
   
-  // ✅ Mark as initialized
+  // ? Mark as initialized
   viewMenuInitialized = true;
   console.log('Enhanced View menu setup complete');
 }
@@ -1031,8 +1031,11 @@ async function handleViewMenuAction(action: string): Promise<void> {
         // Switch to terminal tab in explorer panel
         const termTab = document.querySelector('[data-tab="terminal"]') as HTMLElement;
         if (termTab) {
-          termTab.click();
-          console.log('[X02] showTerminal action: terminal tab activated.');
+          const alreadyActive = termTab.classList.contains('active');
+          if (!alreadyActive) {
+            termTab.click();
+            console.log('[X02] showTerminal action: terminal tab activated.');
+          }
         } else {
           // Fallback: fire the forceTerminalPanel if available
           if (typeof (window as any).forceTerminalPanel === 'function') {
@@ -1076,7 +1079,7 @@ function updateViewMenuIndicators(): void {
                        window.getComputedStyle(panel).display !== 'none';
       
       if (checkmark) {
-        checkmark.textContent = isVisible ? '✓' : '';
+        checkmark.textContent = isVisible ? '?' : '';
       }
     }
   });
@@ -1203,20 +1206,20 @@ async function handleProjectMenuAction(action: string): Promise<void> {
       break;
       
 case 'project-new':
-  console.log('🚀 Opening modern project modal...');
+  console.log('?? Opening modern project modal...');
   
   // Use new modern modal if available
   if ((window as any).showModernProjectModal) {
     (window as any).showModernProjectModal();
   } else {
     // Fallback: try to load it dynamically
-    console.warn('⚠️ Modern modal not loaded, loading now...');
+    console.warn('?? Modern modal not loaded, loading now...');
     
     import('./ide/projectCreation/ui/modernModal').then(module => {
       const modal = new module.ModernProjectModal();
       modal.show();
     }).catch(err => {
-      console.error('❌ Failed to load modern modal:', err);
+      console.error('? Failed to load modern modal:', err);
       alert('Failed to open project creation dialog');
     });
   }
@@ -1254,7 +1257,7 @@ case 'project-new':
 async function createNewFile(): Promise<void> {
   console.log('Creating new file...');
   try {
-    // ✅ Use newFileHandler for better UI (modal dialog instead of browser prompt)
+    // ? Use newFileHandler for better UI (modal dialog instead of browser prompt)
     if ((window as any).newFileHandler?.showNewFileDialog) {
       (window as any).newFileHandler.showNewFileDialog();
       return;
@@ -1287,7 +1290,7 @@ async function createNewFile(): Promise<void> {
 async function createNewFolder(): Promise<void> {
   console.log('Creating new folder...');
   try {
-    // ✅ Use newFolderHandler for better UI (modal dialog instead of browser prompt)
+    // ? Use newFolderHandler for better UI (modal dialog instead of browser prompt)
     if ((window as any).newFolderHandler?.showNewFolderDialog) {
       (window as any).newFolderHandler.showNewFolderDialog();
       return;
@@ -1415,9 +1418,9 @@ async function openFolderAction(): Promise<void> {
 
 
 
-// ✅ UPDATE: Save File Action
+// ? UPDATE: Save File Action
 async function saveFileAction(): Promise<void> {
-  console.log('💾 Saving file...');
+  console.log('?? Saving file...');
   try {
     const editor = (window as any).monaco?.editor?.getEditors()?.[0];
     if (!editor) {
@@ -1431,9 +1434,9 @@ async function saveFileAction(): Promise<void> {
     if (currentTab && currentTab.path && currentTab.path !== 'Untitled') {
       // Save the file
       await saveFile(content, currentTab.path);
-      console.log('✅ File saved successfully');
+      console.log('? File saved successfully');
       
-      // ✅ CRITICAL: Mark file as saved
+      // ? CRITICAL: Mark file as saved
       markFileAsSaved(currentTab.path);
       tabManager.markTabAsSaved(currentTab.id);
       
@@ -1449,9 +1452,9 @@ async function saveFileAction(): Promise<void> {
       const savedPath = await saveFile(content, undefined, fileName);
       
       if (savedPath) {
-        console.log('✅ File saved as:', savedPath);
+        console.log('? File saved as:', savedPath);
         
-        // ✅ CRITICAL: Mark as saved
+        // ? CRITICAL: Mark as saved
         markFileAsSaved(savedPath);
         tabManager.updateTabPath(currentTab?.id, savedPath);
         tabManager.markTabAsSaved(currentTab?.id);
@@ -1460,14 +1463,14 @@ async function saveFileAction(): Promise<void> {
       }
     }
   } catch (error) {
-    console.error('❌ Error saving file:', error);
+    console.error('? Error saving file:', error);
     showNotification('Failed to save file', 'error');
   }
 }
 
-// ✅ UPDATE: Save File As Action
+// ? UPDATE: Save File As Action
 async function saveFileAsAction(): Promise<void> {
-  console.log('💾 Saving file as...');
+  console.log('?? Saving file as...');
   try {
     const editor = (window as any).monaco?.editor?.getEditors()?.[0];
     if (!editor) {
@@ -1482,9 +1485,9 @@ async function saveFileAsAction(): Promise<void> {
     const savedPath = await saveFile(content, undefined, fileName);
     
     if (savedPath) {
-      console.log('✅ File saved as:', savedPath);
+      console.log('? File saved as:', savedPath);
       
-      // ✅ CRITICAL: Mark as saved
+      // ? CRITICAL: Mark as saved
       markFileAsSaved(savedPath);
       
       if (currentTab) {
@@ -1499,7 +1502,7 @@ async function saveFileAsAction(): Promise<void> {
       }));
     }
   } catch (error) {
-    console.error('❌ Error saving file as:', error);
+    console.error('? Error saving file as:', error);
     showNotification('Failed to save file as', 'error');
   }
 }
@@ -1509,14 +1512,14 @@ async function saveFileAsAction(): Promise<void> {
 // Replace your existing saveAllAction function (around line 1250) with this:
 // ============================================================================
 
-// ✅ FIXED: Save All Action - Uses tabManager.saveAllTabs()
+// ? FIXED: Save All Action - Uses tabManager.saveAllTabs()
 async function saveAllAction(): Promise<void> {
-  console.log('💾 Save All initiated...');
+  console.log('?? Save All initiated...');
   
   try {
     // Check if there are any modified tabs
     if (!tabManager.hasModifiedTabs()) {
-      showNotification('ℹ️ No unsaved files', 'info');
+      showNotification('?? No unsaved files', 'info');
       return;
     }
     
@@ -1534,30 +1537,30 @@ async function saveAllAction(): Promise<void> {
     
     // Show result notification
     if (result.failed === 0 && result.saved > 0) {
-      showNotification(`✅ All ${result.saved} file(s) saved successfully`, 'success');
+      showNotification(`? All ${result.saved} file(s) saved successfully`, 'success');
     } else if (result.saved > 0 && result.failed > 0) {
       showNotification(
-        `⚠️ Saved ${result.saved} file(s), ${result.failed} failed`, 
+        `?? Saved ${result.saved} file(s), ${result.failed} failed`, 
         'warning'
       );
       console.error('Save All errors:', result.errors);
     } else if (result.failed > 0) {
-      showNotification(`❌ Failed to save ${result.failed} file(s)`, 'error');
+      showNotification(`? Failed to save ${result.failed} file(s)`, 'error');
       console.error('Save All errors:', result.errors);
     } else {
-      showNotification('ℹ️ No files were saved', 'info');
+      showNotification('?? No files were saved', 'info');
     }
     
     // Log detailed results
-    console.log('💾 Save All complete:', {
+    console.log('?? Save All complete:', {
       saved: result.saved,
       failed: result.failed,
       errors: result.errors
     });
     
   } catch (error) {
-    console.error('❌ Error saving all files:', error);
-    showNotification('❌ Failed to save all files', 'error');
+    console.error('? Error saving all files:', error);
+    showNotification('? Failed to save all files', 'error');
     
     // Remove loading indicator if still present
     const loading = document.getElementById('upload-loading-overlay');
@@ -1571,9 +1574,9 @@ async function saveAllAction(): Promise<void> {
 // END OF FIXED SAVE ALL ACTION
 // ============================================================================
 
-// ✅ NEW: Warn before closing if files are modified
+// ? NEW: Warn before closing if files are modified
 async function closeFileAction(): Promise<void> {
-  console.log('🗑️ Closing file...');
+  console.log('??? Closing file...');
   try {
     const activeTab = tabManager.getActiveTab();
     if (activeTab) {
@@ -1591,12 +1594,12 @@ async function closeFileAction(): Promise<void> {
       showNotification('No file is currently open', 'error');
     }
   } catch (error) {
-    console.error('❌ Error closing file:', error);
+    console.error('? Error closing file:', error);
     showNotification('Failed to close file', 'error');
   }
 }
 
-// ✅ Helper function to show notifications
+// ? Helper function to show notifications
 function showNotification(message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info'): void {
   const notification = document.createElement('div');
   notification.className = `notification notification-${type}`;
@@ -1623,21 +1626,21 @@ function showNotification(message: string, type: 'success' | 'error' | 'info' | 
 
 
 async function closeProjectAction(): Promise<void> {
-  console.log('🔒 Closing project...');
+  console.log('?? Closing project...');
   try {
-    // ✅ FIX 1: Reset filter FIRST, before clearing DOM
+    // ? FIX 1: Reset filter FIRST, before clearing DOM
     const robustFilter = (window as any).robustFilter;
     if (robustFilter?.reset) {
-      console.log('🔄 Resetting filter to default state...');
+      console.log('?? Resetting filter to default state...');
       robustFilter.reset();
     } else {
-      console.warn('⚠️ robustFilter.reset() not available!');
+      console.warn('?? robustFilter.reset() not available!');
     }
     
     // Small delay to ensure reset completes
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // ✅ FIX 2: Clear file tree with simple message (NO BUTTONS)
+    // ? FIX 2: Clear file tree with simple message (NO BUTTONS)
     const fileTree = document.querySelector('.file-tree');
     if (fileTree) {
       fileTree.innerHTML = `
@@ -1654,13 +1657,13 @@ async function closeProjectAction(): Promise<void> {
         ">
           <div style="margin-bottom: 8px;">No folder opened</div>
           <div style="font-size: 11px; color: #666;">
-            Use File → Open Folder to get started
+            Use File ? Open Folder to get started
           </div>
         </div>
       `;
     }
     
-    // ✅ FIX 3: Also update FILES tab content if exists
+    // ? FIX 3: Also update FILES tab content if exists
     const filesContent = document.getElementById('files-content');
     if (filesContent) {
       filesContent.innerHTML = `
@@ -1676,7 +1679,7 @@ async function closeProjectAction(): Promise<void> {
         ">
           <div style="font-size: 14px; margin-bottom: 8px;">No folder opened</div>
           <div style="font-size: 11px; color: #666; opacity: 0.8;">
-            Use File → Open Folder to get started
+            Use File ? Open Folder to get started
           </div>
         </div>
       `;
@@ -1694,18 +1697,18 @@ async function closeProjectAction(): Promise<void> {
       localStorage.removeItem('openFolder');
     }
     
-    // ✅ FIX 4: Force filter panel to show and reset (if it exists)
+    // ? FIX 4: Force filter panel to show and reset (if it exists)
     setTimeout(() => {
       const filterPanel = document.getElementById('explorer-filter-controls-persistent');
       if (filterPanel) {
         filterPanel.style.display = 'block';
-        console.log('✅ Filter panel visibility restored');
+        console.log('? Filter panel visibility restored');
       }
       
       // Double-check filter state
       const robustFilter = (window as any).robustFilter;
       if (robustFilter) {
-        console.log('🔍 Final filter state check:', {
+        console.log('?? Final filter state check:', {
           viewMode: robustFilter.viewMode || 'unknown',
           searchFilter: robustFilter.searchFilter || 'unknown',
           showHiddenFiles: robustFilter.showHiddenFiles || 'unknown'
@@ -1716,10 +1719,10 @@ async function closeProjectAction(): Promise<void> {
     showNotification('Project closed', 'success');
     document.dispatchEvent(new CustomEvent('menu-close-project'));
     
-    console.log('✅ Project closed successfully');
+    console.log('? Project closed successfully');
     
   } catch (error) {
-    console.error('❌ Error closing project:', error);
+    console.error('? Error closing project:', error);
     showNotification('Failed to close project', 'error');
   }
 }
@@ -1762,21 +1765,21 @@ async function createNewFileFallback(): Promise<void> {
 }
 
 // ============================================================================
-// 🔷 GIT MENU SETUP - Complete Git Integration Menu
+// ?? GIT MENU SETUP - Complete Git Integration Menu
 // ============================================================================
 
 /**
  * Setup Git Menu - Source Control features
- * ✅ Singleton pattern to prevent duplicate menus
+ * ? Singleton pattern to prevent duplicate menus
  */
 export function setupGitMenu(): void {
-  // ✅ SINGLETON: Prevent multiple initializations
+  // ? SINGLETON: Prevent multiple initializations
   if (gitMenuInitialized) {
     console.log('Git menu already initialized, skipping...');
     return;
   }
   
-  console.log('🔷 Setting up Git menu...');
+  console.log('?? Setting up Git menu...');
   
   const menuBar = document.querySelector('.menu-bar');
   if (!menuBar) {
@@ -1800,7 +1803,7 @@ export function setupGitMenu(): void {
     return;
   }
   
-  // ✅ CLEANUP: Remove any stale Git submenus
+  // ? CLEANUP: Remove any stale Git submenus
   document.querySelectorAll('#git-submenu').forEach(el => el.remove());
   document.querySelectorAll('.menu-submenu[data-menu-type="git"]').forEach(el => el.remove());
   
@@ -1856,24 +1859,24 @@ export function setupGitMenu(): void {
   // Git menu items
   const gitMenuItems = [
     { type: 'header', label: 'SOURCE CONTROL' },
-    { label: 'Source Control Panel', shortcut: 'Ctrl+Shift+G', action: 'git-panel', icon: '🔀' },
-    { label: 'Virtualized Git Panel', shortcut: '', action: 'git-panel-virtualized', icon: '🚀' },
+    { label: 'Source Control Panel', shortcut: 'Ctrl+Shift+G', action: 'git-panel', icon: '??' },
+    { label: 'Virtualized Git Panel', shortcut: '', action: 'git-panel-virtualized', icon: '??' },
     { type: 'separator' },
     { type: 'header', label: 'ADVANCED FEATURES' },
-    { label: 'Commit History...', shortcut: 'Ctrl+Shift+H', action: 'git-history', icon: '📜' },
-    { label: 'Branch Manager...', shortcut: '', action: 'git-branches', icon: '⎇' },
-    { label: 'Diff Viewer...', shortcut: '', action: 'git-diff', icon: '📄' },
+    { label: 'Commit History...', shortcut: 'Ctrl+Shift+H', action: 'git-history', icon: '??' },
+    { label: 'Branch Manager...', shortcut: '', action: 'git-branches', icon: '?' },
+    { label: 'Diff Viewer...', shortcut: '', action: 'git-diff', icon: '??' },
     { type: 'separator' },
     { type: 'header', label: 'STASH' },
-    { label: 'Stash Manager...', shortcut: '', action: 'git-stash-manager', icon: '📦' },
-    { label: 'Quick Stash', shortcut: 'Ctrl+Alt+S', action: 'git-stash-quick', icon: '💾' },
-    { label: 'Pop Stash', shortcut: 'Ctrl+Alt+P', action: 'git-stash-pop', icon: '📤' },
+    { label: 'Stash Manager...', shortcut: '', action: 'git-stash-manager', icon: '??' },
+    { label: 'Quick Stash', shortcut: 'Ctrl+Alt+S', action: 'git-stash-quick', icon: '??' },
+    { label: 'Pop Stash', shortcut: 'Ctrl+Alt+P', action: 'git-stash-pop', icon: '??' },
     { type: 'separator' },
     { type: 'header', label: 'TOOLS' },
-    { label: 'Resolve Conflicts...', shortcut: '', action: 'git-merge-conflicts', icon: '⚡' },
-    { label: 'Git Blame', shortcut: '', action: 'git-blame', icon: '👤' },
+    { label: 'Resolve Conflicts...', shortcut: '', action: 'git-merge-conflicts', icon: '?' },
+    { label: 'Git Blame', shortcut: '', action: 'git-blame', icon: '??' },
     { type: 'separator' },
-    { label: 'Open TortoiseGit', shortcut: '', action: 'git-tortoise', icon: '🐢' },
+    { label: 'Open TortoiseGit', shortcut: '', action: 'git-tortoise', icon: '??' },
   ];
   
   // Build submenu items
@@ -2016,16 +2019,16 @@ export function setupGitMenu(): void {
     gitMenuItem.style.backgroundColor = 'transparent';
   });
   
-  // ✅ Mark as initialized
+  // ? Mark as initialized
   gitMenuInitialized = true;
-  console.log('🔷 Git menu setup complete');
+  console.log('?? Git menu setup complete');
 }
 
 /**
  * Handle Git Menu Actions
  */
 async function handleGitMenuAction(action: string): Promise<void> {
-  console.log(`🔷 Handling Git menu action: ${action}`);
+  console.log(`?? Handling Git menu action: ${action}`);
   
   const projectPath = (window as any).currentProjectPath || 
                       (window as any).currentFolderPath ||
@@ -2276,7 +2279,7 @@ export function setupEnhancedKeyboardShortcuts(): void {
       emergencyStopTyping();
     }
     
-    // 🔷 Git shortcuts
+    // ?? Git shortcuts
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'G') {
       e.preventDefault();
       handleGitMenuAction('git-panel');
@@ -2298,7 +2301,7 @@ export function setupEnhancedKeyboardShortcuts(): void {
   });
   
   console.log('Enhanced keyboard shortcuts initialized');
-  console.log('🔷 Git shortcuts: Ctrl+Shift+G (panel), Ctrl+Shift+H (history)');
+  console.log('?? Git shortcuts: Ctrl+Shift+G (panel), Ctrl+Shift+H (history)');
 }
 
 // ============================================================================
@@ -2342,25 +2345,25 @@ function convertToFileNodesForMenu(files: any[], parentPath: string = ''): any[]
 
 // Helper functions
 function updateFileExplorerWithProject(projectPath: string, files: any): void {
-  console.log('📂 [updateFileExplorerWithProject] Called with:', {
+  console.log('?? [updateFileExplorerWithProject] Called with:', {
     projectPath,
     filesName: files?.name,
     hasChildren: !!files?.children,
     childCount: files?.children?.length || 0
   });
   
-  // ✅ Always ensure .file-tree exists for consistency
+  // ? Always ensure .file-tree exists for consistency
   let fileTree = document.querySelector('.file-tree') as HTMLElement;
   
   if (!fileTree) {
-    console.log('📂 .file-tree not found, creating it...');
+    console.log('?? .file-tree not found, creating it...');
     
     // Find the container (#files-content or .tab-content.active)
     const container = document.getElementById('files-content') || 
                       document.querySelector('.tab-content.active');
     
     if (!container) {
-      console.error('❌ Could not find container for file tree!');
+      console.error('? Could not find container for file tree!');
       showNotification('Error: File explorer container not found', 'error');
       return;
     }
@@ -2373,31 +2376,31 @@ function updateFileExplorerWithProject(projectPath: string, files: any): void {
     fileTree.id = 'file-tree';
     container.appendChild(fileTree);
     
-    console.log('✅ Created .file-tree inside', container.id || container.className);
+    console.log('? Created .file-tree inside', container.id || container.className);
   }
   
-  console.log('✅ File tree container found:', fileTree);
+  console.log('? File tree container found:', fileTree);
   
-  // ✅ Reset filters FIRST
+  // ? Reset filters FIRST
   const robustFilter = (window as any).robustFilter;
   if (robustFilter?.reset) {
-    console.log('🔄 Resetting filter for new project...');
+    console.log('?? Resetting filter for new project...');
     robustFilter.reset();
   }
   
   // Clear existing content - IDE renderer will create everything fresh
   fileTree.innerHTML = '';
-  console.log('🧹 Cleared existing content');
+  console.log('?? Cleared existing content');
   
-  // ✅ v4.0: Store project name for header
+  // ? v4.0: Store project name for header
   const projectName = files.name || 'Project';
   
   // Update document title
   document.title = `${projectName} - AI Code IDE`;
   
-  console.log('📁 Rendering file tree with', files.children?.length || 0, 'items');
+  console.log('?? Rendering file tree with', files.children?.length || 0, 'items');
   
-  // ✅ v4.0: Use new IDE-style renderer
+  // ? v4.0: Use new IDE-style renderer
   if (files.children && files.children.length > 0) {
     // Convert Tauri structure to FileNode format
     const fileNodes = convertToFileNodesForMenu(files.children, projectPath);
@@ -2407,9 +2410,9 @@ function updateFileExplorerWithProject(projectPath: string, files: any): void {
     
     // Use IDE-style renderer
     renderFileTreeIDE(fileTree, fileNodes);
-    console.log('✅ [v4.0] IDE-style file tree rendered!');
+    console.log('? [v4.0] IDE-style file tree rendered!');
   } else {
-    console.warn('⚠️ No children to render!');
+    console.warn('?? No children to render!');
     fileTree.innerHTML += `
       <div style="padding: 20px; text-align: center; color: #888;">
         No files found in this folder
@@ -2419,7 +2422,7 @@ function updateFileExplorerWithProject(projectPath: string, files: any): void {
   
   // NOTE: fileContainer no longer used - IDE renderer handles everything
   // fileTree.appendChild(fileContainer);
-  console.log('✅ File tree rendering completed');
+  console.log('? File tree rendering completed');
   
   // Update document title
   document.title = `${projectName.textContent} - AI Code IDE`;
@@ -2427,24 +2430,24 @@ function updateFileExplorerWithProject(projectPath: string, files: any): void {
   // Count rendered items
   setTimeout(() => {
     const allItems = fileTree.querySelectorAll('.tree-row, .file-item, .directory');
-    console.log(`📊 Rendered ${allItems.length} file/folder items in DOM`);
+    console.log(`?? Rendered ${allItems.length} file/folder items in DOM`);
     
     // Apply filters if needed
     if (robustFilter?.applyFilters) {
-      console.log('🔍 Applying filters to rendered files...');
+      console.log('?? Applying filters to rendered files...');
       robustFilter.applyFilters();
       
       // Check filter results
       setTimeout(() => {
         const hiddenItems = fileTree.querySelectorAll('.filter-hidden');
-        console.log(`📊 Filter results: ${allItems.length - hiddenItems.length} visible, ${hiddenItems.length} hidden`);
+        console.log(`?? Filter results: ${allItems.length - hiddenItems.length} visible, ${hiddenItems.length} hidden`);
       }, 100);
     }
   }, 200);
 }
 
 // ============================================================================
-// ⚡ SMART renderFileTree: Shows .git/.svn but doesn't recurse into them
+// ? SMART renderFileTree: Shows .git/.svn but doesn't recurse into them
 // ============================================================================
 function renderFileTree(container: HTMLElement, files: any[], parentPath: string = ''): void {
   // Only log summary, not each item
@@ -2454,13 +2457,13 @@ function renderFileTree(container: HTMLElement, files: any[], parentPath: string
   let noRecurseCount = 0;
   
   if (!files || files.length === 0) {
-    console.warn('⚠️ No files to render!');
+    console.warn('?? No files to render!');
     return;
   }
   
   files.forEach((file, index) => {
     // ========================================================================
-    // ⚡ PERFORMANCE: Completely skip heavy folders (node_modules, etc.)
+    // ? PERFORMANCE: Completely skip heavy folders (node_modules, etc.)
     // ========================================================================
     if (file.is_directory && SKIP_FOLDERS_COMPLETELY.has(file.name)) {
       skippedCount++;
@@ -2475,7 +2478,7 @@ function renderFileTree(container: HTMLElement, files: any[], parentPath: string
     
     const fullPath = parentPath ? `${parentPath}\\${file.name}` : file.name;
     
-    // ✅ ADD THESE DATA ATTRIBUTES - Critical for filters
+    // ? ADD THESE DATA ATTRIBUTES - Critical for filters
     fileElement.setAttribute('data-path', fullPath);
     fileElement.setAttribute('data-name', file.name);
     fileElement.setAttribute('data-file-name', file.name);
@@ -2503,19 +2506,19 @@ function renderFileTree(container: HTMLElement, files: any[], parentPath: string
       min-width: 0;
     `;
     
-    // ✅ Special icons for version control folders
+    // ? Special icons for version control folders
     const icon = document.createElement('span');
     icon.style.marginRight = '6px';
     icon.style.flexShrink = '0';
     
     if (file.name === '.git') {
-      icon.textContent = '🔀'; // Git icon
+      icon.textContent = '??'; // Git icon
     } else if (file.name === '.svn') {
-      icon.textContent = '📦'; // SVN icon
+      icon.textContent = '??'; // SVN icon
     } else if (file.is_directory) {
-      icon.textContent = '📁';
+      icon.textContent = '??';
     } else {
-      icon.textContent = '📄';
+      icon.textContent = '??';
     }
     
     const name = document.createElement('span');
@@ -2527,7 +2530,7 @@ function renderFileTree(container: HTMLElement, files: any[], parentPath: string
       white-space: nowrap;
     `;
     
-    // ✅ Style version control folders differently
+    // ? Style version control folders differently
     if (file.name === '.git' || file.name === '.svn' || file.name === '.hg') {
       name.style.color = '#888';
       name.style.fontStyle = 'italic';
@@ -2558,7 +2561,7 @@ function renderFileTree(container: HTMLElement, files: any[], parentPath: string
         e.stopPropagation();
         e.preventDefault();
         
-        console.log(`📄 Opening file: ${fullPath}`);
+        console.log(`?? Opening file: ${fullPath}`);
         
         try {
           const content = await readFile(fullPath);
@@ -2569,13 +2572,13 @@ function renderFileTree(container: HTMLElement, files: any[], parentPath: string
             } else {
               loadContentIntoMonacoEditor(content, file.name);
             }
-            console.log(`✅ File opened: ${file.name}`);
+            console.log(`? File opened: ${file.name}`);
           } else {
-            console.error(`❌ File content is null: ${fullPath}`);
+            console.error(`? File content is null: ${fullPath}`);
             showNotification(`Could not read file: ${file.name}`, 'error');
           }
         } catch (error: any) {
-          console.error(`❌ Error opening file ${fullPath}:`, error);
+          console.error(`? Error opening file ${fullPath}:`, error);
           showNotification(`Error opening file: ${error.message}`, 'error');
         }
       });
@@ -2603,7 +2606,7 @@ function renderFileTree(container: HTMLElement, files: any[], parentPath: string
     container.appendChild(fileElement);
     
     // ========================================================================
-    // ⚡ SMART RECURSION: Show folder but DON'T recurse into .git, .svn, etc.
+    // ? SMART RECURSION: Show folder but DON'T recurse into .git, .svn, etc.
     // ========================================================================
     if (file.is_directory && file.children && file.children.length > 0) {
       // Check if this folder should NOT be recursed into
@@ -2625,9 +2628,9 @@ function renderFileTree(container: HTMLElement, files: any[], parentPath: string
   
   // Log summary instead of each item
   if (skippedCount > 0 || noRecurseCount > 0) {
-    console.log(`✅ [renderFileTree] Rendered ${renderedCount}/${totalCount} items (skipped ${skippedCount} heavy folders, ${noRecurseCount} shown but not expanded)`);
+    console.log(`? [renderFileTree] Rendered ${renderedCount}/${totalCount} items (skipped ${skippedCount} heavy folders, ${noRecurseCount} shown but not expanded)`);
   } else {
-    console.log(`✅ [renderFileTree] Finished rendering ${renderedCount} items`);
+    console.log(`? [renderFileTree] Finished rendering ${renderedCount} items`);
   }
 }
 
@@ -2712,12 +2715,12 @@ function hideAllSubmenus(): void {
     (submenu as HTMLElement).style.display = 'none';
   });
   
-  // ✅ CRITICAL: Remove ALL duplicate menus (keep only one of each ID)
+  // ? CRITICAL: Remove ALL duplicate menus (keep only one of each ID)
   const menuIds = ['file-submenu-complete', 'project-submenu', 'view-submenu', 'git-submenu'];
   menuIds.forEach(id => {
     const menus = document.querySelectorAll(`#${id}`);
     if (menus.length > 1) {
-      console.warn(`⚠️ Removing ${menus.length - 1} duplicate ${id} menus`);
+      console.warn(`?? Removing ${menus.length - 1} duplicate ${id} menus`);
       // Keep only the LAST one (most recently created)
       for (let i = 0; i < menus.length - 1; i++) {
         menus[i].remove();
@@ -2725,9 +2728,9 @@ function hideAllSubmenus(): void {
     }
   });
   
-  // ✅ Also remove any orphaned submenus without proper IDs
+  // ? Also remove any orphaned submenus without proper IDs
   document.querySelectorAll('.menu-submenu:not([id])').forEach(el => {
-    console.warn('⚠️ Removing orphaned submenu without ID');
+    console.warn('?? Removing orphaned submenu without ID');
     el.remove();
   });
 }
@@ -2741,7 +2744,7 @@ function ensureSingleMenu(): void {
   document.querySelectorAll('.menu-submenu[id]').forEach(menu => {
     const id = menu.id;
     if (seenIds.has(id)) {
-      console.warn(`⚠️ Removing duplicate menu: ${id}`);
+      console.warn(`?? Removing duplicate menu: ${id}`);
       menu.remove();
     } else {
       seenIds.add(id);
@@ -2750,17 +2753,17 @@ function ensureSingleMenu(): void {
 }
 
 export function setupGlobalMenuHandler(): void {
-  // ✅ Inject global menu styles to prevent ghost shadows
+  // ? Inject global menu styles to prevent ghost shadows
   if (!document.getElementById('menu-system-global-styles')) {
     const style = document.createElement('style');
     style.id = 'menu-system-global-styles';
     style.textContent = `
-      /* ✅ CRITICAL: Hide OLD menu-dropdown when new menus are used */
+      /* ? CRITICAL: Hide OLD menu-dropdown when new menus are used */
       .menu-dropdown {
         display: none !important;
       }
       
-      /* ✅ FIX: Ensure menus are above ALL other elements */
+      /* ? FIX: Ensure menus are above ALL other elements */
       .menu-submenu {
         background: #2d2d2d !important;
         background-color: #2d2d2d !important;
@@ -2773,7 +2776,7 @@ export function setupGlobalMenuHandler(): void {
         isolation: isolate !important;
       }
       
-      /* ✅ CRITICAL: Menu items MUST have solid backgrounds */
+      /* ? CRITICAL: Menu items MUST have solid backgrounds */
       .menu-submenu .submenu-item,
       .menu-submenu > div {
         background: #2d2d2d !important;
@@ -2816,7 +2819,7 @@ export function setupGlobalMenuHandler(): void {
     document.head.appendChild(style);
   }
   
-  // ✅ Initial cleanup of any duplicate menus
+  // ? Initial cleanup of any duplicate menus
   ensureSingleMenu();
   
   document.addEventListener('click', (e) => {
@@ -2828,34 +2831,34 @@ export function setupGlobalMenuHandler(): void {
 }
 // Listen for 'project-opened' events from both Open Folder and AI File Creator
 document.addEventListener('project-opened', (e: CustomEvent) => {
-  console.log('📂 [menuSystem] project-opened event received:', e.detail);
+  console.log('?? [menuSystem] project-opened event received:', e.detail);
   
   const { path, files } = e.detail;
   
   if (!path || !files) {
-    console.warn('⚠️ [menuSystem] Invalid project-opened event data');
+    console.warn('?? [menuSystem] Invalid project-opened event data');
     return;
   }
   
   // Update file explorer with the new/refreshed file tree
   updateFileExplorerWithProject(path, files);
   
-  console.log('✅ [menuSystem] File explorer updated via event listener');
+  console.log('? [menuSystem] File explorer updated via event listener');
 });
 // Listen for folder structure updates and render them
 document.addEventListener('folder-structure-loaded', (e: any) => {
-  console.log('📦 Received folder-structure-loaded event');
+  console.log('?? Received folder-structure-loaded event');
   if (e.detail) {
     const projectPath = localStorage.getItem('currentProjectPath') || '';
     if (projectPath) {
-      console.log('🔄 Re-rendering file tree with menuSystem...');
+      console.log('?? Re-rendering file tree with menuSystem...');
       updateFileExplorerWithProject(projectPath, e.detail);
     }
   }
 });
 
-// ✅ Export updateFileExplorerWithProject globally for project persistence
+// ? Export updateFileExplorerWithProject globally for project persistence
 (window as any).updateFileExplorerWithProject = updateFileExplorerWithProject;
 
-console.log('✅ MenuSystem event listeners registered');
+console.log('? MenuSystem event listeners registered');
 
