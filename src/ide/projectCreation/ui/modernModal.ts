@@ -2132,6 +2132,54 @@ private async createProject(): Promise<void> {
       try {
         console.log('?? [Background] Loading project into file explorer...');
         await this.loadProjectIntoExplorer(fullPath);
+
+      // [X02 AutoInstall] Auto-run npm install after project creation
+      try {
+        const _t = ["react-vite","react","nextjs","vue3","vue","svelte","angular","vite"];
+        if (_t.some(t => (selectedTemplate||"").toLowerCase().includes(t))) {
+          const _n = (window as any).showNotification;
+          if (_n) _n("Installing dependencies...", "info");
+          const { invoke: _i } = await import("@tauri-apps/api/core");
+          await _i("execute_build_command", { command: "npm install", workingDir: fullPath });
+          if (_n) _n("Ready! Click Run to start.", "success");
+          console.log("[X02 AutoInstall] Done!");
+        }
+      } catch (_e) { console.warn("[X02 AutoInstall] Failed:", _e); }
+
+      // [X02 AutoInstall] Auto-run npm install after project creation
+      try {
+        const _nodeT = ["react-vite","react","nextjs","vue3","vue","svelte","angular","vite"];
+        if (_nodeT.some(t => (selectedTemplate||"").toLowerCase().includes(t))) {
+          console.log("[X02 AutoInstall] Running npm install in:", fullPath);
+          const _n = (window as any).showNotification;
+          if (_n) _n("Installing dependencies...", "info");
+          const { invoke: _inv } = await import("@tauri-apps/api/core");
+          await _inv("execute_build_command", { command: "npm install", cwd: fullPath });
+          console.log("[X02 AutoInstall] Done!");
+          if (_n) _n("Ready! Click Run to start.", "success");
+        }
+      } catch (_e) {
+        console.warn("[X02 AutoInstall] Failed:", _e);
+      }
+
+      // [X02 AutoInstall] Auto-run npm install after project creation
+      try {
+        const nodeTemplates = ["react-vite","react","nextjs","vue3","vue","svelte","angular","vite"];
+        const needsInstall = nodeTemplates.some(t => (selectedTemplate||"").toLowerCase().includes(t));
+        if (needsInstall) {
+          console.log("[X02 AutoInstall] Starting npm install in:", fullPath);
+          const notify = (window as any).showNotification;
+          if (notify) notify("Installing dependencies...", "info");
+          const { invoke: tauriInvoke } = await import("@tauri-apps/api/core");
+          await tauriInvoke("execute_build_command", { command: "npm install", cwd: fullPath });
+          console.log("[X02 AutoInstall] npm install complete!");
+          if (notify) notify("Dependencies installed! Click Run to start.", "success");
+        }
+      } catch (installErr) {
+        console.warn("[X02 AutoInstall] npm install failed:", installErr);
+        const notify = (window as any).showNotification;
+        if (notify) notify("Run npm install manually before starting.", "warning");
+      }
       } catch (e) {
         console.warn('?? [Background] Explorer load failed:', e);
       }

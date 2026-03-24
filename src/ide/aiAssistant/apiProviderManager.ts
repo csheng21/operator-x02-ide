@@ -3122,12 +3122,14 @@ function createQuickProviderDropdown(): void {
       
       // Show calibration panel
       try {
+        (window as any).__calibrationUserTriggered = true;
         showCalibrationPanel();
         console.log('🎯 Calibration panel opened');
       } catch (err) {
         console.error('Failed to open calibration panel:', err);
         // Fallback: try window function
         if ((window as any).showCalibrationPanel) {
+          (window as any).__calibrationUserTriggered = true;
           (window as any).showCalibrationPanel();
         }
       }

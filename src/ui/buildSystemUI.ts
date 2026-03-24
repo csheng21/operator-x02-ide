@@ -1,4 +1,4 @@
-// src/ui/buildSystemUI.ts
+ï»¿// src/ui/buildSystemUI.ts
 // Build System UI - TOP MENU BAR VERSION
 // FIXED: Styling matches other menu items (File, View, Run, etc.)
 
@@ -724,7 +724,7 @@ async function getProjectScripts(): Promise<Record<string, string> | null> {
     return await getArduinoFiles(projectPath);
   }
 
-  // CMake projects — return cmake/make scripts, NOT Gradle
+  // CMake projects ï¿½ return cmake/make scripts, NOT Gradle
   if (buildSystem?.name === 'cmake' || buildSystem?.displayName === 'CMake') {
     const binaryName = projectPath.split(/[\\/]/).pop() || 'app';
     return {
@@ -757,7 +757,7 @@ async function getProjectScripts(): Promise<Record<string, string> | null> {
     };
   }
   
-  // Gradle-based projects (Android, Java, Kotlin) — only if not already detected as npm/yarn
+  // Gradle-based projects (Android, Java, Kotlin) ï¿½ only if not already detected as npm/yarn
   // Skip Gradle probe entirely for known JS/TS projects to avoid noisy file-not-found errors
   const alreadyDetectedAsNode = (
     typeof (window as any).__buildSystemCache?.[projectPath] === "string" &&
@@ -768,7 +768,7 @@ async function getProjectScripts(): Promise<Record<string, string> | null> {
   try {
     const fileSystem = (window as any).fileSystem;
     if (fileSystem?.readFile) {
-      // Check for Gradle wrapper or build files — strictly in projectPath only, no parent walk
+      // Check for Gradle wrapper or build files ï¿½ strictly in projectPath only, no parent walk
       let hasGradle = false;
       try { const _g = await fileSystem.readFile(`${projectPath}/gradlew.bat`); hasGradle = !!_g; } catch { hasGradle = false; } // [X02Fix 3] silent
       if (!hasGradle) try { await fileSystem.readFile(`${projectPath}/build.gradle.kts`); hasGradle = true; } catch {}
@@ -828,7 +828,7 @@ async function getArduinoFiles(projectPath: string): Promise<Record<string, stri
           } catch {
             // Fallback: check for known Arduino files
             const knownFiles = ['sketch.ino', 'main.ino', 'program.ino'];
-            const folderName = projectPath.split(/[/\\]/).pop() || '';
+            const folderName = projectPath.split(/[\/\\]/).pop() || '';
             knownFiles.push(`${folderName}.ino`);
             
             for (const file of knownFiles) {
@@ -959,13 +959,13 @@ function clearTerminal(): void {
 function showCommandInTerminal(command: string, projectPath: string, status: 'running' | 'manual' = 'running'): void {
   clearTerminal();
   
-  const projectName = projectPath.split(/[/\\]/).pop() || 'project';
+  const projectName = projectPath.split(/[\/\\]/).pop() || 'project';
   const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
   
   if (status === 'running') {
     writeTerminal('');
     writeTerminal('  ?---------------------------------------------?');
-    writeTerminal('  ¦  ? RUNNING                                  ¦');
+    writeTerminal('  ï¿½  ? RUNNING                                  ï¿½');
     writeTerminal('  ?---------------------------------------------?');
     writeTerminal('');
     writeTerminal(`  Command:   ${command}`);
@@ -977,7 +977,7 @@ function showCommandInTerminal(command: string, projectPath: string, status: 'ru
   } else {
     writeTerminal('');
     writeTerminal('  ?---------------------------------------------?');
-    writeTerminal('  ¦  ? CUSTOM SCRIPT                           ¦');
+    writeTerminal('  ï¿½  ? CUSTOM SCRIPT                           ï¿½');
     writeTerminal('  ?---------------------------------------------?');
     writeTerminal('');
     writeTerminal(`  Command:   ${command}`);
@@ -1039,8 +1039,8 @@ async function showBuildInfoDialog(): Promise<void> {
   }
   
   const buildSystem = await detectBuildSystem(projectPath);
-  const scripts = await getProjectScripts(); // always fresh — no stale cache
-  const projectName = projectPath.split(/[/\\]/).pop() || 'project';
+  const scripts = await getProjectScripts(); // always fresh ï¿½ no stale cache
+  const projectName = projectPath.split(/[\/\\]/).pop() || 'project';
   
   document.getElementById('build-info-modal')?.remove();
   
@@ -1102,7 +1102,7 @@ async function showBuildInfoDialog(): Promise<void> {
       padding: 4px 8px;
       border-radius: 4px;
       transition: all 0.15s;
-    ">×</button>
+    ">ï¿½</button>
   `;
   dialog.appendChild(header);
   
@@ -1301,7 +1301,7 @@ function getScriptStyle(scriptName: string): { icon: string; color: string; prio
   for (const [key, style] of Object.entries(styles)) {
     if (scriptName.includes(key)) return { ...style, priority: style.priority + 100 };
   }
-  return { icon: '›', color: '#888', priority: 200 };
+  return { icon: 'ï¿½', color: '#888', priority: 200 };
 }
 
 /**
@@ -2554,7 +2554,7 @@ async function showSerialPlotter(): Promise<void> {
   // Port/Baud info
   const infoSpan = document.createElement('span');
   infoSpan.style.cssText = 'color:#666; font-size:11px;';
-  infoSpan.innerHTML = `<span style="color:#4EC9B0;">${currentPort}</span> · ${baudRate}`;
+  infoSpan.innerHTML = `<span style="color:#4EC9B0;">${currentPort}</span> ï¿½ ${baudRate}`;
   header.appendChild(infoSpan);
 
   // Minimize button
@@ -2567,7 +2567,7 @@ async function showSerialPlotter(): Promise<void> {
   // Close button
   const closeBtn = document.createElement('button');
   closeBtn.style.cssText = 'background:none; border:none; color:#888; font-size:16px; cursor:pointer; padding:2px 6px; line-height:1;';
-  closeBtn.textContent = '×';
+  closeBtn.textContent = 'ï¿½';
   closeBtn.title = 'Close';
   closeBtn.onmouseenter = () => { closeBtn.style.color = '#ff5555'; closeBtn.style.background = 'rgba(255,85,85,0.15)'; closeBtn.style.borderRadius = '3px'; };
   closeBtn.onmouseleave = () => { closeBtn.style.color = '#888'; closeBtn.style.background = 'none'; };
@@ -2705,7 +2705,7 @@ async function showSerialPlotter(): Promise<void> {
       console.error('[PlotterAI] Connection failed:', e);
       if (plotterUnlisten) { plotterUnlisten(); plotterUnlisten = null; }
       if (activePlotter) activePlotter.startDemo();
-      showNotification(`Could not connect to ${currentPort} — running demo mode. Close Arduino IDE or check port.`, 'info');
+      showNotification(`Could not connect to ${currentPort} ï¿½ running demo mode. Close Arduino IDE or check port.`, 'info');
     }
   }
 
@@ -2828,7 +2828,7 @@ async function showSerialMonitor(): Promise<void> {
       cursor: pointer;
       padding: 4px 8px;
       margin-left: 10px;
-    ">×</button>
+    ">ï¿½</button>
   `;
   dialog.appendChild(header);
 
@@ -2920,9 +2920,9 @@ async function showSerialMonitor(): Promise<void> {
 <span style="color: #888;">Mode: Real-time event streaming (~60fps)</span>
 
 <span style="color: #DCDCAA;">?? For real-time serial monitoring, use the buttons above:</span>
-<span style="color: #888;">   • PuTTY - Fast, lightweight terminal</span>
-<span style="color: #888;">   • Arduino IDE - Official serial monitor</span>
-<span style="color: #888;">   • Terminal - PowerShell serial reader</span>
+<span style="color: #888;">   ï¿½ PuTTY - Fast, lightweight terminal</span>
+<span style="color: #888;">   ï¿½ Arduino IDE - Official serial monitor</span>
+<span style="color: #888;">   ï¿½ Terminal - PowerShell serial reader</span>
 
 <span style="color: #569CD6;">Click [? Start] to begin monitoring...</span>
 `;
@@ -3924,7 +3924,7 @@ function setupRunButtonHandler(): void {
   const stopButton = document.createElement('button');
   stopButton.id = 'stop-process-button';
   stopButton.className = 'stop-button toolbar-button';
-  stopButton.innerHTML = '? Stop';
+  stopButton.innerHTML = '&#9632; Stop';
   stopButton.title = 'Stop running process (Shift+F5)';
   stopButton.style.cssText = `
     display: none;
@@ -3964,6 +3964,123 @@ function setupRunButtonHandler(): void {
   
   // Insert Stop button after Run button
   runButton.parentNode?.insertBefore(stopButton, runButton.nextSibling);
+
+  // ========================================
+  // RUN DROPDOWN BUTTON (?)
+  // ========================================
+  document.getElementById('run-dropdown-btn')?.remove();
+  document.getElementById('run-dropdown-menu')?.remove();
+
+  const dropArrow = document.createElement('button');
+  dropArrow.id = 'run-dropdown-btn';
+  dropArrow.innerHTML = 'â–¼';
+  dropArrow.title = 'More run options';
+  dropArrow.style.cssText = `
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 6px;
+    background: #2ea043;
+    color: white;
+    border: none;
+    border-left: 1px solid rgba(255,255,255,0.2);
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    font-size: 10px;
+    margin-left: 1px;
+  `;
+
+  const dropMenu = document.createElement('div');
+  dropMenu.id = 'run-dropdown-menu';
+  dropMenu.style.cssText = `
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: #1e1e1e;
+    border: 1px solid #444;
+    border-radius: 4px;
+    z-index: 9999;
+    min-width: 180px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    margin-top: 2px;
+  `;
+
+  const menuItems = [
+    { icon: 'â–¶', label: 'Run (Dev Server)',    action: 'dev'     },
+    { icon: 'ðŸ”¨', label: 'Build (Production)',  action: 'build'   },
+    { icon: 'ðŸš€', label: 'Build + Preview',      action: 'preview' },
+  ];
+
+  menuItems.forEach(item => {
+    const mi = document.createElement('div');
+    mi.style.cssText = `
+      padding: 8px 14px;
+      cursor: pointer;
+      color: #ccc;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    `;
+    mi.innerHTML = `<span>${item.icon}</span><span>${item.label}</span>`;
+    mi.addEventListener('mouseenter', () => mi.style.background = '#2a2a2a');
+    mi.addEventListener('mouseleave', () => mi.style.background = 'transparent');
+    mi.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      dropMenu.style.display = 'none';
+      const bs = (window as any).buildSystem;
+      const projectPath = bs?.getCurrentProjectPath?.() || (window as any).__currentProjectPath || '';
+      const { executeCommand, runDevServer } = await import('../fileOperations/buildSystemIntegration');
+      if (item.action === 'dev') {
+        await bs?.runProject?.();
+      } else if (item.action === 'build') {
+        console.log('[BuildSystem] Building for production...');
+        const { termClear, termHeader, termCommand, termLine, termStatus } = await import('../fileOperations/buildSystemIntegration');
+        termClear();
+        termHeader('??', 'Building for production', projectPath.split(/[\/\\]/).pop() || 'project');
+        termCommand('npm run build');
+        const result = await executeCommand('npm run build', projectPath);
+        if (result.output) result.output.split('\n').forEach((l: string) => { if (l.trim()) termLine(l, '#9cdcfe'); });
+        termStatus(result.success, result.success ? 'Build complete! Files in dist/' : 'Build failed', result.duration);
+      } else if (item.action === 'preview') {
+        console.log('[BuildSystem] Building + previewing production...');
+        const { termClear, termHeader, termCommand, termLine, termStatus } = await import('../fileOperations/buildSystemIntegration');
+        termClear();
+        termHeader('??', 'Build + Preview', projectPath.split(/[\/\\]/).pop() || 'project');
+        termCommand('npm run build');
+        const buildResult = await executeCommand('npm run build', projectPath);
+        if (buildResult.output) buildResult.output.split('\n').forEach((l: string) => { if (l.trim()) termLine(l, '#9cdcfe'); });
+        if (buildResult.success) {
+          termStatus(true, 'Build complete ï¿½ starting preview server...', buildResult.duration);
+          termCommand('npm run preview');
+          await runDevServer('npm run preview', projectPath);
+        } else {
+          termStatus(false, 'Build failed ï¿½ cannot preview', buildResult.duration);
+        }
+      }
+    });
+    dropMenu.appendChild(mi);
+  });
+
+  // Wrap run button + arrow in a relative container
+  const runWrapper = document.createElement('div');
+  runWrapper.style.cssText = 'position:relative;display:inline-flex;align-items:center;';
+  runButton.parentNode?.insertBefore(runWrapper, runButton);
+  runWrapper.appendChild(runButton);
+  runWrapper.appendChild(dropArrow);
+  runWrapper.appendChild(dropMenu);
+
+  // Toggle dropdown
+  dropArrow.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropMenu.style.display = dropMenu.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // Close on outside click
+  document.addEventListener('click', () => {
+    dropMenu.style.display = 'none';
+  });
   
   // ========================================
   // PROCESS STATE LISTENERS
@@ -4046,6 +4163,38 @@ function setupRunButtonHandler(): void {
     if (bs?.runProject) {
       e.preventDefault();
       e.stopPropagation();
+      // Save all open tabs before running
+      console.log('[BuildSystem] Saving all tabs before run...');
+      try {
+        const tabManager = (window as any).tabManager;
+        const editor = (window as any).monaco?.editor?.getEditors()?.[0];
+        if (tabManager && editor) {
+          const tabs = tabManager.getTabs?.() || tabManager.getAllTabs?.() || [];
+          for (const tab of tabs) {
+            if (tab?.path && tab.path !== 'Untitled' && !tab.path.startsWith('temp_')) {
+              try {
+                const { saveFile } = await import('../fileSystem');
+                const content = tab.content || editor.getModel()?.getValue() || '';
+                await saveFile(content, tab.path);
+                tabManager.markTabAsSaved?.(tab.id);
+                console.log('[BuildSystem] Saved:', tab.path);
+              } catch (e) {
+                console.warn('[BuildSystem] Could not save tab:', tab.path, e);
+              }
+            }
+          }
+        } else if (editor) {
+          // Fallback: save just the active file
+          const activeTab = tabManager?.getActiveTab?.();
+          if (activeTab?.path && activeTab.path !== 'Untitled') {
+            const { saveFile } = await import('../fileSystem');
+            await saveFile(editor.getValue(), activeTab.path);
+            console.log('[BuildSystem] Saved active file:', activeTab.path);
+          }
+        }
+      } catch (saveErr) {
+        console.warn('[BuildSystem] Save step failed, running anyway:', saveErr);
+      }
       await bs.runProject();
       return;
     }

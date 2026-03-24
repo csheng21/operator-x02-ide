@@ -233,7 +233,7 @@ export function reprocessRawMarkdownMessages(): number {
     const messageId = parentMsg?.getAttribute('data-message-id') || `reprocess_${index}`;
     
     // [X02Fix MDF] Skip already-enhanced messages to prevent exponential DOM growth
-    if (msgEl && (msgEl.getAttribute("data-muf-rendered") || msgEl.querySelector(".muf-block"))) { return; }
+    if (parentMsg && (parentMsg.getAttribute("data-muf-rendered") || parentMsg.querySelector(".muf-block"))) { return; }
     console.log(`🔧 [MarkdownFix] Reprocessing message: ${messageId.substring(0, 8)}...`);
     
     // Process the raw text content through markdown

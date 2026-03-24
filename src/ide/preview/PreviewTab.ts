@@ -1,4 +1,22 @@
 ﻿// src/ide/preview/PreviewTab.ts
+
+// ============================================================================
+// [PreviewTab] Wait for dev server to be ready before loading iframe
+// Prevents chrome-error:// deadlock when iframe loads before server is up
+// ============================================================================
+async function waitForDevServer(url: string, maxRetries = 25, intervalMs = 300): Promise<boolean> {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      await fetch(url, { mode: 'no-cors' });
+      return true;
+    } catch {
+      await new Promise(r => setTimeout(r, intervalMs));
+    }
+  }
+  console.warn('[PreviewTab] Dev server did not respond in time:', url);
+  return false;
+}
+
 // Preview Tab - FIXED VERSION with Cache Busting & Project Tracking
 // ============================================================================
 // FIXES:
@@ -305,7 +323,7 @@ class PreviewTabManager {
         </div>
         <iframe id="preview-frame" style="
           width:100%;height:100%;border:none;background:#fff;
-        " sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"></iframe>
+        "></iframe>
       </div>
       <div id="preview-status" style="
         padding:4px 10px;background:#252526;border-top:1px solid #3c3c3c;
@@ -1071,7 +1089,16 @@ Please:
     this.lastError = '';
     this.hideErrorBar();
 
-    if (this.iframe) this.iframe.src = this.url;
+    // [PreviewTab Fix] Reset if stuck on chrome-error:// dead origin
+    if (this.iframe) {
+      if ((this.iframe.src ?? '').startsWith('chrome-error://')) {
+        console.log('[PreviewTab] Dead iframe detected, doing full reset');
+        this.iframe.src = 'about:blank';
+        setTimeout(() => { if (this.iframe) this.iframe.src = this.url; }, 80);
+      } else {
+        this.iframe.src = this.url;
+      }
+    }
   }
 
   /**
@@ -1095,7 +1122,7 @@ Please:
       const src = this.iframe.src;
       this.iframe.src = 'about:blank';
       setTimeout(() => { if (this.iframe) this.iframe.src = src; }, 50);
-    }
+      }
   }
 
   /**
@@ -1130,7 +1157,7 @@ Please:
       const newIframe = document.createElement('iframe');
       newIframe.id = 'preview-frame';
       newIframe.style.cssText = oldIframe.style.cssText;
-      newIframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-modals');
+      // sandbox removed — required for WebView2 to load localhost iframe
       
       // Add load handler
       newIframe.addEventListener('load', () => {

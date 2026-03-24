@@ -90,7 +90,7 @@ let layoutState: LayoutState = {
   explorerVisible: true,
   assistantVisible: true,
   cameraVisible: false,
-  activeExplorerTab: 'files',
+  activeExplorerTab: 'terminal',
   zenMode: false,
   splitEditor: false,
   sidebarPosition: 'left'
@@ -4719,7 +4719,8 @@ function ensureEssentialTabsExist(): void {
 
 function applyLayoutState(): void {
   if (layoutState.activeExplorerTab) {
-    switchExplorerTab(layoutState.activeExplorerTab);
+    layoutState.activeExplorerTab = 'terminal'; // [X02] Always default to terminal on startup
+    switchExplorerTab('terminal');
   }
   
   if (!layoutState.explorerVisible) {
@@ -4738,7 +4739,7 @@ function resetLayout(): void {
     explorerVisible: true,
     assistantVisible: true,
     cameraVisible: false,
-    activeExplorerTab: 'files',
+    activeExplorerTab: 'terminal',
     zenMode: false,
     splitEditor: false,
     sidebarPosition: 'left'

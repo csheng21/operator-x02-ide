@@ -1,4 +1,4 @@
-// ============================================================================
+ï»¿// ============================================================================
 // INTEGRATED VERSION (Using AssistantUI) - January 24, 2026
 // Uses existing UI from assistantUI.ts/messageUI.ts:
 //   - showTypingIndicator() / hideTypingIndicator() for loading
@@ -346,40 +346,40 @@ import { initJetsonTabBridge, updateGpuButtonState } from './jetson/jetsonTabBri
 //import './ide/aiAssistant/collapsedMessageWithDate';
 // ============================================================================
 // ============================================================================
-// ?? SURGICAL EDIT ENGINE — AI AWARENESS SYSTEM PROMPT
+// ?? SURGICAL EDIT ENGINE ï¿½ AI AWARENESS SYSTEM PROMPT
 // ============================================================================
 const SURGICAL_ENGINE_PROMPT = `
-[?? OPERATOR X02 CODE IDE — Surgical Edit Engine]
+[?? OPERATOR X02 CODE IDE ï¿½ Surgical Edit Engine]
 
-You are an AI coding assistant inside "Operator X02 Code IDE", a professional desktop IDE with an AUTOMATED code application system. Your code responses are NOT just displayed — they are AUTOMATICALLY detected, analyzed, and applied to the user's files on disk.
+You are an AI coding assistant inside "Operator X02 Code IDE", a professional desktop IDE with an AUTOMATED code application system. Your code responses are NOT just displayed ï¿½ they are AUTOMATICALLY detected, analyzed, and applied to the user's files on disk.
 
 ??? HOW YOUR CODE GETS APPLIED ???
-1. DETECT — Your code blocks are auto-detected from your response
-2. SELECT — The best/largest code block is selected per file
-3. ANALYZE — A diff is computed against the current file
-4. ROUTE — The Surgical Edit Engine (Rust backend) determines the safest edit strategy
-5. APPLY — Code is written to disk with automatic backup (.bak file created)
-6. SYNC — Monaco editor is synced from disk
-7. DECORATE — Changed lines are highlighted (green=added, blue=modified)
-8. CONFIRM — User sees Accept (Enter) / Reject (Escape) prompt
+1. DETECT ï¿½ Your code blocks are auto-detected from your response
+2. SELECT ï¿½ The best/largest code block is selected per file
+3. ANALYZE ï¿½ A diff is computed against the current file
+4. ROUTE ï¿½ The Surgical Edit Engine (Rust backend) determines the safest edit strategy
+5. APPLY ï¿½ Code is written to disk with automatic backup (.bak file created)
+6. SYNC ï¿½ Monaco editor is synced from disk
+7. DECORATE ï¿½ Changed lines are highlighted (green=added, blue=modified)
+8. CONFIRM ï¿½ User sees Accept (Enter) / Reject (Escape) prompt
 
 ??? RULES FOR OPTIMAL AUTO-APPLY ???
-• ALWAYS provide the COMPLETE file content, not partial snippets or diffs
-• ALWAYS include the filename BEFORE the code block (e.g., "Here is the updated App.tsx:")
-• Use fenced code blocks with the correct language tag (tsx, typescript, css, etc.)
-• ONE code block per file — if modifying multiple files, use separate blocks with clear filenames
-• Do NOT use "// ... rest of code" or "// existing code here" — include ALL lines
-• Do NOT provide small diffs or patches — provide the FULL file replacement
-• The user's original code is automatically backed up before changes are applied
-• If modifying a large file, still provide the COMPLETE file
+ï¿½ ALWAYS provide the COMPLETE file content, not partial snippets or diffs
+ï¿½ ALWAYS include the filename BEFORE the code block (e.g., "Here is the updated App.tsx:")
+ï¿½ Use fenced code blocks with the correct language tag (tsx, typescript, css, etc.)
+ï¿½ ONE code block per file ï¿½ if modifying multiple files, use separate blocks with clear filenames
+ï¿½ Do NOT use "// ... rest of code" or "// existing code here" ï¿½ include ALL lines
+ï¿½ Do NOT provide small diffs or patches ï¿½ provide the FULL file replacement
+ï¿½ The user's original code is automatically backed up before changes are applied
+ï¿½ If modifying a large file, still provide the COMPLETE file
 
 ??? WHAT THE USER SEES ???
-• A real-time 8-stage pipeline overlay showing progress
-• Green/blue line highlights showing what changed
-• A badge showing "+X added, -Y deleted, ~Z modified"
-• Accept/Reject buttons to confirm or revert changes
-• A Restore button to revert to original code at any time
-• A diff viewer comparing original vs modifications side-by-side
+ï¿½ A real-time 8-stage pipeline overlay showing progress
+ï¿½ Green/blue line highlights showing what changed
+ï¿½ A badge showing "+X added, -Y deleted, ~Z modified"
+ï¿½ Accept/Reject buttons to confirm or revert changes
+ï¿½ A Restore button to revert to original code at any time
+ï¿½ A diff viewer comparing original vs modifications side-by-side
 `;
 
 // ?? Fast Apply Initialization
@@ -1528,7 +1528,7 @@ setTimeout(() => {
                         '<svg width="16" height="16" viewBox="0 0 16 16" style="fill: #4CAF50;"><circle cx="8" cy="8" r="3"/></svg>' : 
                         '<svg width="16" height="16" viewBox="0 0 16 16" style="fill: #666;"><circle cx="8" cy="8" r="3"/></svg>'}
                     </div>
-                    <div style="font-size: 11px; color: #666;">v${p.version} • ${p.author}</div>
+                    <div style="font-size: 11px; color: #666;">v${p.version} ï¿½ ${p.author}</div>
                     <div style="font-size: 12px; color: #969696; margin-top: 4px;">${p.description}</div>
                   </div>
                   <div style="margin-left: 10px;">
@@ -1643,7 +1643,7 @@ setTimeout(() => {
                 <span style="color:#fff;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</span>
                 ${p.active ? '<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(0,200,100,0.2);color:#4caf50;font-weight:600;letter-spacing:0.05em;">ACTIVE</span>' : ''}
               </div>
-              <div style="font-size:11px;color:#666;">v${p.version || '1.0.0'} · ${p.author || 'Unknown'}</div>
+              <div style="font-size:11px;color:#666;">v${p.version || '1.0.0'} ï¿½ ${p.author || 'Unknown'}</div>
               ${p.description ? `<div style="font-size:11px;color:#888;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.description}</div>` : ''}
             </div>
             <label class="plugin-toggle" data-plugin-id="${p.id}"
@@ -2164,10 +2164,10 @@ async function initializeSVN(): Promise<void> {
       
       console.log('?? SVN integration fully initialized!');
       console.log('?? Features enabled:');
-      console.log('  • Automatic folder detection');
-      console.log('  • Manual "Setup SVN Here" button');
-      console.log('  • Real-time status updates');
-      console.log('  • Notification on SVN detection');
+      console.log('  ï¿½ Automatic folder detection');
+      console.log('  ï¿½ Manual "Setup SVN Here" button');
+      console.log('  ï¿½ Real-time status updates');
+      console.log('  ï¿½ Notification on SVN detection');
 
       // Make managers globally accessible (CRITICAL!)
       console.log('?? [SVN] Exposing managers to window...');
@@ -2298,12 +2298,12 @@ async function initializeGit(): Promise<void> {
     };
     
     console.log('? [Git] Git managers available in console:');
-    console.log('   • gitManager - Git operations API');
-    console.log('   • gitUI / gitUIEnhanced - Git panel UI');
-    console.log('   • showGitPanel() - Open Git panel');
-    console.log('   • showVirtualizedGitPanel() - ?? High-performance panel for large repos');
-    console.log('   • vcsManager - Unified VCS manager');
-    console.log('   • gitFeatures - ?? Advanced Git features (diff, blame, history, stash, merge)');
+    console.log('   ï¿½ gitManager - Git operations API');
+    console.log('   ï¿½ gitUI / gitUIEnhanced - Git panel UI');
+    console.log('   ï¿½ showGitPanel() - Open Git panel');
+    console.log('   ï¿½ showVirtualizedGitPanel() - ?? High-performance panel for large repos');
+    console.log('   ï¿½ vcsManager - Unified VCS manager');
+    console.log('   ï¿½ gitFeatures - ?? Advanced Git features (diff, blame, history, stash, merge)');
     
     // ?? NEW: Expose advanced Git features to window
     (window as any).gitFeatures = gitFeatures;
@@ -2393,14 +2393,14 @@ async function initializeGit(): Promise<void> {
     };
     
     console.log('   ?? Advanced Git Features:');
-    console.log('   • showDiffViewer(filePath, staged?) - View file diff');
-    console.log('   • showBranchManager() - Branch switching UI');
-    console.log('   • showGitHistory(filePath?) - Commit history viewer');
-    console.log('   • showMergeConflicts() - Resolve merge conflicts');
-    console.log('   • showGitBlame(filePath) - Line-by-line blame');
-    console.log('   • showStashManager() - Manage stashes');
-    console.log('   • quickStash(message?) - Quick stash changes');
-    console.log('   • quickPop() - Pop latest stash');
+    console.log('   ï¿½ showDiffViewer(filePath, staged?) - View file diff');
+    console.log('   ï¿½ showBranchManager() - Branch switching UI');
+    console.log('   ï¿½ showGitHistory(filePath?) - Commit history viewer');
+    console.log('   ï¿½ showMergeConflicts() - Resolve merge conflicts');
+    console.log('   ï¿½ showGitBlame(filePath) - Line-by-line blame');
+    console.log('   ï¿½ showStashManager() - Manage stashes');
+    console.log('   ï¿½ quickStash(message?) - Quick stash changes');
+    console.log('   ï¿½ quickPop() - Pop latest stash');
     
     console.log('?? [Git] Git integration initialized!');
     
@@ -4102,7 +4102,7 @@ async function loadGitTabStatus(): Promise<void> {
           ${info.last_commit ? `
             <div style="padding: 8px 0; border-bottom: 1px solid #333;">
               <div style="color: #ccc; font-size: 12px; margin-bottom: 4px;">${info.last_commit.message || 'No message'}</div>
-              <div style="color: #666; font-size: 10px;">${info.last_commit.author || 'Unknown'} • ${info.last_commit.date || ''}</div>
+              <div style="color: #666; font-size: 10px;">${info.last_commit.author || 'Unknown'} ï¿½ ${info.last_commit.date || ''}</div>
             </div>
           ` : '<div style="color: #666; font-size: 11px; padding: 8px 0;">No commits yet</div>'}
         </div>
@@ -4259,12 +4259,12 @@ function attachGitTabHandlers(projectPath: string): void {
         }
         
         if (isInitialCommit) {
-          // Initial commit — auto-stage all without asking
-          console.log(`[Git] Initial commit — auto-staging all ${unstagedFiles.length} files`);
+          // Initial commit ï¿½ auto-stage all without asking
+          console.log(`[Git] Initial commit ï¿½ auto-staging all ${unstagedFiles.length} files`);
           await invoke('git_add_all', { path: projectPath });
           showGitToast(`Staged ${unstagedFiles.length} files for initial commit`, 'info');
         } else {
-          // Not initial commit — confirm with user first
+          // Not initial commit ï¿½ confirm with user first
           const userConfirmed = await new Promise<boolean>((resolve) => {
             const overlay = document.createElement('div');
             overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
@@ -4286,7 +4286,7 @@ function attachGitTabHandlers(projectPath: string): void {
           
           if (!userConfirmed) return;
           
-          console.log(`[Git] User confirmed — staging all ${unstagedFiles.length} files`);
+          console.log(`[Git] User confirmed ï¿½ staging all ${unstagedFiles.length} files`);
           await invoke('git_add_all', { path: projectPath });
         }
       }
@@ -5186,7 +5186,7 @@ async function showGitFileDiff(projectPath: string, filePath: string, staged: bo
         </svg>
         AI Review
       </button>
-      <button id="git-diff-close" style="background: transparent; border: none; color: #888; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 18px; line-height: 1; transition: all 0.15s;" onmouseenter="this.style.background='#3c3c3c';this.style.color='#fff'" onmouseleave="this.style.background='transparent';this.style.color='#888'">×</button>
+      <button id="git-diff-close" style="background: transparent; border: none; color: #888; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 18px; line-height: 1; transition: all 0.15s;" onmouseenter="this.style.background='#3c3c3c';this.style.color='#fff'" onmouseleave="this.style.background='transparent';this.style.color='#888'">ï¿½</button>
     </div>
   `;
   
@@ -5870,6 +5870,24 @@ async function init(): Promise<void> {
 console.log('? AI File Creator initialized');
 
 initializePreviewTab();  // ? ADD THIS LINE
+
+  // [X02 Prod Fix] Ensure terminal tab opens on startup using MutationObserver
+  // Works in both dev and production â€” watches DOM until terminal tab appears
+  // [X02 Prod Fix] Ensure terminal tab opens AFTER layout init
+  setTimeout(function ensureTerminalTabOpen() {
+    const tryClick = () => {
+      const t = document.querySelector('[data-tab="terminal"]') as HTMLElement;
+      if (t && !t.classList.contains('active')) { t.click(); return true; }
+      if (t && t.classList.contains('active')) return true;
+      return false;
+    };
+    if (tryClick()) return;
+    const obs = new MutationObserver(() => {
+      if (tryClick()) { obs.disconnect(); }
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+    setTimeout(() => obs.disconnect(), 30000);
+  }, 2000);  // 2s delay â€” waits for layout system to finish
   // [X02 Prod Fix] Retry terminal poller after 3s for production builds
   setTimeout(() => startX02TerminalPoller(), 3000);
   setTimeout(() => startX02TerminalPoller(), 6000);
@@ -6476,7 +6494,7 @@ document.addEventListener('folder-opened', (event: any) => {
   }
 };
 
-// ? Listen for project-closed from any source — always clear persistence
+// ? Listen for project-closed from any source ï¿½ always clear persistence
 document.addEventListener('project-closed', () => {
   if ((window as any).__isRestoringProject) { console.log('BLOCKED project-closed during restore'); return; }
   // ??? Guard: Don't clear during restore
@@ -6601,7 +6619,7 @@ setTimeout(() => {
     user-select: none;
     border-right: 1px solid rgba(255, 255, 255, 0.08);
   `;
-  toggleBtn.innerHTML = '?';
+toggleBtn.innerHTML = '&#9776;';
   toggleBtn.title = 'Toggle Explorer (Ctrl+B)';
   
   // Hover effects
@@ -6947,7 +6965,7 @@ setTimeout(() => {
               <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
                 <h3 style="margin: 0; color: white;">${title}</h3>
                 <button onclick="this.closest('div').parentElement.remove()" 
-                        style="background: none; border: none; color: #969696; cursor: pointer; font-size: 20px;">×</button>
+                        style="background: none; border: none; color: #969696; cursor: pointer; font-size: 20px;">ï¿½</button>
               </div>
               <div>${content}</div>
             `;
@@ -7223,6 +7241,36 @@ if (actionsMap) {
     isInitialized = true;
   initPiPanel(); // Raspberry Pi Panel - Ctrl+Shift+B
 console.log('Application initialization complete!');
+
+  // [X02 Version] Inject version into status bar
+  setTimeout(() => {
+    import(/* @vite-ignore */ "./version").then(({ APP_VERSION }) => {
+      // Try bottom status bar first
+      let el = document.getElementById("version-status");
+      if (!el) {
+        // Create and append to status bar
+        const bar = document.querySelector(".status-bar");
+        if (bar) {
+          el = document.createElement("div");
+          el.id = "version-status";
+          el.className = "status-item right";
+          el.style.cssText = "color:#4ec9b0;font-weight:600;cursor:default;";
+          bar.appendChild(el);
+        }
+      }
+      if (el) el.textContent = APP_VERSION;
+    }).catch(() => {
+      const bar = document.querySelector(".status-bar");
+      if (bar && !document.getElementById("version-status")) {
+        const el = document.createElement("div");
+        el.id = "version-status";
+        el.className = "status-item right";
+        el.style.cssText = "color:#4ec9b0;font-weight:600;";
+        el.textContent = "v1.5.1";
+        bar.appendChild(el);
+      }
+    });
+  }, 3000);
 // Trigger build system indicator after everything else is ready
 setTimeout(() => {
   if (window.__buildSystemUI?.initializeBuildSystemUI) {
@@ -8660,7 +8708,7 @@ async function executeChainedProviderRequests(
         <div class="ai-message-content">${formatted}</div>
         <div class="ai-message-footer" style="margin-top: 8px; font-size: 11px; opacity: 0.7;">
           <span style="color: ${getProviderColor(segment.provider)}; font-weight: bold;">${segment.provider}</span>
-          <span style="opacity: 0.5;"> • Step ${i + 1}/${segments.length}</span>
+          <span style="opacity: 0.5;"> ï¿½ Step ${i + 1}/${segments.length}</span>
         </div>
       `;
       chat.appendChild(aiMsgEl);
@@ -9038,7 +9086,7 @@ const contextAwareSendHandler = async () => {
 ?? Project: ${currentFolder.name}
 ?? Path: ${currentFolder.path}
 ?? Files (${folderFiles.length} total):
-${folderFiles.slice(0, 30).map((f: string) => '  • ' + f).join('\n')}
+${folderFiles.slice(0, 30).map((f: string) => '  ï¿½ ' + f).join('\n')}
 ${folderFiles.length > 30 ? '  ... and ' + (folderFiles.length - 30) + ' more files' : ''}
 
 `;
@@ -9087,7 +9135,7 @@ ${truncated}
 ?? Location: ${lastProject.projectPath}
 ? Created: ${minutesAgo < 1 ? 'just now' : minutesAgo + ' minutes ago'}
 ?? Files Created (${projectFiles.length} total):
-${projectFiles.slice(0, 20).map((f: string) => '  • ' + f).join('\n')}
+${projectFiles.slice(0, 20).map((f: string) => '  ï¿½ ' + f).join('\n')}
 ${projectFiles.length > 20 ? '  ... and ' + (projectFiles.length - 20) + ' more files' : ''}
 
 `;
@@ -9718,7 +9766,7 @@ try {
           result += `${prefix}${connector}${icon} ${name}\n`;
           
           if (children !== null) {
-            const newPrefix = prefix + (isLastItem ? '    ' : '¦   ');
+            const newPrefix = prefix + (isLastItem ? '    ' : 'ï¿½   ');
             result += renderTree(children, newPrefix, isLastItem);
           }
         });
@@ -10266,7 +10314,7 @@ try {
           });
           console.log('? Claude API response received via Tauri');
 
-          // ?? IDE Script interceptor — detect and execute script commands
+          // ?? IDE Script interceptor ï¿½ detect and execute script commands
           if (isScriptModeEnabled() && aiResp) {
             try {
               const scriptResult = await processAiScriptResponse(aiResp);
@@ -10504,7 +10552,7 @@ try {
 
       // Use addMessageToChat from messageUI.ts for consistent styling
       // ?? FIXED: Pass actualProvider so correct provider name shows in footer
-      // ? FIX: shouldSave: false — manual save block below handles persistence with metadata
+      // ? FIX: shouldSave: false ï¿½ manual save block below handles persistence with metadata
       await addMessageToChat('assistant', aiResp, {
         shouldSave: false,
         providerName: actualProvider  // Use actual provider from orchestrator or legacy mode
@@ -11636,12 +11684,12 @@ if (localData?.bestConv) {
   };
   
   console.log('? File Highlight System v2 ready (bridges to aiFileExplorer)');
-  console.log('   • window.highlightFileBeingRead(path) - Start reading highlight');
-  console.log('   • window.highlightFileScanning(path) - Mark as scanning');
-  console.log('   • window.highlightFileReading(path, progress) - Mark as reading');
-  console.log('   • window.highlightFileIndexed(path) - Mark as complete');
-  console.log('   • window.clearFileHighlights() / window.clearAllHighlights() - Clear all');
-  console.log('   • window.testFileHighlight("file.ts") - Test animation cycle');
+  console.log('   ï¿½ window.highlightFileBeingRead(path) - Start reading highlight');
+  console.log('   ï¿½ window.highlightFileScanning(path) - Mark as scanning');
+  console.log('   ï¿½ window.highlightFileReading(path, progress) - Mark as reading');
+  console.log('   ï¿½ window.highlightFileIndexed(path) - Mark as complete');
+  console.log('   ï¿½ window.clearFileHighlights() / window.clearAllHighlights() - Clear all');
+  console.log('   ï¿½ window.testFileHighlight("file.ts") - Test animation cycle');
 })();
 
 // ============================================================================
@@ -11749,7 +11797,7 @@ setTimeout(() => {
       
       console.log('?? Terminal:', isOn ? '?? ON (pulsing)' : '? OFF (static)');
     }
-  }, 1000); // 1s polling — no need for 100ms, state changes are infrequent
+  }, 1000); // 1s polling ï¿½ no need for 100ms, state changes are infrequent
   
   // ========================================
   // 2. AI PROJECT SEARCH TOOLTIP
@@ -11777,7 +11825,7 @@ setTimeout(() => {
       : '? AI Project Search: OFF\nClick to enable';
     
     console.log('?? AI Search:', isOn ? '?? ON' : '? OFF');
-  }, 2000); // 2s is plenty — state only changes on user click
+  }, 2000); // 2s is plenty ï¿½ state only changes on user click
   
   console.log('? [main.ts] Toolbar button fixes applied!');
 }, 2000); // Reduced to 2 seconds
@@ -11785,7 +11833,7 @@ setTimeout(() => {
 // ============================================================================
 // AI FILE EXPLORER CLASS - Automatic Project Scanning for AI Context
 // ============================================================================
-// When •AI is enabled, this scans project files and provides context to AI
+// When ï¿½AI is enabled, this scans project files and provides context to AI
 // ============================================================================
 
 (function initializeAIFileExplorerSystem() {
@@ -12079,7 +12127,7 @@ setTimeout(() => {
 })();
 
 // ============================================================================
-// AI PROJECT HEADER - •AI Badge for File Tree
+// AI PROJECT HEADER - ï¿½AI Badge for File Tree
 // ============================================================================
 
 (function initializeAIProjectHeader() {
@@ -12752,14 +12800,14 @@ setTimeout(() => {
         
         // Look for leaf-ish elements that contain ? N or ? N
         if (children <= 3 && text.length < 20) {
-          if (!undoEl && /?\s*\d+/.test(text)) {
+          if (!undoEl && /\d+/.test(text)) {
             // Find the specific number element
             const numSpan = Array.from(el.querySelectorAll('*')).find(
               c => /^\d+$/.test((c.textContent || '').trim())
             ) as HTMLElement;
             undoEl = numSpan || el;
           }
-          if (!redoEl && /?\s*\d+/.test(text)) {
+          if (!redoEl && /\d+/.test(text)) {
             const numSpan = Array.from(el.querySelectorAll('*')).find(
               c => /^\d+$/.test((c.textContent || '').trim())
             ) as HTMLElement;
@@ -12784,7 +12832,7 @@ setTimeout(() => {
       if (/^\d+$/.test(currentText.trim())) {
         // Element contains just the number
         undoEl.textContent = String(undoCount);
-      } else if (/?\s*\d+/.test(currentText)) {
+      } else if (/\d+/.test(currentText)) {
         // Element contains "? N" - replace the number part
         undoEl.textContent = currentText.replace(/\d+/, String(undoCount));
       }
@@ -12803,7 +12851,7 @@ setTimeout(() => {
       const currentText = redoEl.textContent || '';
       if (/^\d+$/.test(currentText.trim())) {
         redoEl.textContent = String(redoCount);
-      } else if (/?\s*\d+/.test(currentText)) {
+      } else if (/\d+/.test(currentText)) {
         redoEl.textContent = currentText.replace(/\d+/, String(redoCount));
       }
       
@@ -12922,7 +12970,7 @@ setTimeout(() => {
     
     // Let Monaco handle the actual undo/redo, we just update UI via debounce
     if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-      // Ctrl+Z = Undo — content listener will handle count
+      // Ctrl+Z = Undo ï¿½ content listener will handle count
       setTimeout(updateUndoRedoUI, 50);
     } else if ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) {
       // Ctrl+Shift+Z = Redo
@@ -12933,7 +12981,7 @@ setTimeout(() => {
     }
   });
   
-  // Listen for file save events — reset undo count on save
+  // Listen for file save events ï¿½ reset undo count on save
   document.addEventListener('file-saved', () => {
     console.log('?? [UndoRedo] File saved, resetting undo count');
     undoCount = 0;

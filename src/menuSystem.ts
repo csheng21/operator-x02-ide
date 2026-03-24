@@ -1,4 +1,4 @@
-// menuSystem.ts - Menu System and File Operations
+﻿// menuSystem.ts - Menu System and File Operations
 // At the top of menuSystem.ts, add import
 import { markFileAsSaved, markFileAsModified, renderFileTree as renderFileTreeIDE } from './ide/fileExplorer/fileTreeRenderer';
 import { tabManager } from './editor/tabManager';
@@ -1079,7 +1079,7 @@ function updateViewMenuIndicators(): void {
                        window.getComputedStyle(panel).display !== 'none';
       
       if (checkmark) {
-        checkmark.textContent = isVisible ? '?' : '';
+      checkmark.textContent = isVisible ? '\u2713' : '';
       }
     }
   });
@@ -2861,4 +2861,3 @@ document.addEventListener('folder-structure-loaded', (e: any) => {
 (window as any).updateFileExplorerWithProject = updateFileExplorerWithProject;
 
 console.log('? MenuSystem event listeners registered');
-

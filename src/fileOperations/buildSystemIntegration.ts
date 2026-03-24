@@ -21,7 +21,7 @@ export interface BuildSystem {
   installCommand?: string;
   description: string;
   priority: number;
-  // ✅ Arduino-specific fields
+  // ? Arduino-specific fields
   isEmbedded?: boolean;
   boardFqbn?: string;
   requiresCLI?: string;
@@ -49,33 +49,33 @@ interface ParsedError {
 // ============================================================================
 
 export const BUILD_SYSTEMS: BuildSystem[] = [
-  // ✅ EMBEDDED SYSTEMS (Arduino-based) - Higher priority
+  // ? EMBEDDED SYSTEMS (Arduino-based) - Higher priority
   // Using {fqbn} and {port} placeholders - replaced at runtime with user selections
-  { name: 'arduino', displayName: 'Arduino', detectFile: '*.ino', icon: '🔌', buildCommand: 'arduino-cli compile --fqbn {fqbn} .', runCommand: 'arduino-cli upload -p {port} --fqbn {fqbn} .', cleanCommand: 'arduino-cli cache clean', installCommand: 'arduino-cli core install arduino:avr', description: 'Arduino Development', priority: 110, isEmbedded: true, boardFqbn: 'arduino:avr:uno', requiresCLI: 'arduino-cli' },
-  { name: 'esp32', displayName: 'ESP32', detectFile: '*.ino', icon: '📡', buildCommand: 'arduino-cli compile --fqbn {fqbn} .', runCommand: 'arduino-cli upload -p {port} --fqbn {fqbn} .', cleanCommand: 'arduino-cli cache clean', installCommand: 'arduino-cli core install esp32:esp32', description: 'ESP32 IoT Development', priority: 109, isEmbedded: true, boardFqbn: 'esp32:esp32:esp32', requiresCLI: 'arduino-cli' },
-  { name: 'esp8266', displayName: 'ESP8266', detectFile: '*.ino', icon: '📶', buildCommand: 'arduino-cli compile --fqbn {fqbn} .', runCommand: 'arduino-cli upload -p {port} --fqbn {fqbn} .', cleanCommand: 'arduino-cli cache clean', installCommand: 'arduino-cli core install esp8266:esp8266', description: 'ESP8266 WiFi Development', priority: 108, isEmbedded: true, boardFqbn: 'esp8266:esp8266:nodemcuv2', requiresCLI: 'arduino-cli' },
-  { name: 'stm32', displayName: 'STM32', detectFile: '*.ino', icon: '🔩', buildCommand: 'arduino-cli compile --fqbn {fqbn} .', runCommand: 'arduino-cli upload -p {port} --fqbn {fqbn} .', cleanCommand: 'arduino-cli cache clean', installCommand: 'arduino-cli core install STMicroelectronics:stm32', description: 'STM32 Development', priority: 107, isEmbedded: true, boardFqbn: 'STMicroelectronics:stm32:GenF4', requiresCLI: 'arduino-cli' },
-  // ✅ STANDARD BUILD SYSTEMS
-  { name: 'npm', displayName: 'npm (Node.js)', detectFile: 'package.json', icon: '📦', buildCommand: 'npm run build', runCommand: 'npm start', cleanCommand: 'npm run clean', testCommand: 'npm test', installCommand: 'npm install', description: 'Node Package Manager', priority: 100 },
-  { name: 'yarn', displayName: 'Yarn', detectFile: 'yarn.lock', icon: '🧶', buildCommand: 'yarn build', runCommand: 'yarn start', cleanCommand: 'yarn clean', testCommand: 'yarn test', installCommand: 'yarn install', description: 'Yarn Package Manager', priority: 95 },
-  { name: 'pnpm', displayName: 'pnpm', detectFile: 'pnpm-lock.yaml', icon: '⚡', buildCommand: 'pnpm build', runCommand: 'pnpm start', cleanCommand: 'pnpm clean', testCommand: 'pnpm test', installCommand: 'pnpm install', description: 'pnpm', priority: 98 },
-  { name: 'cargo', displayName: 'Cargo (Rust)', detectFile: 'Cargo.toml', icon: '🦀', buildCommand: 'cargo build', runCommand: 'cargo run', cleanCommand: 'cargo clean', testCommand: 'cargo test', description: 'Rust', priority: 100 },
-  { name: 'maven', displayName: 'Maven (Java)', detectFile: 'pom.xml', icon: '☕', buildCommand: 'mvn compile', runCommand: 'mvn exec:java', cleanCommand: 'mvn clean', testCommand: 'mvn test', description: 'Java Maven', priority: 100 },
-  { name: 'gradle', displayName: 'Gradle', detectFile: ['build.gradle', 'build.gradle.kts'], icon: '🐘', buildCommand: 'gradle build', runCommand: 'gradle run', cleanCommand: 'gradle clean', testCommand: 'gradle test', description: 'Gradle', priority: 95 },
-  { name: 'cmake', displayName: 'CMake', detectFile: 'CMakeLists.txt', icon: '🔨', buildCommand: 'cmake --build build', runCommand: './build/main', cleanCommand: 'rm -rf build', testCommand: 'ctest', description: 'CMake C/C++', priority: 100 },
-  { name: 'go', displayName: 'Go', detectFile: 'go.mod', icon: '🐹', buildCommand: 'go build', runCommand: 'go run .', cleanCommand: 'go clean', testCommand: 'go test', description: 'Go', priority: 100 },
-  { name: 'python', displayName: 'Python', detectFile: 'requirements.txt', icon: '🐍', buildCommand: 'pip install -r requirements.txt', runCommand: 'python main.py', testCommand: 'pytest', description: 'Python', priority: 80 },
-  { name: 'flutter', displayName: 'Flutter', detectFile: 'pubspec.yaml', icon: '🎯', buildCommand: 'flutter build', runCommand: 'flutter run', cleanCommand: 'flutter clean', testCommand: 'flutter test', description: 'Flutter', priority: 100 },
-  { name: 'dotnet', displayName: '.NET', detectFile: ['*.csproj', '*.fsproj'], icon: '💙', buildCommand: 'dotnet build', runCommand: 'dotnet run', cleanCommand: 'dotnet clean', testCommand: 'dotnet test', description: '.NET', priority: 100 },
+  { name: 'arduino', displayName: 'Arduino', detectFile: '*.ino', icon: 'npm', buildCommand: 'arduino-cli compile --fqbn {fqbn} .', runCommand: 'arduino-cli upload -p {port} --fqbn {fqbn} .', cleanCommand: 'arduino-cli cache clean', installCommand: 'arduino-cli core install arduino:avr', description: 'Arduino Development', priority: 110, isEmbedded: true, boardFqbn: 'arduino:avr:uno', requiresCLI: 'arduino-cli' },
+  { name: 'esp32', displayName: 'ESP32', detectFile: '*.ino', icon: 'npm', buildCommand: 'arduino-cli compile --fqbn {fqbn} .', runCommand: 'arduino-cli upload -p {port} --fqbn {fqbn} .', cleanCommand: 'arduino-cli cache clean', installCommand: 'arduino-cli core install esp32:esp32', description: 'ESP32 IoT Development', priority: 109, isEmbedded: true, boardFqbn: 'esp32:esp32:esp32', requiresCLI: 'arduino-cli' },
+  { name: 'esp8266', displayName: 'ESP8266', detectFile: '*.ino', icon: 'npm', buildCommand: 'arduino-cli compile --fqbn {fqbn} .', runCommand: 'arduino-cli upload -p {port} --fqbn {fqbn} .', cleanCommand: 'arduino-cli cache clean', installCommand: 'arduino-cli core install esp8266:esp8266', description: 'ESP8266 WiFi Development', priority: 108, isEmbedded: true, boardFqbn: 'esp8266:esp8266:nodemcuv2', requiresCLI: 'arduino-cli' },
+  { name: 'stm32', displayName: 'STM32', detectFile: '*.ino', icon: 'npm', buildCommand: 'arduino-cli compile --fqbn {fqbn} .', runCommand: 'arduino-cli upload -p {port} --fqbn {fqbn} .', cleanCommand: 'arduino-cli cache clean', installCommand: 'arduino-cli core install STMicroelectronics:stm32', description: 'STM32 Development', priority: 107, isEmbedded: true, boardFqbn: 'STMicroelectronics:stm32:GenF4', requiresCLI: 'arduino-cli' },
+  // ? STANDARD BUILD SYSTEMS
+  { name: 'npm', displayName: 'npm (Node.js)', detectFile: 'package.json', icon: 'npm', buildCommand: 'npm run build', runCommand: 'npm start', cleanCommand: 'npm run clean', testCommand: 'npm test', installCommand: 'npm install', description: 'Node Package Manager', priority: 100 },
+  { name: 'yarn', displayName: 'Yarn', detectFile: 'yarn.lock', icon: 'npm', buildCommand: 'yarn build', runCommand: 'yarn start', cleanCommand: 'yarn clean', testCommand: 'yarn test', installCommand: 'yarn install', description: 'Yarn Package Manager', priority: 95 },
+  { name: 'pnpm', displayName: 'pnpm', detectFile: 'pnpm-lock.yaml', icon: '?', buildCommand: 'pnpm build', runCommand: 'pnpm start', cleanCommand: 'pnpm clean', testCommand: 'pnpm test', installCommand: 'pnpm install', description: 'pnpm', priority: 98 },
+  { name: 'cargo', displayName: 'Cargo (Rust)', detectFile: 'Cargo.toml', icon: 'npm', buildCommand: 'cargo build', runCommand: 'cargo run', cleanCommand: 'cargo clean', testCommand: 'cargo test', description: 'Rust', priority: 100 },
+  { name: 'maven', displayName: 'Maven (Java)', detectFile: 'pom.xml', icon: '?', buildCommand: 'mvn compile', runCommand: 'mvn exec:java', cleanCommand: 'mvn clean', testCommand: 'mvn test', description: 'Java Maven', priority: 100 },
+  { name: 'gradle', displayName: 'Gradle', detectFile: ['build.gradle', 'build.gradle.kts'], icon: 'npm', buildCommand: 'gradle build', runCommand: 'gradle run', cleanCommand: 'gradle clean', testCommand: 'gradle test', description: 'Gradle', priority: 95 },
+  { name: 'cmake', displayName: 'CMake', detectFile: 'CMakeLists.txt', icon: 'npm', buildCommand: 'cmake --build build', runCommand: './build/main', cleanCommand: 'rm -rf build', testCommand: 'ctest', description: 'CMake C/C++', priority: 100 },
+  { name: 'go', displayName: 'Go', detectFile: 'go.mod', icon: 'npm', buildCommand: 'go build', runCommand: 'go run .', cleanCommand: 'go clean', testCommand: 'go test', description: 'Go', priority: 100 },
+  { name: 'python', displayName: 'Python', detectFile: 'requirements.txt', icon: 'npm', buildCommand: 'pip install -r requirements.txt', runCommand: 'python main.py', testCommand: 'pytest', description: 'Python', priority: 80 },
+  { name: 'flutter', displayName: 'Flutter', detectFile: 'pubspec.yaml', icon: 'npm', buildCommand: 'flutter build', runCommand: 'flutter run', cleanCommand: 'flutter clean', testCommand: 'flutter test', description: 'Flutter', priority: 100 },
+  { name: 'dotnet', displayName: '.NET', detectFile: ['*.csproj', '*.fsproj'], icon: 'npm', buildCommand: 'dotnet build', runCommand: 'dotnet run', cleanCommand: 'dotnet clean', testCommand: 'dotnet test', description: '.NET', priority: 100 },
 ];
 
 // ============================================================================
 // ANIMATION FRAMES
 // ============================================================================
 
-const SPINNER = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
-const PROGRESS = ['▱▱▱▱▱▱▱▱▱▱', '▰▱▱▱▱▱▱▱▱▱', '▰▰▱▱▱▱▱▱▱▱', '▰▰▰▱▱▱▱▱▱▱', '▰▰▰▰▱▱▱▱▱▱', '▰▰▰▰▰▱▱▱▱▱', '▰▰▰▰▰▰▱▱▱▱', '▰▰▰▰▰▰▰▱▱▱', '▰▰▰▰▰▰▰▰▱▱', '▰▰▰▰▰▰▰▰▰▱', '▰▰▰▰▰▰▰▰▰▰'];
-const BLOCKS = ['░░░░░░░░░░', '█░░░░░░░░░', '██░░░░░░░░', '███░░░░░░░', '████░░░░░░', '█████░░░░░', '██████░░░░', '███████░░░', '████████░░', '█████████░', '██████████'];
+const SPINNER = ['?', '?', '?', '?', '?', '?', '?', '?', '?', '?'];
+const PROGRESS = ['??????????', '??????????', '??????????', '??????????', '??????????', '??????????', '??????????', '??????????', '??????????', '??????????', '??????????'];
+const BLOCKS = ['����������', '����������', '����������', '����������', '����������', '����������', '����������', '����������', '����������', '����������', '����������'];
 
 let animationInterval: number | null = null;
 let animationLineEl: HTMLElement | null = null;
@@ -115,7 +115,7 @@ export function getRunningProcess(): RunningProcess | null {
 export async function stopProject(): Promise<boolean> {
   if (!currentProcess) {
     console.log('[BuildSystem] No process running');
-    termLine('⚠️ No process is running', '#d29922');
+    termLine('?? No process is running', '#d29922');
     return false;
   }
   
@@ -123,7 +123,7 @@ export async function stopProject(): Promise<boolean> {
   const command = currentProcess.command;
   
   console.log(`[BuildSystem] Stopping process ${pid}: ${command}`);
-  termLine(`⏹️ Stopping process...`, '#d29922');
+  termLine(`?? Stopping process...`, '#d29922');
   
   try {
     // Try Tauri kill command first
@@ -162,19 +162,19 @@ export async function stopProject(): Promise<boolean> {
     // Show stopped message
     const duration = Date.now() - processInfo.startTime.getTime();
     termStatus(false, 'Stopped by user', duration);
-    termLine(`⏹️ Process ${pid} terminated`, '#d29922');
+    termLine(`?? Process ${pid} terminated`, '#d29922');
     
     // Dispatch event for UI updates
     window.dispatchEvent(new CustomEvent('process-stopped', {
       detail: { pid, command: processInfo.command }
     }));
     
-    console.log(`[BuildSystem] ✅ Process ${pid} stopped successfully`);
+    console.log(`[BuildSystem] ? Process ${pid} stopped successfully`);
     return true;
     
   } catch (error) {
     console.error('[BuildSystem] Failed to stop process:', error);
-    termLine(`❌ Failed to stop process: ${error}`, '#f85149');
+    termLine(`? Failed to stop process: ${error}`, '#f85149');
     return false;
   }
 }
@@ -296,7 +296,7 @@ function termClear(): void {
   const t = getTerminal();
   if (t) t.innerHTML = '';
   setupErrorNavigation(); // Ensure click handler is available
-  clearBuildErrorBadge(); // ✅ Clear error badge when terminal is cleared
+  clearBuildErrorBadge(); // ? Clear error badge when terminal is cleared
 }
 
 function termLine(text: string, color: string = '#9cdcfe', options?: { id?: string; className?: string }): HTMLElement {
@@ -325,7 +325,7 @@ function termLine(text: string, color: string = '#9cdcfe', options?: { id?: stri
     const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     
     el.style.cssText += ';cursor:pointer';
-    el.innerHTML = `<span style="color:#f85149">⊙</span> <span style="text-decoration:underline">${escaped}</span>`;
+    el.innerHTML = `<span style="color:#f85149">?</span> <span style="text-decoration:underline">${escaped}</span>`;
     el.onclick = (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -364,7 +364,7 @@ function termHeader(icon: string, title: string, subtitle?: string): void {
   
   const el = document.createElement('div');
   el.className = 'bld';
-  el.innerHTML = `<span>${icon}</span> <span style="color:#4fc3f7;font-weight:600">${title}</span>${subtitle ? ` <span style="color:#666">• ${subtitle}</span>` : ''}`;
+  el.innerHTML = `<span>${icon}</span> <span style="color:#4fc3f7;font-weight:600">${title}</span>${subtitle ? ` <span style="color:#666">� ${subtitle}</span>` : ''}`;
   t.appendChild(el);
   t.scrollTop = t.scrollHeight;
 }
@@ -387,7 +387,7 @@ function termStatus(success: boolean, message: string, duration?: number): void 
   const c = success ? '#3fb950' : '#f85149';
   const el = document.createElement('div');
   el.className = 'bld';
-  el.innerHTML = `<span style="color:${c};font-weight:bold">${success ? '✓' : '✗'}</span> <span style="color:${c}">${message}</span>${duration ? ` <span style="color:#666;font-size:9px">(${(duration/1000).toFixed(2)}s)</span>` : ''}`;
+  el.innerHTML = `<span style="color:${c};font-weight:bold">${success ? '?' : '?'}</span> <span style="color:${c}">${message}</span>${duration ? ` <span style="color:#666;font-size:9px">(${(duration/1000).toFixed(2)}s)</span>` : ''}`;
   t.appendChild(el);
   t.scrollTop = t.scrollHeight;
 }
@@ -576,7 +576,7 @@ function replaceErrorMessageWithCard(errors: ParsedError[]): boolean {
     document.head.appendChild(style);
   }
   
-  // ✅ FIX: Use the EXACT selectors from debug output
+  // ? FIX: Use the EXACT selectors from debug output
   // Container: ai-chat-container
   // User message: ai-message user-message
   // Content: ai-message-content
@@ -589,11 +589,11 @@ function replaceErrorMessageWithCard(errors: ParsedError[]): boolean {
     if (altContainer) {
       console.log('[BuildSystem] Found alternative container:', altContainer.className);
     }
-    console.log('[BuildSystem] ❌ No ai-chat-container found');
+    console.log('[BuildSystem] ? No ai-chat-container found');
     return false;
   }
   
-  console.log('[BuildSystem] ✅ Found ai-chat-container');
+  console.log('[BuildSystem] ? Found ai-chat-container');
   
   // Debug: Log all direct children
   const children = chatContainer.children;
@@ -627,7 +627,7 @@ function replaceErrorMessageWithCard(errors: ParsedError[]): boolean {
       const content = msg.querySelector('.ai-message-content');
       if (content) {
         targetMessage = content;
-        console.log('[BuildSystem] ✅ Found user message content to replace');
+        console.log('[BuildSystem] ? Found user message content to replace');
         break;
       }
     }
@@ -648,7 +648,7 @@ function replaceErrorMessageWithCard(errors: ParsedError[]): boolean {
         if ((text.includes('Line') && text.includes('TS')) || 
             text.includes('build-errors')) {
           targetMessage = content;
-          console.log('[BuildSystem] ✅ Found ai-message-content via fallback');
+          console.log('[BuildSystem] ? Found ai-message-content via fallback');
           break;
         }
       }
@@ -657,7 +657,7 @@ function replaceErrorMessageWithCard(errors: ParsedError[]): boolean {
   
   // Ultimate fallback: search ENTIRE document
   if (!targetMessage) {
-    console.log('[BuildSystem] 🔍 Searching entire document for error text...');
+    console.log('[BuildSystem] ?? Searching entire document for error text...');
     const allDivs = document.querySelectorAll('div');
     for (let i = allDivs.length - 1; i >= 0; i--) {
       const div = allDivs[i];
@@ -666,7 +666,7 @@ function replaceErrorMessageWithCard(errors: ParsedError[]): boolean {
       if (text.includes('BUILD_ERROR_CARD') && text.includes('build-errors')) {
         // Make sure it's a leaf-ish node (not the whole page)
         if (div.children.length < 10 && text.length < 5000) {
-          console.log(`[BuildSystem] 🎯 Found via document search: ${div.className}`);
+          console.log(`[BuildSystem] ?? Found via document search: ${div.className}`);
           targetMessage = div;
           break;
         }
@@ -691,7 +691,7 @@ function replaceErrorMessageWithCard(errors: ParsedError[]): boolean {
   Object.entries(errorsByFile).forEach(([file, fileErrors]) => {
     errorListHTML += `
       <div class="error-file-group">
-        <div class="error-file-name">📄 ${escapeHtml(file)}</div>
+        <div class="error-file-name">?? ${escapeHtml(file)}</div>
         ${fileErrors.map(e => `
           <div class="error-item">
             <span style="color: #888;">L${e.line}:</span>
@@ -720,7 +720,7 @@ function replaceErrorMessageWithCard(errors: ParsedError[]): boolean {
         <span style="color: #fff; font-weight: 600; font-size: 13px;">Build Failed</span>
         <span style="color: #f85149; font-size: 11px; background: rgba(248,81,73,0.15); padding: 2px 8px; border-radius: 10px; font-weight: 500;">${errorCount} error${errorCount > 1 ? 's' : ''}</span>
       </div>
-      <span class="expand-toggle" style="color: #4fc3f7; font-size: 11px; padding: 4px 8px; border: 1px solid #333; border-radius: 4px;">▶ Show</span>
+      <span class="expand-toggle" style="color: #4fc3f7; font-size: 11px; padding: 4px 8px; border: 1px solid #333; border-radius: 4px;">? Show</span>
     </div>
     <div class="build-error-card-content">
       ${errorListHTML}
@@ -740,17 +740,17 @@ function replaceErrorMessageWithCard(errors: ParsedError[]): boolean {
     const isExpanded = content?.classList.contains('expanded');
     if (isExpanded) {
       content?.classList.remove('expanded');
-      if (toggle) toggle.textContent = '▶ Show';
+      if (toggle) toggle.textContent = '? Show';
     } else {
       content?.classList.add('expanded');
-      if (toggle) toggle.textContent = '▼ Hide';
+      if (toggle) toggle.textContent = '? Hide';
     }
   });
   
   // Scroll to card
   card.scrollIntoView({ behavior: 'smooth', block: 'center' });
   
-  console.log('[BuildSystem] ✅ Replaced user error message with collapsible card');
+  console.log('[BuildSystem] ? Replaced user error message with collapsible card');
 }
 
 /**
@@ -779,7 +779,7 @@ function insertCardAtEndOfChat(errors: ParsedError[]): void {
   Object.entries(errorsByFile).forEach(([file, fileErrors]) => {
     errorListHTML += `
       <div class="error-file-group">
-        <div class="error-file-name">📄 ${escapeHtml(file)}</div>
+        <div class="error-file-name">?? ${escapeHtml(file)}</div>
         ${fileErrors.map(e => `
           <div class="error-item">
             <span style="color: #888;">L${e.line}:</span>
@@ -799,10 +799,10 @@ function insertCardAtEndOfChat(errors: ParsedError[]): void {
       const toggle = this.querySelector('.expand-toggle');
       if (content.classList.contains('expanded')) {
         content.classList.remove('expanded');
-        toggle.textContent = '▶ Show';
+        toggle.textContent = '? Show';
       } else {
         content.classList.add('expanded');
-        toggle.textContent = '▼ Hide';
+        toggle.textContent = '? Hide';
       }
     ">
       <div style="display: flex; align-items: center; gap: 10px;">
@@ -810,7 +810,7 @@ function insertCardAtEndOfChat(errors: ParsedError[]): void {
         <span style="color: #fff; font-weight: 600; font-size: 13px;">Build Failed</span>
         <span style="color: #f85149; font-size: 11px; background: rgba(248,81,73,0.15); padding: 2px 8px; border-radius: 10px;">${errorCount} errors</span>
       </div>
-      <span class="expand-toggle" style="color: #4fc3f7; font-size: 11px; padding: 4px 8px; border: 1px solid #333; border-radius: 4px;">▶ Show</span>
+      <span class="expand-toggle" style="color: #4fc3f7; font-size: 11px; padding: 4px 8px; border: 1px solid #333; border-radius: 4px;">? Show</span>
     </div>
     <div class="build-error-card-content">${errorListHTML}</div>
   `;
@@ -818,7 +818,7 @@ function insertCardAtEndOfChat(errors: ParsedError[]): void {
   chatContainer.appendChild(card);
   card.scrollIntoView({ behavior: 'smooth' });
   
-  console.log('[BuildSystem] ✅ Inserted error card at end of chat');
+  console.log('[BuildSystem] ? Inserted error card at end of chat');
 }
 
 /**
@@ -878,7 +878,7 @@ function insertCollapsibleErrorCard(errors: ParsedError[]): void {
   Object.entries(errorsByFile).forEach(([file, fileErrors]) => {
     errorListHTML += `
       <div style="margin-bottom: 8px;">
-        <div style="color: #4fc3f7; font-size: 11px; font-weight: 600; margin-bottom: 4px;">📄 ${escapeHtml(file)}</div>
+        <div style="color: #4fc3f7; font-size: 11px; font-weight: 600; margin-bottom: 4px;">?? ${escapeHtml(file)}</div>
         ${fileErrors.map(e => `
           <div style="color: #ccc; font-size: 10px; padding: 2px 0 2px 12px; border-left: 2px solid #333;">
             <span style="color: #888;">L${e.line}:</span> 
@@ -948,7 +948,7 @@ function insertCollapsibleErrorCard(errors: ParsedError[]): void {
         gap: 4px;
         transition: all 0.15s;
       ">
-        <span class="expand-icon">▶</span>
+        <span class="expand-icon">?</span>
         <span class="expand-text">Show</span>
       </button>
     </div>
@@ -992,16 +992,16 @@ function insertCollapsibleErrorCard(errors: ParsedError[]): void {
       
       if (isExpanded) {
         content?.classList.remove('expanded');
-        if (expandIcon) expandIcon.textContent = '▶';
+        if (expandIcon) expandIcon.textContent = '?';
         if (expandText) expandText.textContent = 'Show';
       } else {
         content?.classList.add('expanded');
-        if (expandIcon) expandIcon.textContent = '▼';
+        if (expandIcon) expandIcon.textContent = '?';
         if (expandText) expandText.textContent = 'Hide';
       }
     });
     
-    console.log('[BuildSystem] ✅ Collapsible error card inserted');
+    console.log('[BuildSystem] ? Collapsible error card inserted');
   }
 }
 
@@ -1084,7 +1084,7 @@ function showDebuggingProgress(errorCount: number): void {
           border-radius: 50%;
           animation: debugSpin 0.8s linear infinite;
         "></div>
-        <span style="color: #4fc3f7; font-weight: 600; font-size: 14px;">🔍 AI Debugging</span>
+        <span style="color: #4fc3f7; font-weight: 600; font-size: 14px;">?? AI Debugging</span>
       </div>
       <span style="
         color: #f85149; 
@@ -1108,7 +1108,7 @@ function showDebuggingProgress(errorCount: number): void {
       align-items: center;
       gap: 10px;
     ">
-      <div id="debug-status-icon" style="font-size: 16px;">🔍</div>
+      <div id="debug-status-icon" style="font-size: 16px;">??</div>
       <div style="flex: 1;">
         <div id="debug-status-text" style="color: #9cdcfe; font-size: 12px; font-weight: 500;">
           Checking errors...
@@ -1202,15 +1202,15 @@ function showDebuggingProgress(errorCount: number): void {
     hideDebuggingProgress();
   });
   
-  // ✅ ANIMATED STATUS MESSAGES (continues after status bar states)
-  // Status bar handles: checking → analyzing → sending
+  // ? ANIMATED STATUS MESSAGES (continues after status bar states)
+  // Status bar handles: checking ? analyzing ? sending
   // Chat panel continues from there with more detailed states
   const statusMessages = [
-    { icon: '📤', text: 'Sending to AI...', detail: 'Preparing request', progress: 60 },
-    { icon: '🧠', text: 'AI processing errors...', detail: 'Generating solutions', progress: 70 },
-    { icon: '💡', text: 'Finding best fix...', detail: 'Evaluating approaches', progress: 80 },
-    { icon: '✍️', text: 'Generating corrected code...', detail: 'Almost done', progress: 90 },
-    { icon: '✅', text: 'Finalizing response...', detail: 'Preparing output', progress: 95 }
+    { icon: 'npm', text: 'Sending to AI...', detail: 'Preparing request', progress: 60 },
+    { icon: 'npm', text: 'AI processing errors...', detail: 'Generating solutions', progress: 70 },
+    { icon: 'npm', text: 'Finding best fix...', detail: 'Evaluating approaches', progress: 80 },
+    { icon: 'npm', text: 'Generating corrected code...', detail: 'Almost done', progress: 90 },
+    { icon: '?', text: 'Finalizing response...', detail: 'Preparing output', progress: 95 }
   ];
   
   let currentStatus = 0;
@@ -1245,7 +1245,7 @@ function showDebuggingProgress(errorCount: number): void {
       if (statusDetail) statusDetail.textContent = msg.detail;
       if (progressFill) progressFill.style.width = `${msg.progress}%`;
       
-      // ✅ Also update the status bar to stay in sync
+      // ? Also update the status bar to stay in sync
       const topBar = document.getElementById('build-status-bar');
       if (topBar) {
         const topIcon = topBar.querySelector('div[style*="font-size: 20px"]');
@@ -1261,7 +1261,7 @@ function showDebuggingProgress(errorCount: number): void {
   // Store interval ID for cleanup
   (bar as any)._statusInterval = statusInterval;
   
-  console.log('[BuildSystem] 🔍 Debugging progress shown in AI panel');
+  console.log('[BuildSystem] ?? Debugging progress shown in AI panel');
 }
 
 /**
@@ -1281,7 +1281,7 @@ function hideDebuggingProgress(): void {
     const statusDetail = bar.querySelector('#debug-status-detail');
     const progressFill = bar.querySelector('#debug-progress-fill') as HTMLElement;
     
-    if (statusIcon) statusIcon.textContent = '✅';
+    if (statusIcon) statusIcon.textContent = '?';
     if (statusText) statusText.textContent = 'Analysis complete!';
     if (statusDetail) statusDetail.textContent = 'AI response ready';
     if (progressFill) progressFill.style.width = '100%';
@@ -1294,10 +1294,10 @@ function hideDebuggingProgress(): void {
       setTimeout(() => bar.remove(), 300);
     }, 500);
     
-    console.log('[BuildSystem] 🔍 Debugging progress hidden');
+    console.log('[BuildSystem] ?? Debugging progress hidden');
   }
   
-  // ✅ Also hide the status bar
+  // ? Also hide the status bar
   hideBuildStatusBar();
 }
 
@@ -1335,7 +1335,7 @@ if (typeof window !== 'undefined') {
     );
     if (chatContainer) {
       observer.observe(chatContainer, { childList: true, subtree: true });
-      console.log('[BuildSystem] 🔍 AI response observer active');
+      console.log('[BuildSystem] ?? AI response observer active');
     }
   };
   
@@ -1460,14 +1460,14 @@ function showBuildStatusBar(type: 'building' | 'error' | 'success' | 'checking' 
   } else if (type === 'checking' || type === 'analyzing' || type === 'sending') {
     // AI Processing states
     const messages: Record<string, { icon: string; text: string; subtext: string; color: string; progress: number }> = {
-      checking: { icon: '🔍', text: 'Checking errors...', subtext: 'Parsing build output', color: '#4fc3f7', progress: 15 },
-      analyzing: { icon: '🧠', text: 'AI analyzing...', subtext: 'Finding solutions', color: '#a78bfa', progress: 40 },
-      sending: { icon: '📤', text: 'Sending to AI...', subtext: 'Preparing request', color: '#4fc3f7', progress: 60 }
+      checking: { icon: 'npm', text: 'Checking errors...', subtext: 'Parsing build output', color: '#4fc3f7', progress: 15 },
+      analyzing: { icon: 'npm', text: 'AI analyzing...', subtext: 'Finding solutions', color: '#a78bfa', progress: 40 },
+      sending: { icon: 'npm', text: 'Sending to AI...', subtext: 'Preparing request', color: '#4fc3f7', progress: 60 }
     };
     const msg = messages[type];
     const errorText = errorCount ? (errorCount === 1 ? '1 error' : `${errorCount} errors`) : '';
     
-    // ✅ Also update the chat panel progress bar if it exists
+    // ? Also update the chat panel progress bar if it exists
     const chatProgressIcon = document.querySelector('#debug-status-icon');
     const chatProgressText = document.querySelector('#debug-status-text');
     const chatProgressDetail = document.querySelector('#debug-status-detail');
@@ -1536,7 +1536,7 @@ function showBuildStatusBar(type: 'building' | 'error' | 'success' | 'checking' 
         transition: all 0.15s;
       " onmouseover="this.style.background='rgba(79,195,247,0.2)';this.style.borderColor='#4fc3f7'" 
          onmouseout="this.style.background='linear-gradient(135deg, rgba(79,195,247,0.1), rgba(79,195,247,0.05))';this.style.borderColor='rgba(79,195,247,0.3)'">
-        <span style="font-size: 9px;">▶</span> Show
+        <span style="font-size: 9px;">?</span> Show
       </button>
       <button id="build-bar-close" style="
         background: transparent;
@@ -1547,7 +1547,7 @@ function showBuildStatusBar(type: 'building' | 'error' | 'success' | 'checking' 
         padding: 2px 6px;
         transition: color 0.15s;
         line-height: 1;
-      " onmouseover="this.style.color='#999'" onmouseout="this.style.color='#555'">×</button>
+      " onmouseover="this.style.color='#999'" onmouseout="this.style.color='#555'">�</button>
     `;
   } else if (type === 'success') {
     bar.style.borderColor = 'rgba(63,185,80,0.4)';
@@ -1562,7 +1562,7 @@ function showBuildStatusBar(type: 'building' | 'error' | 'success' | 'checking' 
         display: flex;
         align-items: center;
         justify-content: center;
-      ">✓</div>
+      ">?</div>
       <div style="color: #3fb950; font-weight: 600; font-size: 13px;">Build Successful</div>
     `;
     // Auto-hide success after 3 seconds
@@ -1616,14 +1616,14 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
   // Remove existing popup
   document.getElementById('build-error-popup')?.remove();
   
-  // ✅ Also remove any other build-related popups that might exist
+  // ? Also remove any other build-related popups that might exist
   document.getElementById('build-status-popup')?.remove();
   document.getElementById('build-notification')?.remove();
   document.getElementById('error-notification')?.remove();
   document.getElementById('preview-error-bar')?.remove();
   document.getElementById('build-error-bar')?.remove();
   
-  // ✅ Remove the right-side buildSystemUI popup/notification
+  // ? Remove the right-side buildSystemUI popup/notification
   // This typically appears near the AI chat panel
   document.querySelectorAll('[class*="build-popup"], [class*="error-popup"], [class*="build-notification"], [class*="error-bar"]').forEach(el => {
     if (el.id !== 'build-error-popup') {
@@ -1632,7 +1632,7 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
     }
   });
   
-  // ✅ Remove any floating notification that shows "Error" and "Build Failed"
+  // ? Remove any floating notification that shows "Error" and "Build Failed"
   document.querySelectorAll('div').forEach(el => {
     const text = el.textContent || '';
     const style = el.getAttribute('style') || '';
@@ -1741,7 +1741,7 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
     </div>
     
     <div style="display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; background: rgba(248,81,73,0.1); border-radius: 5px; border-left: 3px solid #f85149; margin-bottom: 12px;">
-      <span style="color: #f85149;">⊙</span>
+      <span style="color: #f85149;">?</span>
       <span style="color: #ccc; font-size: 11px; font-family: 'JetBrains Mono', Consolas, monospace; word-break: break-all; line-height: 1.4;" title="${escapeHtml(fullErrorText)}">${escapeHtml(displayText)}</span>
     </div>
     
@@ -1753,7 +1753,7 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
   
   document.body.appendChild(popup);
   
-  // ✅ Keep removing any other build popups for 3 seconds
+  // ? Keep removing any other build popups for 3 seconds
   let cleanupCount = 0;
   const cleanupInterval = setInterval(() => {
     cleanupCount++;
@@ -1809,7 +1809,7 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
   // Ask AI button handler - INTEGRATED PROGRESS IN CHAT PANEL
   const aiBtn = popup.querySelector('#bep-ai') as HTMLButtonElement;
   aiBtn?.addEventListener('click', () => {
-    // ✅ STEP 1: Fade out and remove the bottom-left popup
+    // ? STEP 1: Fade out and remove the bottom-left popup
     popup.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
     popup.style.opacity = '0';
     popup.style.transform = 'translateY(10px)';
@@ -1817,8 +1817,8 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
     setTimeout(() => {
       popup.remove();
       
-      // ✅ STEP 2: Create progress element inside AI chat panel
-      // ✅ Try multiple selectors - .ai-chat-container is confirmed to exist
+      // ? STEP 2: Create progress element inside AI chat panel
+      // ? Try multiple selectors - .ai-chat-container is confirmed to exist
       let chatPanel = document.querySelector(
         '.ai-chat-messages, .chat-messages, .messages-container, ' +
         '#chat-messages, [class*="message-list"], ' +
@@ -1843,7 +1843,7 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
         return;
       }
       
-      console.log('[BuildSystem] ✅ Found chat panel:', chatPanel.className || chatPanel.id);
+      console.log('[BuildSystem] ? Found chat panel:', chatPanel.className || chatPanel.id);
       
       // Remove any existing progress
       document.getElementById('chat-build-progress')?.remove();
@@ -1914,7 +1914,7 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
           margin-bottom: 12px;
         ">
           <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-            <span id="chat-progress-icon" style="font-size: 18px;">🔍</span>
+            <span id="chat-progress-icon" style="font-size: 18px;">??</span>
             <div style="flex: 1;">
               <div id="chat-progress-text" style="color: #4fc3f7; font-weight: 600; font-size: 13px;">Checking errors...</div>
               <div id="chat-progress-detail" style="color: #666; font-size: 10px; margin-top: 2px;">Parsing build output</div>
@@ -1960,7 +1960,7 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
       chatPanel.appendChild(progressEl);
       progressEl.scrollIntoView({ behavior: 'smooth', block: 'end' });
       
-      // ✅ STEP 3: Build error data
+      // ? STEP 3: Build error data
       const maxErrorsForAI = 30;
       const errorsForAI = errors.slice(0, maxErrorsForAI);
       
@@ -1988,29 +1988,29 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
       
       // After message is sent, make it collapsible in UI
       const makeCollapsible = () => {
-        console.log('[BuildSystem] 🔵 makeCollapsible ENTRY');
+        console.log('[BuildSystem] ?? makeCollapsible ENTRY');
         let attempts = 0;
         const maxAttempts = 20; // Increased from 10
         
         const tryCollapse = () => {
           attempts++;
-          console.log(`[BuildSystem] 🔄 makeCollapsible attempt ${attempts}/${maxAttempts}`);
+          console.log(`[BuildSystem] ?? makeCollapsible attempt ${attempts}/${maxAttempts}`);
           
           // Find chat container first
           const chatContainer = document.querySelector('.ai-chat-container, .chat-container, #ai-assistant-panel');
           if (!chatContainer) {
-            console.log('[BuildSystem] ❌ No chat container found');
+            console.log('[BuildSystem] ? No chat container found');
             if (attempts < maxAttempts) setTimeout(tryCollapse, 200);
             return;
           }
           
           // Debug: List all child elements with their classes
           const allChildren = chatContainer.querySelectorAll('*');
-          console.log(`[BuildSystem] 📦 Total elements in chat: ${allChildren.length}`);
+          console.log(`[BuildSystem] ?? Total elements in chat: ${allChildren.length}`);
           
           // Log first level children
           const directChildren = chatContainer.children;
-          console.log(`[BuildSystem] 👶 Direct children: ${directChildren.length}`);
+          console.log(`[BuildSystem] ?? Direct children: ${directChildren.length}`);
           for (let i = 0; i < Math.min(5, directChildren.length); i++) {
             console.log(`[BuildSystem]   Child ${i}: ${directChildren[i].className || directChildren[i].tagName}`);
           }
@@ -2023,7 +2023,7 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
           for (const el of Array.from(allChildren)) {
             const text = el.textContent || '';
             if (text.includes('build-errors') && !foundText) {
-              console.log(`[BuildSystem] 🔍 Found element with "build-errors": tag=${el.tagName} class="${el.className}"`);
+              console.log(`[BuildSystem] ?? Found element with "build-errors": tag=${el.tagName} class="${el.className}"`);
               foundText = true;
               buildErrorsElement = el as HTMLElement;
             }
@@ -2054,7 +2054,7 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
           
           // Fallback: if we found text but not container, use the element's parent
           if (!targetElement && buildErrorsElement) {
-            console.log('[BuildSystem] 🔄 Using fallback: parent of build-errors element');
+            console.log('[BuildSystem] ?? Using fallback: parent of build-errors element');
             // Find closest reasonable parent
             let parent = buildErrorsElement.parentElement;
             while (parent && parent !== chatContainer) {
@@ -2072,17 +2072,17 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
           }
           
           if (!targetElement) {
-            console.log('[BuildSystem] ⏳ Build-errors element not found yet...');
+            console.log('[BuildSystem] ? Build-errors element not found yet...');
             if (attempts < maxAttempts) setTimeout(tryCollapse, 200);
             return;
           }
           
-          console.log('[BuildSystem] ✅ Found build-errors element:', targetElement.className);
+          console.log('[BuildSystem] ? Found build-errors element:', targetElement.className);
           const msg = targetElement;
           
           // Already collapsed?
           if (msg.querySelector('.build-error-collapse')) {
-            console.log('[BuildSystem] ⏭️ Already collapsed');
+            console.log('[BuildSystem] ?? Already collapsed');
             return;
           }
           
@@ -2137,7 +2137,7 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
               // Error line with various formats
               // Format 1: "Line 20: TS1005 - message"
               // Format 2: "  Line 20: TS1005 - message" (indented)
-              const errMatch = trimmed.match(/Line\s*(\d+):\s*(TS\d+)\s*[-–]\s*(.+)/i);
+              const errMatch = trimmed.match(/Line\s*(\d+):\s*(TS\d+)\s*[-�]\s*(.+)/i);
               if (errMatch) {
                 const lineNum = errMatch[1];
                 const code = errMatch[2];
@@ -2154,7 +2154,7 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
               }
               
               // +N more errors (various formats)
-              const moreMatch = trimmed.match(/\(?[+＋]?\s*(\d+)\s+more\s+errors?\)?/i);
+              const moreMatch = trimmed.match(/\(?[++]?\s*(\d+)\s+more\s+errors?\)?/i);
               if (moreMatch) {
                 html += '<div class="err-more">+ ' + moreMatch[1] + ' more errors</div>';
                 continue;
@@ -2419,7 +2419,7 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
               // Replace message content
               msg.innerHTML = '';
               msg.appendChild(wrapper);
-              console.log('[BuildSystem] ✅ Collapsible panel applied!');
+              console.log('[BuildSystem] ? Collapsible panel applied!');
               return;
         };
         
@@ -2435,7 +2435,7 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
                 if (node instanceof HTMLElement) {
                   const text = node.textContent || '';
                   if (text.includes('build-errors') && !document.querySelector('.build-error-collapse')) {
-                    console.log('[BuildSystem] 🔔 MutationObserver detected build-errors message');
+                    console.log('[BuildSystem] ?? MutationObserver detected build-errors message');
                     observer.disconnect();
                     setTimeout(tryCollapse, 100);
                     return;
@@ -2450,15 +2450,15 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
         }
       };
       
-      // ✅ STEP 4: Status animation
+      // ? STEP 4: Status animation
       const statusMessages = [
-        { icon: '🔍', text: 'Checking errors...', detail: 'Parsing build output', progress: 10 },
-        { icon: '🧠', text: 'AI analyzing...', detail: 'Finding solutions', progress: 25 },
-        { icon: '📤', text: 'Sending to AI...', detail: 'Preparing request', progress: 40 },
-        { icon: '⚡', text: 'Processing...', detail: 'Generating fix', progress: 60 },
-        { icon: '💡', text: 'Finding best fix...', detail: 'Evaluating options', progress: 75 },
-        { icon: '✍️', text: 'Writing code...', detail: 'Almost done', progress: 88 },
-        { icon: '✅', text: 'Finalizing...', detail: 'Preparing output', progress: 95 }
+        { icon: 'npm', text: 'Checking errors...', detail: 'Parsing build output', progress: 10 },
+        { icon: 'npm', text: 'AI analyzing...', detail: 'Finding solutions', progress: 25 },
+        { icon: 'npm', text: 'Sending to AI...', detail: 'Preparing request', progress: 40 },
+        { icon: '?', text: 'Processing...', detail: 'Generating fix', progress: 60 },
+        { icon: 'npm', text: 'Finding best fix...', detail: 'Evaluating options', progress: 75 },
+        { icon: 'npm', text: 'Writing code...', detail: 'Almost done', progress: 88 },
+        { icon: '?', text: 'Finalizing...', detail: 'Preparing output', progress: 95 }
       ];
       
       let currentStatus = 0;
@@ -2502,14 +2502,14 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
         setTimeout(() => progressEl.remove(), 300);
       });
       
-      // ✅ STEP 5: Send to AI
+      // ? STEP 5: Send to AI
       setTimeout(() => {
         // Update to "Sending" state
         const icon = document.querySelector('#chat-progress-icon');
         const text = document.querySelector('#chat-progress-text');
         const detail = document.querySelector('#chat-progress-detail');
         const progress = document.querySelector('#chat-progress-bar') as HTMLElement;
-        if (icon) icon.textContent = '📤';
+        if (icon) icon.textContent = '??';
         if (text) text.textContent = 'Sending to AI...';
         if (detail) detail.textContent = 'Preparing request';
         if (progress) progress.style.width = '40%';
@@ -2527,16 +2527,16 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
         input.focus();
         
         setTimeout(() => {
-          console.log('[BuildSystem] 🎯 Looking for send button...');
+          console.log('[BuildSystem] ?? Looking for send button...');
           const sendBtn = document.querySelector('#send-btn, .modern-send-btn, button[type="submit"], .send-button') as HTMLButtonElement;
-          console.log('[BuildSystem] 🎯 Send button found:', !!sendBtn, sendBtn?.className);
+          console.log('[BuildSystem] ?? Send button found:', !!sendBtn, sendBtn?.className);
           if (sendBtn) {
             sendBtn.click();
-            console.log('[BuildSystem] 🎯 Send button clicked, calling makeCollapsible...');
+            console.log('[BuildSystem] ?? Send button clicked, calling makeCollapsible...');
             
             // Make the error message collapsible in UI
             makeCollapsible();
-            console.log('[BuildSystem] 🎯 makeCollapsible called');
+            console.log('[BuildSystem] ?? makeCollapsible called');
             
             // Watch for AI response to hide progress
             const responseObserver = new MutationObserver((mutations) => {
@@ -2554,7 +2554,7 @@ function showBuildErrorPopup(errors: ParsedError[]): void {
                         const icon = el.querySelector('#chat-progress-icon');
                         const text = el.querySelector('#chat-progress-text');
                         const progress = el.querySelector('#chat-progress-bar') as HTMLElement;
-                        if (icon) icon.textContent = '✅';
+                        if (icon) icon.textContent = '?';
                         if (text) text.textContent = 'Complete!';
                         if (progress) progress.style.width = '100%';
                         
@@ -2710,7 +2710,7 @@ function showErrorHelp(errors: ParsedError[]): void {
   setupErrorNavigation();
   
   // Header
-  termLine(`💡 How to Fix (${errors.length})`, '#d29922');
+  termLine(`?? How to Fix (${errors.length})`, '#d29922');
   
   errors.slice(0, 5).forEach((error) => {
     const suggestions = getSuggestions(error);
@@ -2720,7 +2720,7 @@ function showErrorHelp(errors: ParsedError[]): void {
     const fileEl = document.createElement('div');
     fileEl.className = 'bld';
     fileEl.style.cssText = 'cursor:pointer';
-    fileEl.innerHTML = `<span style="color:#f85149">⊙</span> <span style="color:#f85149;text-decoration:underline">${error.file}:${error.line}:${error.column}</span>`;
+    fileEl.innerHTML = `<span style="color:#f85149">?</span> <span style="color:#f85149;text-decoration:underline">${error.file}:${error.line}:${error.column}</span>`;
     fileEl.onclick = () => (window as any).__goToError?.(error.file, error.line, error.column, projectPath);
     t.appendChild(fileEl);
     
@@ -2729,7 +2729,7 @@ function showErrorHelp(errors: ParsedError[]): void {
     
     // Suggestions
     suggestions.forEach((s) => {
-      termLine(`  ▸ ${s}`, '#4ec9b0');
+      termLine(`  ? ${s}`, '#4ec9b0');
     });
   });
   
@@ -2809,7 +2809,7 @@ async function fileExists(dirPath: string, fileName: string | string[]): Promise
     const sep = dirPath.includes('\\') ? '\\' : '/';
     
     for (const file of files) {
-      // ✅ Handle wildcard patterns like *.ino
+      // ? Handle wildcard patterns like *.ino
       if (file.includes('*')) {
         // For wildcard patterns, try to list directory
         try {
@@ -2855,7 +2855,7 @@ export async function detectBuildSystem(projectPath: string): Promise<BuildSyste
   const sep = projectPath.includes('\\') ? '\\' : '/';
   const folderName = projectPath.split(sep).pop() || '';
   
-  // ✅ ARDUINO DETECTION - Check for .ino files first
+  // ? ARDUINO DETECTION - Check for .ino files first
   // Arduino convention: sketch file has same name as folder (e.g., MyProject/MyProject.ino)
   try {
     const sketchPath = `${projectPath}${sep}${folderName}.ino`;
@@ -2907,15 +2907,15 @@ export async function detectBuildSystem(projectPath: string): Promise<BuildSyste
       
       // Determine board type from folder name
       if (folderLower.includes('esp32')) {
-        console.log('[BuildSystem] ✅ Detected: ESP32 (folder name)');
+        console.log('[BuildSystem] ? Detected: ESP32 (folder name)');
         return BUILD_SYSTEMS.find(s => s.name === 'esp32') || null;
       }
       if (folderLower.includes('esp8266')) {
-        console.log('[BuildSystem] ✅ Detected: ESP8266 (folder name)');
+        console.log('[BuildSystem] ? Detected: ESP8266 (folder name)');
         return BUILD_SYSTEMS.find(s => s.name === 'esp8266') || null;
       }
       if (folderLower.includes('stm32')) {
-        console.log('[BuildSystem] ✅ Detected: STM32 (folder name)');
+        console.log('[BuildSystem] ? Detected: STM32 (folder name)');
         return BUILD_SYSTEMS.find(s => s.name === 'stm32') || null;
       }
       
@@ -2926,35 +2926,35 @@ export async function detectBuildSystem(projectPath: string): Promise<BuildSyste
         const config = JSON.parse(configContent);
         if (config.board) {
           if (config.board.includes('esp32')) {
-            console.log('[BuildSystem] ✅ Detected: ESP32 (arduino.json)');
+            console.log('[BuildSystem] ? Detected: ESP32 (arduino.json)');
             return BUILD_SYSTEMS.find(s => s.name === 'esp32') || null;
           }
           if (config.board.includes('esp8266')) {
-            console.log('[BuildSystem] ✅ Detected: ESP8266 (arduino.json)');
+            console.log('[BuildSystem] ? Detected: ESP8266 (arduino.json)');
             return BUILD_SYSTEMS.find(s => s.name === 'esp8266') || null;
           }
           if (config.board.toLowerCase().includes('stm')) {
-            console.log('[BuildSystem] ✅ Detected: STM32 (arduino.json)');
+            console.log('[BuildSystem] ? Detected: STM32 (arduino.json)');
             return BUILD_SYSTEMS.find(s => s.name === 'stm32') || null;
           }
         }
       } catch { /* No arduino.json */ }
       
       // Default to Arduino
-      console.log('[BuildSystem] ✅ Detected: Arduino (default)');
+      console.log('[BuildSystem] ? Detected: Arduino (default)');
       return BUILD_SYSTEMS.find(s => s.name === 'arduino') || null;
     }
   } catch (e) {
     console.log('[BuildSystem] Arduino detection error:', e);
   }
   
-  // ✅ STANDARD BUILD SYSTEM DETECTION
+  // ? STANDARD BUILD SYSTEM DETECTION
   for (const system of [...BUILD_SYSTEMS].sort((a, b) => b.priority - a.priority)) {
     // Skip embedded systems (already handled above)
     if (system.isEmbedded) continue;
     
     if (await fileExists(projectPath, system.detectFile)) {
-      console.log('[BuildSystem] ✅ Detected:', system.displayName);
+      console.log('[BuildSystem] ? Detected:', system.displayName);
       return system;
     }
   }
@@ -3004,7 +3004,7 @@ async function checkNeedsInstall(projectPath: string, buildSystem: BuildSystem):
       case 'dotnet':
         depsFolder = 'obj';
         break;
-      // ✅ Arduino-based systems don't need install check
+      // ? Arduino-based systems don't need install check
       case 'arduino':
       case 'esp32':
       case 'esp8266':
@@ -3103,6 +3103,8 @@ async function executeCommand(command: string, workingDir: string, type: Running
     
     // Clear tracking when done
     clearProcessTracking();
+    // Reset preview auto-open flag so next run can auto-open again
+    (window as any).__previewAutoOpened = false;
     
     // Handle different result formats
     let stdout = '';
@@ -3177,8 +3179,8 @@ export async function buildProject(buildSystem?: BuildSystem): Promise<BuildResu
     buildSystem = await detectBuildSystem(projectPath);
     if (!buildSystem) {
       termClear();
-      termLine('❌ No build system detected', '#f85149');
-      termLine('💡 Open a folder with package.json, Cargo.toml, etc.', '#9cdcfe');
+      termLine('? No build system detected', '#f85149');
+      termLine('?? Open a folder with package.json, Cargo.toml, etc.', '#9cdcfe');
       return { success: false, output: '', error: 'No build system', duration: 0, exitCode: 1 };
     }
   }
@@ -3220,7 +3222,7 @@ export async function buildProject(buildSystem?: BuildSystem): Promise<BuildResu
     const needsInstall = await checkNeedsInstall(projectPath, buildSystem);
     
     if (needsInstall) {
-      termLine('📦 Installing dependencies...', '#9cdcfe');
+      termLine('?? Installing dependencies...', '#9cdcfe');
       termCommand(buildSystem.installCommand);
       
       startProgress('Installing packages', 'spinner');
@@ -3233,7 +3235,7 @@ export async function buildProject(buildSystem?: BuildSystem): Promise<BuildResu
         if (lines.length > 3) termLine(`... ${lines.length - 3} more lines`, '#4a4a4a');
       }
     } else {
-      termLine('✓ Dependencies already installed', '#3fb950');
+      termLine('? Dependencies already installed', '#3fb950');
     }
   }
   
@@ -3247,7 +3249,7 @@ export async function buildProject(buildSystem?: BuildSystem): Promise<BuildResu
   }
   
   // Build
-  termLine('🔨 Building...', '#9cdcfe');
+  termLine('?? Building...', '#9cdcfe');
   termCommand(buildCommand);
   
   startProgress('Compiling', 'progress');
@@ -3258,7 +3260,7 @@ export async function buildProject(buildSystem?: BuildSystem): Promise<BuildResu
   if (buildResult.output) {
     buildResult.output.split('\n').forEach(line => {
       if (line.trim()) {
-        const isError = /error|failed|✗/i.test(line);
+        const isError = /error|failed/i.test(line);
         const isWarn = /warning|warn/i.test(line);
         termLine(line, isError ? '#f85149' : isWarn ? '#d29922' : '#9cdcfe');
       }
@@ -3268,7 +3270,7 @@ export async function buildProject(buildSystem?: BuildSystem): Promise<BuildResu
   // Result - WITH BADGE INTEGRATION
   if (buildResult.success) {
     termStatus(true, 'Build Successful', buildResult.duration);
-    clearBuildErrorBadge(); // ✅ Clear badge on success
+    clearBuildErrorBadge(); // ? Clear badge on success
   } else {
     termStatus(false, 'Build Failed', buildResult.duration);
     
@@ -3276,10 +3278,10 @@ export async function buildProject(buildSystem?: BuildSystem): Promise<BuildResu
     const errors = parseErrors(buildResult.output + (buildResult.error || ''));
     if (errors.length > 0) {
       showErrorHelp(errors);
-      updateBuildErrorBadge(errors.length); // ✅ Update badge with error count
-      showBuildErrorPopup(errors);          // ✅ Show popup with Copy/AI buttons
+      updateBuildErrorBadge(errors.length); // ? Update badge with error count
+      showBuildErrorPopup(errors);          // ? Show popup with Copy/AI buttons
       
-      // ✅ Remove any other build popups that might appear after ours
+      // ? Remove any other build popups that might appear after ours
       setTimeout(() => {
         document.querySelectorAll('[id*="build"][id*="popup"], [id*="error"][id*="bar"], [class*="build-notification"]').forEach(el => {
           if (el.id !== 'build-error-popup' && el.id !== 'build-error-popup-styles') {
@@ -3289,7 +3291,7 @@ export async function buildProject(buildSystem?: BuildSystem): Promise<BuildResu
         });
       }, 100);
     } else {
-      updateBuildErrorBadge(1); // ✅ At least 1 error occurred
+      updateBuildErrorBadge(1); // ? At least 1 error occurred
     }
   }
   
@@ -3303,7 +3305,7 @@ export async function runProject(buildSystem?: BuildSystem): Promise<BuildResult
     buildSystem = await detectBuildSystem(projectPath);
     if (!buildSystem) {
       termClear();
-      termLine('❌ No build system detected', '#f85149');
+      termLine('? No build system detected', '#f85149');
       return { success: false, output: '', error: 'No build system', duration: 0, exitCode: 1 };
     }
   }
@@ -3318,8 +3320,8 @@ export async function runProject(buildSystem?: BuildSystem): Promise<BuildResult
   if (runCommand.includes('{port}')) {
     const selectedPort = (window as any).arduinoSelectedPort || '';
     if (!selectedPort) {
-      termLine('⚠️ No port selected! Please select a port first.', '#f0a000');
-      termLine('💡 Go to Arduino menu → Select Port...', '#888');
+      termLine('?? No port selected! Please select a port first.', '#f0a000');
+      termLine('?? Go to Arduino menu ? Select Port...', '#888');
       return { success: false, output: '', error: 'No port selected', duration: 0, exitCode: 1 };
     }
     runCommand = runCommand.replace(/{port}/g, selectedPort);
@@ -3334,7 +3336,7 @@ export async function runProject(buildSystem?: BuildSystem): Promise<BuildResult
   // Check if this is a dev server command (long-running)
   const isDevServer = /\b(dev|start|serve)\b/.test(runCommand);
   
-  termHeader('▶️', `Running with ${buildSystem.displayName}`, projectName);
+  termHeader('>>', `Running with ${buildSystem.displayName}`, projectName);
   termCommand(runCommand);
   
   if (isDevServer) {
@@ -3356,15 +3358,15 @@ export async function runProject(buildSystem?: BuildSystem): Promise<BuildResult
     
     // WITH BADGE INTEGRATION
     if (result.success) {
-      clearBuildErrorBadge(); // ✅ Clear badge on success
+      clearBuildErrorBadge(); // ? Clear badge on success
     } else {
       const errors = parseErrors(result.output + (result.error || ''));
       if (errors.length > 0) {
         showErrorHelp(errors);
-        updateBuildErrorBadge(errors.length); // ✅ Update badge
-        showBuildErrorPopup(errors);          // ✅ Show popup
+        updateBuildErrorBadge(errors.length); // ? Update badge
+        showBuildErrorPopup(errors);          // ? Show popup
         
-        // ✅ Remove any other build popups that might appear after ours
+        // ? Remove any other build popups that might appear after ours
         setTimeout(() => {
           document.querySelectorAll('[id*="build"][id*="popup"], [id*="error"][id*="bar"], [class*="build-notification"]').forEach(el => {
             if (el.id !== 'build-error-popup' && el.id !== 'build-error-popup-styles') {
@@ -3374,7 +3376,7 @@ export async function runProject(buildSystem?: BuildSystem): Promise<BuildResult
           });
         }, 100);
       } else {
-        updateBuildErrorBadge(1); // ✅ At least 1 error
+        updateBuildErrorBadge(1); // ? At least 1 error
       }
     }
     
@@ -3431,9 +3433,9 @@ async function runDevServer(command: string, workingDir: string): Promise<BuildR
       
       termStatus(true, 'Server Started', Date.now() - startTime);
       showServerInfo(url);
-      termLine(`💡 Press Ctrl+C or click Stop to terminate`, '#666');
+  termLine('  Press Ctrl+C or click Stop to terminate', '#666');
       
-      clearBuildErrorBadge(); // ✅ Server started successfully
+      clearBuildErrorBadge(); // ? Server started successfully
       
       return {
         success: true,
@@ -3477,9 +3479,9 @@ async function runDevServer(command: string, workingDir: string): Promise<BuildR
       const url = urlMatch ? urlMatch[1] : `http://localhost:${port}`;
       termStatus(true, 'Server Started', Date.now() - startTime);
       showServerInfo(url);
-      termLine(`💡 Press Ctrl+C or click Stop to terminate`, '#666');
+  termLine('  Press Ctrl+C or click Stop to terminate', '#666');
       
-      clearBuildErrorBadge(); // ✅ Server started
+      clearBuildErrorBadge(); // ? Server started
       
       return {
         success: true,
@@ -3498,7 +3500,7 @@ async function runDevServer(command: string, workingDir: string): Promise<BuildR
     termLine(errorMsg, '#f85149');
     termStatus(false, 'Failed', Date.now() - startTime);
     
-    updateBuildErrorBadge(1); // ✅ Server failed to start
+    updateBuildErrorBadge(1); // ? Server failed to start
     
     return {
       success: false,
@@ -3545,6 +3547,17 @@ function processServerOutput(output: string, defaultPort: number): void {
     if (urlMatch) {
       showClickableUrl(line, urlMatch[1]);
       foundUrl = true;
+      // Auto-open preview tab when dev server URL is detected
+      if (!(window as any).__previewAutoOpened) {
+        (window as any).__previewAutoOpened = true;
+        const detectedUrl = urlMatch[1].replace("0.0.0.0", "localhost");
+        setTimeout(() => {
+          if ((window as any).previewTab?.open) {
+            console.log("[BuildSystem] Auto-opening preview for:", detectedUrl);
+            (window as any).previewTab.open(detectedUrl);
+          }
+        }, 1500); // wait 1.5s for server to be ready
+      }
     } else {
       const isError = /error|failed/i.test(line);
       const isWarn = /warning|warn/i.test(line);
@@ -3579,7 +3592,7 @@ function showClickableUrl(line: string, url: string): void {
   el.innerHTML = `
     ${linked}
     <button class="terminal-preview-btn" onclick="event.stopPropagation();window.previewTab?.open('${url}')" title="Open in Preview Tab">
-      🌐 Preview
+      &#9654; Preview
     </button>
   `;
   
@@ -3598,11 +3611,11 @@ function showServerInfo(url: string): void {
   const el = document.createElement('div');
   el.className = 'bld terminal-server-info';
   el.innerHTML = `
-    <span style="color:#3fb950">✓</span>
+    <span style="color:#3fb950">&#10003;</span>
     <span style="color:#3fb950;font-weight:600">Server Started</span>
     <span onclick="window.open('${url}','_blank')" style="color:#4fc3f7;cursor:pointer;text-decoration:underline">${url}</span>
     <button class="terminal-preview-btn" onclick="event.stopPropagation();window.previewTab?.open('${url}')" title="Open in Preview Tab">
-      🌐 Preview
+      &#9654; Preview
     </button>
   `;
   t.appendChild(el);
@@ -3630,15 +3643,15 @@ export async function buildAndRun(): Promise<void> {
   
   if (!buildSystem) {
     termClear();
-    termLine('❌ No build system detected', '#f85149');
-    termLine('💡 Open a project folder first', '#9cdcfe');
+    termLine('? No build system detected', '#f85149');
+    termLine('?? Open a project folder first', '#9cdcfe');
     return;
   }
   
   const buildResult = await buildProject(buildSystem);
   
   if (!buildResult.success) {
-    termLine('⚠️  Fix errors above and try again', '#d29922');
+    termLine('??  Fix errors above and try again', '#d29922');
     return;
   }
   
@@ -3654,13 +3667,13 @@ export async function testProject(buildSystem?: BuildSystem): Promise<BuildResul
     buildSystem = await detectBuildSystem(projectPath);
     if (!buildSystem?.testCommand) {
       termClear();
-      termLine('❌ No test command available', '#f85149');
+      termLine('? No test command available', '#f85149');
       return { success: false, output: '', error: 'No test command', duration: 0, exitCode: 1 };
     }
   }
   
   termClear();
-  termHeader('🧪', `Testing with ${buildSystem!.displayName}`);
+  termHeader('>>', `Testing with ${buildSystem!.displayName}`);
   termCommand(buildSystem!.testCommand!);
   
   startProgress('Running tests', 'blocks');
@@ -3677,11 +3690,11 @@ export async function testProject(buildSystem?: BuildSystem): Promise<BuildResul
   
   // WITH BADGE INTEGRATION
   if (result.success) {
-    clearBuildErrorBadge(); // ✅ Clear badge on success
+    clearBuildErrorBadge(); // ? Clear badge on success
   } else {
     // Count test failures
-    const failCount = (result.output.match(/fail|error|✗/gi) || []).length || 1;
-    updateBuildErrorBadge(failCount); // ✅ Update badge
+    const failCount = (result.output.match(/fail|error/gi) || []).length || 1;
+    updateBuildErrorBadge(failCount); // ? Update badge
   }
   
   return result;
@@ -3694,13 +3707,13 @@ export async function cleanProject(buildSystem?: BuildSystem): Promise<BuildResu
     buildSystem = await detectBuildSystem(projectPath);
     if (!buildSystem?.cleanCommand) {
       termClear();
-      termLine('❌ No clean command available', '#f85149');
+      termLine('? No clean command available', '#f85149');
       return { success: false, output: '', error: 'No clean command', duration: 0, exitCode: 1 };
     }
   }
   
   termClear();
-  termHeader('🧹', `Cleaning with ${buildSystem!.displayName}`);
+  termHeader('>>', `Cleaning with ${buildSystem!.displayName}`);
   termCommand(buildSystem!.cleanCommand!);
   
   startProgress('Cleaning', 'spinner');
@@ -3710,7 +3723,7 @@ export async function cleanProject(buildSystem?: BuildSystem): Promise<BuildResu
   termStatus(result.success, result.success ? 'Clean Complete' : 'Clean Failed', result.duration);
   
   if (result.success) {
-    clearBuildErrorBadge(); // ✅ Clear badge on clean
+    clearBuildErrorBadge(); // ? Clear badge on clean
   }
   
   return result;
@@ -3721,7 +3734,7 @@ export async function showBuildSystemInfo(): Promise<void> {
   const buildSystem = await detectBuildSystem(projectPath);
   
   termClear();
-  termHeader('📊', 'Build System Info', projectPath);
+  termHeader('>>', 'Build System Info', projectPath);
   
   if (buildSystem) {
     termLine(`${buildSystem.icon} ${buildSystem.displayName}`, '#4ec9b0');
@@ -3739,7 +3752,7 @@ export async function showBuildSystemInfo(): Promise<void> {
     if (testCmd) termLine(`   Test:  ${testCmd}`, '#dcdcaa');
     if (cleanCmd) termLine(`   Clean: ${cleanCmd}`, '#dcdcaa');
   } else {
-    termLine('❌ No build system detected', '#f85149');
+    termLine('? No build system detected', '#f85149');
     termLine('Supported: npm, yarn, cargo, maven, gradle, cmake, go...', '#9cdcfe');
   }
 }
@@ -3764,7 +3777,7 @@ export async function refreshBuildSystem(): Promise<void> {
     return;
   }
   
-  console.log('[BuildSystem] 🔄 Refreshing build system for:', projectPath);
+  console.log('[BuildSystem] ?? Refreshing build system for:', projectPath);
   
   // Clear cache
   cachedProjectPath = projectPath;
@@ -3780,7 +3793,7 @@ export async function refreshBuildSystem(): Promise<void> {
   });
   document.dispatchEvent(event);
   
-  console.log('[BuildSystem] ✅ Dispatched build-system-changed event');
+  console.log('[BuildSystem] ? Dispatched build-system-changed event');
   
   // Also dispatch for legacy listeners
   document.dispatchEvent(new CustomEvent('npm-scripts-updated'));
@@ -3815,27 +3828,27 @@ export function forceRefreshBuildSystem(): void {
 function setupProjectChangeListeners(): void {
   // Listen for project opened
   document.addEventListener('project-opened', () => {
-    console.log('[BuildSystem] 📂 project-opened event');
+    console.log('[BuildSystem] ?? project-opened event');
     setTimeout(refreshBuildSystem, 100);
     setTimeout(refreshBuildSystem, 500);
   });
   
   // Listen for folder opened  
   document.addEventListener('folder-opened', () => {
-    console.log('[BuildSystem] 📂 folder-opened event');
+    console.log('[BuildSystem] ?? folder-opened event');
     setTimeout(refreshBuildSystem, 100);
   });
   
   // Listen for project created
   document.addEventListener('project-created', () => {
-    console.log('[BuildSystem] 🆕 project-created event');
+    console.log('[BuildSystem] ?? project-created event');
     setTimeout(refreshBuildSystem, 500);
     setTimeout(refreshBuildSystem, 1500);
   });
   
   // Listen for explicit refresh requests
   document.addEventListener('refresh-build-system', () => {
-    console.log('[BuildSystem] 🔄 refresh-build-system event');
+    console.log('[BuildSystem] ?? refresh-build-system event');
     forceRefreshBuildSystem();
   });
   
@@ -3845,13 +3858,13 @@ function setupProjectChangeListeners(): void {
     const currentPath = localStorage.getItem('currentProjectPath') || 
                         (window as any).currentFolderPath || '';
     if (currentPath && currentPath !== lastKnownPath) {
-      console.log('[BuildSystem] 📂 Project path changed:', lastKnownPath, '->', currentPath);
+      console.log('[BuildSystem] ?? Project path changed:', lastKnownPath, '->', currentPath);
       lastKnownPath = currentPath;
       setTimeout(refreshBuildSystem, 100);
     }
   }, 1000);
   
-  console.log('[BuildSystem] 👂 Project change listeners ready');
+  console.log('[BuildSystem] ?? Project change listeners ready');
 }
 
 // Initialize listeners
@@ -3892,18 +3905,18 @@ if (typeof window !== 'undefined') {
     forceRefresh: forceRefreshBuildSystem,
     loadProjectScripts,
     
-    // ✅ NEW: Badge control
+    // ? NEW: Badge control
     updateErrorBadge: updateBuildErrorBadge,
     clearErrorBadge: clearBuildErrorBadge,
     showErrorPopup: showBuildErrorPopup,
     
-    // ✅ NEW: Status bar control
+    // ? NEW: Status bar control
     showStatusBar: showBuildStatusBar,
     hideStatusBar: hideBuildStatusBar,
   };
   
-  console.log('[BuildSystem] ✅ Build System ready');
-  console.log('[BuildSystem] ⏹️ Stop function available: window.buildSystem.stopProject()');
-  console.log('[BuildSystem] 🔄 Refresh: window.buildSystem.refresh()');
-  console.log('[BuildSystem] 🔴 Badge: window.buildSystem.updateErrorBadge(count)');
+  console.log('[BuildSystem] ? Build System ready');
+  console.log('[BuildSystem] ?? Stop function available: window.buildSystem.stopProject()');
+  console.log('[BuildSystem] ?? Refresh: window.buildSystem.refresh()');
+  console.log('[BuildSystem] ?? Badge: window.buildSystem.updateErrorBadge(count)');
 }
