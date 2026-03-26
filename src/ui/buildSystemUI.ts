@@ -4006,63 +4006,11 @@ function setupRunButtonHandler(): void {
     margin-top: 2px;
   `;
 
-  // [X02] Context-aware menu items based on detected build system
-  const _bs = (window as any).buildSystem;
-  const _bsName = (_bs?.getCurrentBuildSystem?.()?.name || _bs?.detectedSystem?.name || '').toLowerCase();
-  const _bsDisplay = _bs?.getCurrentBuildSystem?.()?.displayName || _bs?.detectedSystem?.displayName || '';
-
-  let menuItems: { icon: string; label: string; action: string }[] = [];
-
-  if (_bsName.includes('gradle') || _bsName.includes('android')) {
-    menuItems = [
-      { icon: '&#9654;', label: 'Run on Device',       action: 'dev'     },
-      { icon: '&#128290;', label: 'Build Debug APK',   action: 'build'   },
-      { icon: '&#128640;', label: 'Build Release APK', action: 'preview' },
-    ];
-  } else if (_bsName.includes('arduino') || _bsName.includes('embedded')) {
-    menuItems = [
-      { icon: '&#9654;', label: 'Upload to Board',     action: 'dev'     },
-      { icon: '&#128290;', label: 'Compile Only',      action: 'build'   },
-      { icon: '&#128268;', label: 'Serial Monitor',    action: 'preview' },
-    ];
-  } else if (_bsName.includes('cargo') || _bsName.includes('rust')) {
-    menuItems = [
-      { icon: '&#9654;', label: 'cargo run',           action: 'dev'     },
-      { icon: '&#128290;', label: 'cargo build',       action: 'build'   },
-      { icon: '&#128203;', label: 'cargo test',        action: 'preview' },
-    ];
-  } else if (_bsName.includes('python') || _bsName.includes('pip') || _bsName.includes('flet')) {
-    menuItems = [
-      { icon: '&#9654;', label: 'Run Script',          action: 'dev'     },
-      { icon: '&#128290;', label: 'Run with Args',     action: 'build'   },
-      { icon: '&#128203;', label: 'Run Tests',         action: 'preview' },
-    ];
-  } else if (_bsName.includes('cmake') || _bsName.includes('cuda') || _bsName.includes('make')) {
-    menuItems = [
-      { icon: '&#9654;', label: 'Run Binary',          action: 'dev'     },
-      { icon: '&#128290;', label: 'cmake build',       action: 'build'   },
-      { icon: '&#128203;', label: 'make clean',        action: 'preview' },
-    ];
-  } else if (_bsName.includes('flutter')) {
-    menuItems = [
-      { icon: '&#9654;', label: 'flutter run',         action: 'dev'     },
-      { icon: '&#128290;', label: 'flutter build',     action: 'build'   },
-      { icon: '&#128203;', label: 'flutter test',      action: 'preview' },
-    ];
-  } else if (_bsName.includes('dotnet') || _bsName.includes('csharp') || _bsName.includes('.net')) {
-    menuItems = [
-      { icon: '&#9654;', label: 'dotnet run',          action: 'dev'     },
-      { icon: '&#128290;', label: 'dotnet build',      action: 'build'   },
-      { icon: '&#128203;', label: 'dotnet test',       action: 'preview' },
-    ];
-  } else {
-    // Default: npm / web / unknown
-    menuItems = [
-      { icon: '&#9654;', label: 'Run (Dev Server)',    action: 'dev'     },
-      { icon: '&#9874;', label: 'Build (Production)',  action: 'build'   },
-      { icon: '&#128640;', label: 'Build + Preview',   action: 'preview' },
-    ];
-  }
+  const menuItems = [
+    { icon: '▶', label: 'Run (Dev Server)',    action: 'dev'     },
+    { icon: '🔨', label: 'Build (Production)',  action: 'build'   },
+    { icon: '🚀', label: 'Build + Preview',      action: 'preview' },
+  ];
 
   menuItems.forEach(item => {
     const mi = document.createElement('div');

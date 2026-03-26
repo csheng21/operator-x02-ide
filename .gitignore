@@ -43,3 +43,6 @@ backup_*.ts
 contextMenuOptionB.ts
 fix_welcome_*.ts
 webui_intelligence_patch.ts
+
+# Dev patch scripts
+*.ps1

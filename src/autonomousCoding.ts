@@ -5543,6 +5543,11 @@ function isSnippetOrExample(code: string, block: HTMLElement): boolean {
 }
 
 function scoreCodeBlock(block: HTMLElement, currentFileLang: string, currentFileName: string): CodeBlockScore | null {
+  // GUARD: never score ide_script JSON command blocks
+  const _scLang = (block.getAttribute('data-language') || block.getAttribute('data-lang') || block.className || '').toLowerCase();
+  if (_scLang.includes('ide_scrip') || _scLang.includes('ide_script')) {
+    return null;
+  }
   const codeInfo = extractCodeFromBlockForApply(block);
   if (!codeInfo || !codeInfo.code.trim()) return null;
   
@@ -6601,6 +6606,18 @@ function applyCodeInstant(code: string, mode: 'replace' | 'insert' | 'append'): 
 // ============================================================================
 
 async function autoApplyNewCodeBlock(block: HTMLElement | null = null): Promise<void> {
+  // GUARD: skip ide_script JSON command blocks
+  if (block) {
+    const _aLang = (
+      block.getAttribute('data-language') ||
+      block.getAttribute('data-lang') ||
+      block.className || ''
+    ).toLowerCase();
+    if (_aLang.includes('ide_script') || _aLang.includes('ide_scrip')) {
+      console.log('[AutoApply] autoApplyNewCodeBlock: BLOCKED ide_script block');
+      return;
+    }
+  }
   // X02: Skip if block is inside an analysis result (Quick/Deep Analyze output)
   if (block && block.closest("[data-analysis-result]")) {
     console.log("[AutoApply] Skipped - inside analysis result");
@@ -6629,6 +6646,9 @@ async function autoApplyNewCodeBlock(block: HTMLElement | null = null): Promise<
       const targetFiles = new Map<string, HTMLElement[]>();
       
       for (const blk of unprocessedBlocks) {
+        // GUARD: skip ide_script blocks before any extraction
+        const _blkLang = (blk.getAttribute('data-language') || blk.getAttribute('data-lang') || blk.className || '').toLowerCase();
+        if (_blkLang.includes('ide_scrip') || _blkLang.includes('ide_script')) continue;
         const codeInfo = extractCodeFromBlockForApply(blk);
         if (!codeInfo || !codeInfo.code.trim()) continue;
         
@@ -6710,6 +6730,15 @@ async function autoApplyNewCodeBlock(block: HTMLElement | null = null): Promise<
       console.log('?? [AutoApply] No suitable code block found');
       markMessageProcessed();
       return;
+    }
+    // GUARD: final check - reject if selected block is ide_script
+    {
+      const _selLang = (targetBlock.getAttribute('data-language') || targetBlock.getAttribute('data-lang') || targetBlock.className || '').toLowerCase();
+      if (_selLang.includes('ide_scrip') || _selLang.includes('ide_script')) {
+        console.log('[AutoApply] Selected block is ide_script - skipping');
+        markMessageProcessed();
+        return;
+      }
     }
   } else {
     const unprocessedBlocks = getUnprocessedCodeBlocks();
@@ -6858,6 +6887,16 @@ function getMonacoEditorForApply(): any {
 }
 
 function extractCodeFromBlockForApply(block: HTMLElement): { code: string; language: string } | null {
+  // GUARD: ide_script blocks are JSON commands - never apply as source code
+  const _idsLang = (
+    block.getAttribute('data-language') ||
+    block.getAttribute('data-lang') ||
+    block.className || ''
+  ).toLowerCase();
+  if (_idsLang.includes('ide_script') || _idsLang.includes('ide_scrip')) {
+    console.log('[AutoApply] extractCodeFromBlockForApply: BLOCKED ide_script block');
+    return null;
+  }
   // Method 1: Check for data textarea (cbe-wrapper style) - BEST SOURCE
   const textarea = block.querySelector('.cbe-data') as HTMLTextAreaElement;
   if (textarea?.value) {

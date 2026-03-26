@@ -10320,6 +10320,15 @@ try {
               const scriptResult = await processAiScriptResponse(aiResp);
               if (scriptResult.hasScripts) {
                 console.log('?? [IDE Script] Processed', scriptResult.results.length, 'script call(s)');
+                // UI LOG: pump each result into the ideScriptUI log panel
+                scriptResult.results.forEach(function(r) {
+                  var _ok = !r.error && !(r.result && r.result.error);
+                  var _cmd = r.command || 'unknown';
+                  var _detail = r.error ? r.error : (r.result && r.result.error ? r.result.error : 'completed');
+                  window.dispatchEvent(new CustomEvent('ide-script-log', {
+                    detail: { type: _ok ? 'exec-done' : 'exec-error', icon: _ok ? '\u2705' : '\u274c', text: _ok ? (_cmd + ': ' + _detail) : (_cmd + ' failed: ' + _detail) }
+                  }));
+                });
                 // Append results summary to the response
                 const summaries = scriptResult.results.map(r => {
                   if (r.error) return '? ' + r.command + ': ' + r.error;
@@ -10330,7 +10339,14 @@ try {
                   if (r.command === 'ide_review' && res) return '?? ' + res.summary;
                   if (r.command === 'ide_insert' && res) return res.success ? '?? Inserted ' + res.lines_inserted + ' lines' : '? Insert failed';
                   if (r.command === 'ide_rollback' && res) return res.success ? '?? Rolled back ' + res.lines_restored + ' lines' : '? Rollback failed';
-                  return '? ' + r.command;
+                  // ✅ FIX 3: ide_read_file result summary was missing — swallowed silently
+                  if (r.command === 'ide_read_file' && res) return res.error ? '❌ Read failed: ' + res.error : '📄 Read: ' + res.file_path + ' (' + (res.length || 0) + ' chars, ' + (res.lines || 0) + ' lines)';
+                  if (r.command === 'ide_list_dir' && res) return '📁 Listed ' + (Array.isArray(res) ? res.length : '?') + ' entries';
+                  if (r.command === 'ide_create_file' && res) return res.success !== false ? '✅ Created: ' + (res.path || args?.file_path || '') : '❌ Create failed: ' + (res.error || 'unknown');
+                  if (r.command === 'ide_delete' && res) return res.success !== false ? '🗑️ Deleted' : '❌ Delete failed: ' + (res.error || 'unknown');
+                  if (r.command === 'ide_rename' && res) return res.success !== false ? '✏️ Renamed' : '❌ Rename failed: ' + (res.error || 'unknown');
+                  if (r.error) return '❌ ' + r.command + ' failed: ' + r.error;
+                  return '✅ ' + r.command;
                 }).join('\n');
                 aiResp = scriptResult.cleanResponse + '\n\n---\n?? **Script Results:**\n' + summaries;
               }
@@ -10364,6 +10380,15 @@ try {
                 const scriptResult = await processAiScriptResponse(aiResp);
                 if (scriptResult.hasScripts && scriptResult.results.length > 0) {
                   console.log("[IDE Script] Processed", scriptResult.results.length, "script call(s) via proxy");
+                  // UI LOG: pump each proxy-path result into the ideScriptUI log panel
+                  scriptResult.results.forEach(function(r) {
+                    var _ok = !r.error && !(r.result && r.result.error);
+                    var _cmd = r.command || 'unknown';
+                    var _detail = r.error ? r.error : (r.result && r.result.error ? r.result.error : 'completed');
+                    window.dispatchEvent(new CustomEvent('ide-script-log', {
+                      detail: { type: _ok ? 'exec-done' : 'exec-error', icon: _ok ? '\u2705' : '\u274c', text: _ok ? (_cmd + ': ' + _detail) : (_cmd + ' failed: ' + _detail) }
+                    }));
+                  });
 
                   // Build detailed results for AI feedback
                   const detailedResults = scriptResult.results.map((r: any) => {
@@ -10506,21 +10531,53 @@ try {
       // ?? Hide typing indicator (AssistantUI style)
       await hideTypingIndicator();
       
-      // ?? USE ASSISTANT UI MESSAGE RENDERING
+      // ✅ USE ASSISTANT UI MESSAGE RENDERING
       // IDE Script: Auto-execute ide_script blocks in AI response
       if ((window as any).ideScript && aiResp.includes('```ide_script')) {
         try {
           const ideScriptMode = (window as any).ideScript.getMode?.();
           if (ideScriptMode === 'auto') {
-            const scriptRegex = new RegExp('```ide_script\\\\s*\\\\n?([\\\\s\\\\S]*?)\\\\n?```');
+            // ✅ FIX 1: Was using new RegExp() with quadruple-escaped backslashes —
+            // inside new RegExp() strings, \\\\ becomes \\ in the pattern, which matches
+            // a literal backslash, NOT whitespace. This caused scriptMatch to always be
+            // null and the entire auto-execute block was silently dead code.
+            // Fixed: use a regex literal instead, which needs no escaping.
+            const scriptRegex = /```ide_script\s*\n?([\s\S]*?)\n?```/;
             const scriptMatch = aiResp.match(scriptRegex);
             if (scriptMatch && scriptMatch[1]) {
               const scriptJson = JSON.parse(scriptMatch[1].trim());
               const cmd = scriptJson.command;
               const args = scriptJson.args || {};
+
+              // ✅ Known commands whitelist — any command not listed here surfaces a clear
+              // error immediately rather than a cryptic "command is not defined" from deep
+              // inside ideScriptBridge or the Tauri invoke layer.
+              const KNOWN_COMMANDS = [
+                'ide_analyse', 'ide_review', 'ide_search',
+                'ide_patch', 'ide_insert', 'ide_rollback',
+                'ide_read_file', 'ide_create_file', 'ide_create_folder',
+                'ide_delete', 'ide_rename', 'ide_list_dir',
+              ];
+
               console.log('[IDE Script] Executing:', cmd, args);
+              // UI LOG: fire exec-start so ideScriptUI panel shows activity
+              window.dispatchEvent(new CustomEvent('ide-script-log', {
+                detail: { type: 'exec-start', icon: '\u2699\ufe0f', text: 'Running ' + cmd + '...' }
+              }));
               let result: any = null;
-              if (cmd === 'ide_analyse' && args.file_path) {
+
+              if (!KNOWN_COMMANDS.includes(cmd)) {
+                // ✅ FIX: Surface unknown commands immediately instead of silently ignoring
+                result = {
+                  error: `Unknown IDE Script command: "${cmd}". Available: ${KNOWN_COMMANDS.join(', ')}`,
+                  hint: 'Check the ide_script system prompt for the correct command names.',
+                };
+                console.warn('[IDE Script] Unknown command:', cmd);
+                // UI LOG: show unknown command warning in ideScriptUI panel
+                window.dispatchEvent(new CustomEvent('ide-script-log', {
+                  detail: { type: 'exec-error', icon: '\u26a0\ufe0f', text: 'Unknown command: ' + cmd }
+                }));
+              } else if (cmd === 'ide_analyse' && args.file_path) {
                 result = await (window as any).ideScript.analyse(args.file_path);
               } else if (cmd === 'ide_review' && args.file_path) {
                 result = await (window as any).ideScript.review(args.file_path);
@@ -10532,8 +10589,46 @@ try {
                 result = await (window as any).ideScript.insert(args.file_path, args.after_line, args.content, args.reason || 'AI insert');
               } else if (cmd === 'ide_rollback') {
                 result = await (window as any).ideScript.rollback(args.backup_id);
+              } else if (cmd === 'ide_read_file') {
+                // ✅ FIX 2: ide_read_file was registered in Rust (ide_script_commands_v2)
+                // but the frontend had NO handler for it, causing "command is not defined".
+                // Now invokes the Tauri backend directly and returns structured result.
+                if (!args.file_path) {
+                  result = { error: 'ide_read_file requires args.file_path' };
+                } else {
+                  const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
+                  const content = await tauriInvoke<string>('ide_read_file', { path: args.file_path });
+                  result = {
+                    file_path: args.file_path,
+                    content,
+                    length: (content || '').length,
+                    lines: (content || '').split('\n').length,
+                  };
+                }
+              } else if (cmd === 'ide_list_dir') {
+                // Forward to the existing ai_list_directory_recursive Tauri command
+                if (!args.path && !args.file_path) {
+                  result = { error: 'ide_list_dir requires args.path' };
+                } else {
+                  const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
+                  result = await tauriInvoke('ai_list_directory_recursive', {
+                    path: args.path || args.file_path,
+                    maxDepth: args.max_depth || 3,
+                  });
+                }
+              } else if (cmd === 'ide_create_file' || cmd === 'ide_create_folder' || cmd === 'ide_delete' || cmd === 'ide_rename') {
+                // These are registered in ide_script_commands_v2 — invoke directly
+                const { invoke: tauriInvoke } = await import('@tauri-apps/api/core');
+                result = await tauriInvoke(cmd, args);
               }
+
               if (result) {
+                // UI LOG: fire exec-done/error so panel shows outcome
+                var _logIcon = (result && result.error) ? '\u274c' : '\u2705';
+                var _logText = (result && result.error) ? (cmd + ' failed: ' + result.error) : (cmd + ' OK');
+                window.dispatchEvent(new CustomEvent('ide-script-log', {
+                  detail: { type: (result && result.error) ? 'exec-error' : 'exec-done', icon: _logIcon, text: _logText }
+                }));
                 console.log('[IDE Script] Result:', result);
                 const blockStart = aiResp.indexOf('```ide_script');
                 const blockEnd = aiResp.indexOf('```', blockStart + 14);
@@ -10546,7 +10641,7 @@ try {
           }
         } catch (ideScriptErr: any) {
           console.warn('[IDE Script] Error:', ideScriptErr);
-          aiResp += '\n\n> IDE Script error: ' + (ideScriptErr?.message || String(ideScriptErr));
+          aiResp += '\n\n> ⚠️ IDE Script error: ' + (ideScriptErr?.message || String(ideScriptErr));
         }
       }
 

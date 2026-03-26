@@ -384,9 +384,9 @@ export function parseIdeScriptCalls(aiResponse: string): IdeScriptCall[] {
  */
 export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
       // BYPASS_MUTEX_READ - fast path for readFile
-      if ((command === 'readFile' || command === 'ide_read_file') && args) {
+      if ((call.call.command === 'readFile' || call.command === 'ide_read_file') && call.args) {
         try {
-          const fp = args.file_path || args.filePath || args.path || '';
+          const fp = call.args.file_path || call.args.filePath || call.args.path || '';
           const fs = (window as any).fileSystem;
           if (fp && fs && typeof fs.readFile === 'function') {
             const txt = await fs.readFile(fp);
@@ -741,6 +741,9 @@ export function getIdeScriptSystemPrompt(projectPath?: string): string {
 ${projCtx}
 
 You have access to IDE Script commands for precise code editing and file management. Use these commands to search, analyse, patch, create, and manage files.
+ RESPONSE STYLE: Be brief and friendly. When reporting results, use 1-3 sentences max. Never use dramatic language like "CRITICAL FAILURE" or "SYSTEM ERROR" - just say what happened and what you did next. Example: "Added comments to main.tsx. File saved successfully."
+ RESPONSE STYLE: Be brief and friendly. When reporting results, use 1-3 sentences max. Never use dramatic language like "CRITICAL FAILURE" or "SYSTEM ERROR" - just say what happened and what you did next. Example: "Added comments to main.tsx. File saved successfully."
+ RESPONSE STYLE: Be brief and friendly. When reporting results, use 1-3 sentences max. Never use dramatic language like "CRITICAL FAILURE" or "SYSTEM ERROR" - just say what happened and what you did next. Example: "Added comments to main.tsx. File saved successfully."
 
 ━━━ AVAILABLE COMMANDS ━━━
 
@@ -819,7 +822,25 @@ Delete non-empty folder:
 \`\`\`
 
 ━━━ RULES ━━━
-• If file content is NOT already in the conversation context, include BOTH ide_read_file AND ide_patch in the SAME response. Never stop after just reading a file � always follow through with the modification in the same response. The project context above usually already contains the file content, so prefer using ide_patch directly
+ CRITICAL RULE: ide_read_file MUST always be followed by ide_patch (or another modification command) in the SAME response. NEVER send ide_read_file alone and wait. ONE response = read + modify together. If you read a file, you MUST patch it in the same reply. Prefer ide_patch directly since project context already contains file content.
+ COMMAND SELECTION GUIDE - match user intent to command:
+   add / remove / fix / update / change / comment / refactor / rename -> ide_patch
+   create new file -> ide_create_file
+   search for pattern -> ide_search
+   review errors / check quality -> ide_analyse (ONLY for review tasks, NEVER for modifications)
+   NEVER use ide_analyse when the user wants to change something - use ide_patch instead.
+ COMMAND SELECTION GUIDE - match user intent to command:
+   add / remove / fix / update / change / comment / refactor / rename -> ide_patch
+   create new file -> ide_create_file
+   search for pattern -> ide_search
+   review errors / check quality -> ide_analyse (ONLY for review tasks, NEVER for modifications)
+   NEVER use ide_analyse when the user wants to change something - use ide_patch instead.
+ COMMAND SELECTION GUIDE - match user intent to command:
+   add / remove / fix / update / change / comment / refactor / rename -> ide_patch
+   create new file -> ide_create_file
+   search for pattern -> ide_search
+   review errors / check quality -> ide_analyse (ONLY for review tasks, NEVER for modifications)
+   NEVER use ide_analyse when the user wants to change something - use ide_patch instead.
 • The "find" text in ide_patch must EXACTLY match the source (whitespace matters)
 • Every patch/create/delete creates an automatic backup — user can always rollback
 • Use ide_create_file for new files — the file opens automatically in the editor
