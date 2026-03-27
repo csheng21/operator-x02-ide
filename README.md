@@ -77,6 +77,8 @@ npm run tauri dev
 | Surgical Backup Manager | ✅ Full | ✅ Full |
 
 ---
+<img width="1674" height="1002" alt="Jetson Nano" src="https://github.com/user-attachments/assets/3894c123-fc7c-4b7e-9448-41b18b87733a" />
+
 
 ## ✨ Full Feature List
 
