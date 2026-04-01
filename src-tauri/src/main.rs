@@ -195,6 +195,49 @@ fn get_all_app_paths() -> Result<HashMap<String, String>, String> {
     Ok(paths)
 }
 
+
+// =============================================================================
+// STORAGE CONFIG COMMANDS  (patched by patch_storage_default.ps1)
+// =============================================================================
+
+/// Read storage config. On first install auto-creates default (Custom Folder).
+#[tauri::command]
+fn get_storage_config() -> Result<serde_json::Value, String> {
+    let config_path = get_operator_home().join("config").join("storage.json");
+
+    if config_path.exists() {
+        let content = fs::read_to_string(&config_path)
+            .map_err(|e| format!("Read error: {}", e))?;
+        serde_json::from_str(&content)
+            .map_err(|e| format!("Parse error: {}", e))
+    } else {
+        // First install: default = Custom Folder -> ~/OperatorX02/conversations
+        let default_path = get_operator_home().join("conversations");
+        let default_cfg = serde_json::json!({
+            "mode": "custom",
+            "path": default_path.to_string_lossy()
+        });
+        let json = serde_json::to_string_pretty(&default_cfg)
+            .map_err(|e| format!("Serialize error: {}", e))?;
+        fs::write(&config_path, &json)
+            .map_err(|e| format!("Write error: {}", e))?;
+        println!("Storage config created (first install): {}", config_path.display());
+        Ok(default_cfg)
+    }
+}
+
+/// Persist storage settings chosen by the user.
+#[tauri::command]
+fn save_storage_config(mode: String, path: Option<String>) -> Result<(), String> {
+    let config_path = get_operator_home().join("config").join("storage.json");
+    let val = serde_json::json!({ "mode": mode, "path": path });
+    let json = serde_json::to_string_pretty(&val)
+        .map_err(|e| format!("Serialize error: {}", e))?;
+    fs::write(&config_path, &json)
+        .map_err(|e| format!("Write error: {}", e))?;
+    println!("Storage config saved: mode={}", mode);
+    Ok(())
+}
 pub fn run() {
     tauri::Builder::default()
         // âœ… SINGLE INSTANCE PLUGIN - Prevents multiple windows opening
@@ -627,6 +670,10 @@ pub fn run() {
             pi_ensure_gpio_deps,
             pi_save_devices,
             pi_load_devices,
+
+            // Storage Config Commands (patched by patch_storage_default.ps1)
+            get_storage_config,
+            save_storage_config,
         ])
          .setup(|app| {
             // âœ… Create OperatorX02 home folders on first launch

@@ -1,4 +1,4 @@
-// ide/aiAssistant/storageSettingsManager.ts
+﻿// ide/aiAssistant/storageSettingsManager.ts
 // FIXED VERSION - Properly handles settings changes and notifies conversationManager
 // ============================================================================
 
@@ -29,6 +29,7 @@ class StorageSettingsManager {
 
   constructor() {
     this.settings = this.loadSettings();
+    this.initFromRustConfig(); // patched
     
     // Verify path on startup if custom path is set
     if (this.settings.storageType === 'custom' && this.settings.customPath) {
@@ -158,6 +159,22 @@ class StorageSettingsManager {
   // ==========================================================================
   // PATH VERIFICATION
   // ==========================================================================
+
+  // patched: default custom folder on first install
+  private async initFromRustConfig(): Promise<void> {
+    if (localStorage.getItem(this.settingsKey)) return;
+    try {
+      const { invoke } = await import('@tauri-apps/api/core');
+      const cfg = await invoke<{ mode: string; path: string }>('get_storage_config');
+      if (cfg && cfg.mode === 'custom' && cfg.path) {
+        this.settings = { storageType: 'custom', customPath: cfg.path, lastVerified: Date.now() };
+        localStorage.setItem(this.settingsKey, JSON.stringify(this.settings));
+        console.log('[StorageSettings] First install default:', cfg.path);
+        this.notifyListeners('settings-changed');
+        window.dispatchEvent(new CustomEvent('storage-settings-initialized', { detail: this.settings }));
+      }
+    } catch (e) { console.warn('[StorageSettings] initFromRustConfig:', e); }
+  }
 
   private async verifyPathAsync(): Promise<void> {
     if (!this.settings.customPath) return;
@@ -298,9 +315,15 @@ class StorageSettingsManager {
   private saveSettings(): void {
     try {
       localStorage.setItem(this.settingsKey, JSON.stringify(this.settings));
-      console.log('💾 Storage settings saved:', this.settings);
+      console.log('Storage settings saved:', this.settings);
+      // patched: sync to ~/OperatorX02/config/storage.json
+      (async () => { try {
+        const { invoke } = await import('@tauri-apps/api/core');
+        const mode = this.settings.storageType === 'custom' ? 'custom' : 'memory';
+        await invoke('save_storage_config', { mode, path: this.settings.customPath ?? null });
+      } catch(e){} })();
     } catch (error) {
-      console.error('❌ Failed to save storage settings:', error);
+      console.error('Failed to save storage settings:', error);
     }
   }
 

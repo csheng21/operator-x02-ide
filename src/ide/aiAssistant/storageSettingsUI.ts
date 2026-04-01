@@ -1,4 +1,4 @@
-// ide/aiAssistant/storageSettingsUI.ts
+﻿// ide/aiAssistant/storageSettingsUI.ts
 // SIMPLIFIED UI - Only Memory-Only and Custom Folder
 
 import { storageSettingsManager } from './storageSettingsManager';
@@ -135,6 +135,25 @@ function setupStorageSettingsEvents(container: HTMLElement): void {
 }
 
 function loadCurrentSettings(container: HTMLElement): void {
+  // patched: re-render when async Rust init completes
+  const onInit = (e: Event) => {
+    if (!document.body.contains(container)) { window.removeEventListener('storage-settings-initialized', onInit as EventListener); return; }
+    const d = (e as CustomEvent).detail as { storageType: string; customPath?: string };
+    const rb = d.storageType === 'custom'
+      ? container.querySelector('input[value="custom"]') as HTMLInputElement | null
+      : container.querySelector('input[value="memory-only"]') as HTMLInputElement | null;
+    if (rb) { rb.checked = true;
+      if (d.storageType === 'custom') {
+        const sec = container.querySelector('.custom-path-section') as HTMLElement | null;
+        if (sec) sec.style.display = 'block';
+        const inp = container.querySelector('.custom-path-input') as HTMLInputElement | null;
+        if (inp && d.customPath) inp.value = d.customPath;
+      }
+    }
+    updateCurrentStorageDisplay(container);
+    window.removeEventListener('storage-settings-initialized', onInit as EventListener);
+  };
+  window.addEventListener('storage-settings-initialized', onInit as EventListener);
   const settings = storageSettingsManager.getSettings();
   
   // Set storage type radio
