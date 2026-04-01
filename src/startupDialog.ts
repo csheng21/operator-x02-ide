@@ -28,7 +28,7 @@ export function showStartupDialog(): void {
 @keyframes x02MemPulse{0%,100%{opacity:.5;transform:scaleX(1)}50%{opacity:1;transform:scaleX(1.02)}}
 </style>
 
-<div style="width:560px;max-height:90vh;overflow-y:auto;background:#1a1a1c;border:1px solid #2e2e32;border-radius:14px;animation:x02SlideUp .5s cubic-bezier(.22,.68,0,1.2) both;scrollbar-width:thin;scrollbar-color:#2e2e32 transparent">
+<div style="width:560px;max-height:82vh;overflow-y:scroll;background:#1a1a1c;border:1px solid #2e2e32;border-radius:14px;animation:x02SlideUp .5s cubic-bezier(.22,.68,0,1.2) both;scrollbar-width:thin;scrollbar-color:#2e2e32 transparent">
 
   <!-- HEADER -->
   <div style="background:linear-gradient(135deg,#0d1a0d 0%,#111318 60%,#0a0e1a 100%);padding:28px 28px 22px;border-bottom:1px solid #2a2a2e;position:relative;overflow:hidden;">
