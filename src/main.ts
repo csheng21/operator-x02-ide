@@ -4671,7 +4671,7 @@ function initializePreviewTab(): void {
     localStorage.setItem('aiFileExplorerEnabled', 'true');
     (window as any).aiFileExplorerEnabled = true;
     (window as any).aiSearchEnabled = true;
-    if ((window as any).aiFileExplorer) (window as any).aiFileExplorer.isEnabled = true;
+    if ((window as any).aiFileExplorer) (window as any).aiFileExplorer.isEnabled = function() { return localStorage.getItem('aiFileExplorerEnabled') === 'true'; };
     const searchBtn = document.getElementById('ai-search-btn');
     if (searchBtn) { searchBtn.classList.add('active'); searchBtn.style.color = '#4fc3f7'; searchBtn.style.textShadow = '0 0 8px rgba(79,195,247,0.6)'; }
     const searchToggle = document.getElementById('ai-search-toggle');
@@ -8432,8 +8432,24 @@ try {
       }
       
       // Search based on message content
+      // -- INTENT GUARD: skip file search for pure conversational messages --
+      const _conversationalPatterns = [
+        /^(hi|hello|hey|ok|okay|thanks|thank you|bye|goodbye|yes|no|yep|nope|sure|got it|i see|understood|great|good|nice|cool|wow|lol|haha)\b/i,
+        /\b(what (time|date|day|hour|minute|second)|what.*discuss|what.*talk|when.*discuss|when.*talk|yesterday|last week|last month|summary|summarize|summarise)\b/i,
+        /^(who are you|what are you|tell me about yourself|what can you do|how are you)\b/i,
+        /\b(in minutes|in hours|in seconds|how long ago|time ago|timestamp|conversation history)\b/i
+      ];
+      const _isConversational = !((window as any).currentProjectPath || '').trim() ||
+        _conversationalPatterns.some(p => p.test(msg.trim()));
+      if (_isConversational) {
+        console.log('[Intent] Conversational message - skipping file search');
+        matchedProjectFiles = [];
+        shouldIncludeFiles = false;
+      } else {
+
       matchedProjectFiles = await aiFileExplorer.findRelated(msg);
       shouldIncludeFiles = matchedProjectFiles && matchedProjectFiles.length > 0;
+      }
       
       // ?? Highlight all found files as "scanning"
       if (shouldIncludeFiles) {

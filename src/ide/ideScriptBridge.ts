@@ -38,9 +38,15 @@ function resolveFilePath(filePath: string): string {
   // Get project path from window globals
   const projectPath = (window as any).currentProjectPath || '';
   if (!projectPath) {
-    console.warn('[IDE Script] No project path, using relative:', filePath);
-    return filePath;
+    const _cmd = (args && args.command) ? args.command : '';
+    if (_cmd === 'ide_search' || _cmd === 'ide_analyse') {
+      console.warn('[IDE Script] No project open - cannot search without a project folder');
+      return { success: false, error: 'No project open. Please open a folder first.', command: _cmd };
+    }
+    console.warn('[IDE Script] No project path - using relative');
+    projectPath = '';
   }
+
   const sep = projectPath.includes('\\') ? '\\' : '/';
   const base = projectPath.endsWith(sep) ? projectPath : projectPath + sep;
   const resolved = base + filePath.replace(/\//g, sep);
