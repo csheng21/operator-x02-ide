@@ -1,15 +1,15 @@
 ﻿// src/ide/ideScriptBridge.ts
 // ============================================================================
-// 🧠 IDE SCRIPT BRIDGE v2 — Connects AI to Rust IDE Script Commands
+// ?? IDE SCRIPT BRIDGE v2 � Connects AI to Rust IDE Script Commands
 // ============================================================================
 //
 // v2 adds:
-//   - ide_create_file   — Create new file with content
-//   - ide_create_folder — Create new directory
-//   - ide_delete        — Delete file/folder
-//   - ide_rename        — Rename/move file
-//   - ide_read_file     — Read full file content
-//   - resolveFilePath   — Auto-resolve relative → absolute paths
+//   - ide_create_file   � Create new file with content
+//   - ide_create_folder � Create new directory
+//   - ide_delete        � Delete file/folder
+//   - ide_rename        � Rename/move file
+//   - ide_read_file     � Read full file content
+//   - resolveFilePath   � Auto-resolve relative ? absolute paths
 //   - File explorer refresh after file system changes
 //
 // Existing commands:
@@ -21,14 +21,14 @@
 //   - Works with Surgical Edit Engine (backup system, safety guard)
 //   - Emits 'ide-script-activity' events for UI log panel
 //   - Triggers file explorer refresh after create/delete/rename
-//   - Change Summary Panel — tracks all file changes with diff view & undo
+//   - Change Summary Panel � tracks all file changes with diff view & undo
 // ============================================================================
 
 import { invoke } from '@tauri-apps/api/core';
 import { recordFileChange } from './changeSummaryPanel';
 
 // ============================================================================
-// PATH RESOLUTION — Converts relative paths to absolute using project path
+// PATH RESOLUTION � Converts relative paths to absolute using project path
 // ============================================================================
 
 function resolveFilePath(filePath: string): string {
@@ -74,7 +74,7 @@ function resolveFilePath(filePath: string): string {
 }
 
 // ============================================================================
-// FILE EXPLORER REFRESH — Notify UI after file system changes
+// FILE EXPLORER REFRESH � Notify UI after file system changes
 // ============================================================================
 
 function refreshFileExplorer(): void {
@@ -164,7 +164,7 @@ export interface IdeRollbackResult {
   error: string | null;
 }
 
-// ── New v2 Types ──
+// -- New v2 Types --
 
 export interface IdeCreateFileResult {
   success: boolean;
@@ -235,7 +235,7 @@ export function getIdeScriptMode(): IdeScriptMode {
 
 export function setIdeScriptMode(mode: IdeScriptMode): void {
   localStorage.setItem(MODE_KEY, mode);
-  console.log(`🧠 [IDE Script] Mode set: ${mode}`);
+  console.log(`?? [IDE Script] Mode set: ${mode}`);
   window.dispatchEvent(new CustomEvent('ide-script-mode-changed', { detail: { mode } }));
 }
 
@@ -245,7 +245,7 @@ export function isScriptModeEnabled(): boolean {
 }
 
 // ============================================================================
-// TAURI INVOKE WRAPPERS — Existing Commands
+// TAURI INVOKE WRAPPERS � Existing Commands
 // ============================================================================
 
 export async function ideAnalyse(filePath: string): Promise<IdeAnalyseResult> {
@@ -272,6 +272,7 @@ export async function idePatch(
   description: string, occurrence?: number
 ): Promise<IdePatchResult> {
   return await invoke('ide_patch', {
+    projectPath: (window as any).currentProjectPath || '',
     filePath, find, replace, description,
     occurrence: occurrence || null,
   });
@@ -291,6 +292,7 @@ export async function ideInsert(
   description: string, position?: 'before' | 'after'
 ): Promise<IdeInsertResult> {
   return await invoke('ide_insert', {
+    projectPath: (window as any).currentProjectPath || '',
     filePath, anchor, content, description,
     position: position || null,
   });
@@ -305,7 +307,7 @@ export async function ideScriptStatus(): Promise<any> {
 }
 
 // ============================================================================
-// TAURI INVOKE WRAPPERS — New v2 Commands
+// TAURI INVOKE WRAPPERS � New v2 Commands
 // ============================================================================
 
 export async function ideCreateFile(
@@ -338,6 +340,7 @@ export async function ideReadFile(
   filePath: string, lineStart?: number, lineEnd?: number
 ): Promise<IdeReadFileResult> {
   return await invoke('ide_read_file', {
+    projectPath: (window as any).currentProjectPath || '',
     filePath,
     lineStart: lineStart || null,
     lineEnd: lineEnd || null,
@@ -345,7 +348,7 @@ export async function ideReadFile(
 }
 
 // ============================================================================
-// AI RESPONSE INTERCEPTOR — Detects and executes ide_script blocks
+// AI RESPONSE INTERCEPTOR � Detects and executes ide_script blocks
 // ============================================================================
 
 const IDE_SCRIPT_REGEX = /```ide_script\s*\n([\s\S]*?)```/g;
@@ -371,7 +374,7 @@ export function parseIdeScriptCalls(aiResponse: string): IdeScriptCall[] {
         calls.push(parsed);
       }
     } catch (e) {
-      console.warn('🧠 [IDE Script] Failed to parse script block:', e);
+      console.warn('?? [IDE Script] Failed to parse script block:', e);
     }
   }
   return calls;
@@ -384,7 +387,7 @@ export function parseIdeScriptCalls(aiResponse: string): IdeScriptCall[] {
  */
 export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
       // BYPASS_MUTEX_READ - fast path for readFile
-      if ((call.call.command === 'readFile' || call.command === 'ide_read_file') && call.args) {
+      if ((call.command === "readFile" || call.command === 'ide_read_file') && call.args) {
         try {
           const fp = call.args.file_path || call.args.filePath || call.args.path || '';
           const fs = (window as any).fileSystem;
@@ -425,14 +428,14 @@ export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
 
   // Emit start event
   emitScriptEvent({ command: call.command, args: call.args, status: 'started' });
-  console.log(`🧠 [IDE Script] Executing: ${call.command}`, call.args);
+  console.log(`?? [IDE Script] Executing: ${call.command}`, call.args);
 
   try {
     let result: any;
     let needsExplorerRefresh = false;
 
     switch (call.command) {
-      // ── Existing commands ──
+      // -- Existing commands --
       case 'ide_analyse':
         result = await ideAnalyse(call.args.file_path);
         break;
@@ -446,7 +449,7 @@ export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
         );
         break;
 
-      // ── PATCHED: ide_patch with change tracking ──
+      // -- PATCHED: ide_patch with change tracking --
       case 'ide_patch': {
         // Read old content before patch (for change tracking)
         let _patchOldContent = '';
@@ -456,11 +459,11 @@ export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
         } catch { /* file might not exist yet */ }
 
         result = await idePatch(
-          call.args.file_path, call.args.find, call.args.replace,
+          call.args.file_path,
+          (call.args.find || '').replace(/\\\\n/g, '\n').replace(/\\\\t/g, '\t').replace(/\\\\r/g, ''),
+          (call.args.replace || '').replace(/\\\\n/g, '\n').replace(/\\\\t/g, '\t').replace(/\\\\r/g, ''),
           call.args.description, call.args.occurrence
         );
-
-        // Record change for summary panel
         if (result.success) {
           try {
             const _readAfter = await ideReadFile(call.args.file_path);
@@ -478,7 +481,7 @@ export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
         result = await idePatchBatch(call.args.patches, call.args.atomic);
         break;
 
-      // ── PATCHED: ide_insert with change tracking ──
+      // -- PATCHED: ide_insert with change tracking --
       case 'ide_insert': {
         // Read old content before insert (for change tracking)
         let _insertOldContent = '';
@@ -513,14 +516,14 @@ export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
         result = await ideScriptStatus();
         break;
 
-      // ── PATCHED: ide_create_file with change tracking ──
+      // -- PATCHED: ide_create_file with change tracking --
       case 'ide_create_file': {
-        // Read old content before write (for change tracking — empty if new file)
+        // Read old content before write (for change tracking � empty if new file)
         let _createOldContent = '';
         try {
           const _readBefore = await ideReadFile(call.args.file_path);
           _createOldContent = _readBefore.content || '';
-        } catch { /* new file — no old content */ }
+        } catch { /* new file � no old content */ }
 
         result = await ideCreateFile(
           call.args.file_path, call.args.content,
@@ -544,7 +547,7 @@ export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
           try {
             if ((window as any).openFileInTab) {
               (window as any).openFileInTab(call.args.file_path);
-              console.log(`📂 [IDE Script] Opened new file in tab: ${call.args.file_path}`);
+              console.log(`?? [IDE Script] Opened new file in tab: ${call.args.file_path}`);
             }
           } catch (e) { /* ignore tab open errors */ }
         }
@@ -557,7 +560,7 @@ export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
         needsExplorerRefresh = result.success;
         break;
 
-      // ── PATCHED: ide_delete with change tracking ──
+      // -- PATCHED: ide_delete with change tracking --
       case 'ide_delete': {
         // Read old content before delete (for change tracking)
         let _deleteOldContent = '';
@@ -591,7 +594,7 @@ export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
               for (const tab of tabs) {
                 if (tab.path === call.args.target_path) {
                   (window as any).tabManager.closeTab(tab.id);
-                  console.log(`📂 [IDE Script] Closed tab for deleted file`);
+                  console.log(`?? [IDE Script] Closed tab for deleted file`);
                   break;
                 }
               }
@@ -609,7 +612,7 @@ export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
           try {
             if ((window as any).openFileInTab) {
               (window as any).openFileInTab(call.args.new_path);
-              console.log(`📂 [IDE Script] Opened renamed file: ${call.args.new_path}`);
+              console.log(`?? [IDE Script] Opened renamed file: ${call.args.new_path}`);
             }
           } catch (e) { /* ignore */ }
         }
@@ -632,14 +635,14 @@ export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
 
     const duration = Date.now() - startTime;
     emitScriptEvent({ command: call.command, args: call.args, status: 'completed', result, durationMs: duration });
-    console.log(`✅ [IDE Script] ${call.command} completed in ${duration}ms`);
+    console.log(`? [IDE Script] ${call.command} completed in ${duration}ms`);
     return result;
 
   } catch (error: any) {
     const duration = Date.now() - startTime;
     const errMsg = error?.message || error?.toString() || 'Unknown error';
     emitScriptEvent({ command: call.command, args: call.args, status: 'failed', error: errMsg, durationMs: duration });
-    console.error(`❌ [IDE Script] ${call.command} failed:`, errMsg);
+    console.error(`? [IDE Script] ${call.command} failed:`, errMsg);
     throw error;
   }
 }
@@ -659,7 +662,7 @@ export async function processAiScriptResponse(aiResponse: string): Promise<{
     return { hasScripts: false, results: [], cleanResponse: aiResponse };
   }
 
-  console.log(`🧠 [IDE Script] Found ${calls.length} script call(s) in AI response`);
+  console.log(`?? [IDE Script] Found ${calls.length} script call(s) in AI response`);
 
   // Show progress dialog for IDE Script execution
   const _showDialog = (window as any).showStatusDialog;
@@ -719,7 +722,7 @@ export async function processAiScriptResponse(aiResponse: string): Promise<{
 }
 
 // ============================================================================
-// EVENT SYSTEM — For UI activity indicators
+// EVENT SYSTEM � For UI activity indicators
 // ============================================================================
 
 function emitScriptEvent(event: IdeScriptCallEvent): void {
@@ -727,7 +730,7 @@ function emitScriptEvent(event: IdeScriptCallEvent): void {
 }
 
 // ============================================================================
-// SYSTEM PROMPT — Injected when script mode is active
+// SYSTEM PROMPT � Injected when script mode is active
 // ============================================================================
 
 export function getIdeScriptSystemPrompt(projectPath?: string): string {
@@ -737,7 +740,7 @@ export function getIdeScriptSystemPrompt(projectPath?: string): string {
   const projCtx = projectPath ? `\nCurrent project: ${projectPath}` : '';
 
   return `
-[🧠 OPERATOR X02 CODE IDE — Script Mode (${mode})]
+[?? OPERATOR X02 CODE IDE � Script Mode (${mode})]
 ${projCtx}
 
 You have access to IDE Script commands for precise code editing and file management. Use these commands to search, analyse, patch, create, and manage files.
@@ -745,7 +748,7 @@ You have access to IDE Script commands for precise code editing and file managem
  RESPONSE STYLE: Be brief and friendly. When reporting results, use 1-3 sentences max. Never use dramatic language like "CRITICAL FAILURE" or "SYSTEM ERROR" - just say what happened and what you did next. Example: "Added comments to main.tsx. File saved successfully."
  RESPONSE STYLE: Be brief and friendly. When reporting results, use 1-3 sentences max. Never use dramatic language like "CRITICAL FAILURE" or "SYSTEM ERROR" - just say what happened and what you did next. Example: "Added comments to main.tsx. File saved successfully."
 
-━━━ AVAILABLE COMMANDS ━━━
+??? AVAILABLE COMMANDS ???
 
 To use a command, output a fenced code block with the language tag \`ide_script\`:
 
@@ -821,7 +824,7 @@ Delete non-empty folder:
 { "command": "ide_rename", "args": { "old_path": "src/utils.ts", "new_path": "src/helpers/utils.ts" } }
 \`\`\`
 
-━━━ RULES ━━━
+??? RULES ???
  CRITICAL RULE: ide_read_file MUST always be followed by ide_patch (or another modification command) in the SAME response. NEVER send ide_read_file alone and wait. ONE response = read + modify together. If you read a file, you MUST patch it in the same reply. Prefer ide_patch directly since project context already contains file content.
  COMMAND SELECTION GUIDE - match user intent to command:
    add / remove / fix / update / change / comment / refactor / rename -> ide_patch
@@ -841,21 +844,21 @@ Delete non-empty folder:
    search for pattern -> ide_search
    review errors / check quality -> ide_analyse (ONLY for review tasks, NEVER for modifications)
    NEVER use ide_analyse when the user wants to change something - use ide_patch instead.
-• The "find" text in ide_patch must EXACTLY match the source (whitespace matters)
-• Every patch/create/delete creates an automatic backup — user can always rollback
-• Use ide_create_file for new files — the file opens automatically in the editor
-• Use ide_create_folder before ide_create_file if the parent directory doesn't exist
-• Use ide_delete carefully — backups are created for files, but NOT for folders
-• Use ide_rename to move files — parent directories are created automatically
-• Use ide_patch_batch with atomic:true for multi-file changes
-• Keep patches minimal — change only what's needed
-• After any changes, explain what you did and why
-• File paths can be relative to the project root or absolute
+� The "find" text in ide_patch must EXACTLY match the source (whitespace matters)
+� Every patch/create/delete creates an automatic backup � user can always rollback
+� Use ide_create_file for new files � the file opens automatically in the editor
+� Use ide_create_folder before ide_create_file if the parent directory doesn't exist
+� Use ide_delete carefully � backups are created for files, but NOT for folders
+� Use ide_rename to move files � parent directories are created automatically
+� Use ide_patch_batch with atomic:true for multi-file changes
+� Keep patches minimal � change only what's needed
+� After any changes, explain what you did and why
+� File paths can be relative to the project root or absolute
 `;
 }
 
 // ============================================================================
-// INIT — Wire everything up
+// INIT � Wire everything up
 // ============================================================================
 
 export function initIdeScriptBridge(): void {
@@ -885,12 +888,12 @@ export function initIdeScriptBridge(): void {
     getPrompt: getIdeScriptSystemPrompt,
   };
 
-  console.log(`🧠 [IDE Script Bridge v2] Initialized (mode: ${getIdeScriptMode()})`);
-  console.log('🧠 [IDE Script Bridge v2] Commands: analyse, review, search, patch, insert, rollback, createFile, createFolder, delete, rename, readFile');
+  console.log(`?? [IDE Script Bridge v2] Initialized (mode: ${getIdeScriptMode()})`);
+  console.log('?? [IDE Script Bridge v2] Commands: analyse, review, search, patch, insert, rollback, createFile, createFolder, delete, rename, readFile');
 }
 
 // ============================================================================
-// AI MODE AWARENESS PROMPT — Appended to system prompt so AI knows about modes
+// AI MODE AWARENESS PROMPT � Appended to system prompt so AI knows about modes
 // ============================================================================
 
 export function getIdeScriptAwarePrompt(): string {
@@ -907,7 +910,7 @@ You are operating inside Operator X02 Code IDE which has two editing modes:
 
 AUTO MODE (recommended for most tasks):
 - You can read, create, edit, rename, delete files directly via ide_script commands
-- Surgical patches — only changes the specific lines needed
+- Surgical patches � only changes the specific lines needed
 - Automatic backups per operation with rollback support
 - Multi-file atomic batch edits
 - Best for: bug fixes, refactoring, code review, file management, creating new files
@@ -921,7 +924,7 @@ CLASSIC MODE:
 MODE SUGGESTIONS (suggest ONCE per conversation, do not repeat):
 - If current mode is "classic" and user asks to edit, fix, or patch code: suggest "Tip: Switch to Auto mode for safer, surgical edits that only change the lines needed."
 - If current mode is "classic" and user asks to create a new file: suggest "Tip: Auto mode can create files directly on disk without copy-pasting."
-- If current mode is "classic" and user asks to rename, delete, or move files: suggest "Tip: Auto mode can manage files directly — rename, delete, move."
+- If current mode is "classic" and user asks to rename, delete, or move files: suggest "Tip: Auto mode can manage files directly � rename, delete, move."
 - If current mode is "auto", use ide_script commands for all file operations. Do NOT return full file code blocks.
 - If current mode is "classic", return full file code blocks as normal.
 `;

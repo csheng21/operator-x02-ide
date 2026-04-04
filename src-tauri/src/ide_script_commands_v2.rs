@@ -1,4 +1,4 @@
-// src-tauri/src/ide_script_commands_v2.rs
+﻿// src-tauri/src/ide_script_commands_v2.rs
 // ============================================================================
 // IDE Script Commands v2 — File Management Operations
 // ============================================================================
@@ -357,6 +357,81 @@ pub async fn ide_rename(
 }
 
 // ============================================================================
+
+// ============================================================
+// PATH RESOLUTION — resolves bare filename to full path
+// 1. direct  2. project_path/file  3. recursive search
+// ============================================================
+
+fn find_file_recursive(dir: &Path, target_name: &std::ffi::OsStr) -> Option<PathBuf> {
+    if let Ok(entries) = fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_file() && path.file_name() == Some(target_name) {
+                return Some(path);
+            }
+            if path.is_dir() {
+                let name = path.file_name().unwrap_or_default().to_string_lossy();
+                if !name.starts_with('.') && name != "node_modules" && name != "target" {
+                    if let Some(found) = find_file_recursive(&path, target_name) {
+                        return Some(found);
+                    }
+                }
+            }
+        }
+    }
+    None
+}
+
+fn resolve_file_path(file_path: &str, project_path: Option<&str>) -> PathBuf {
+    let path = PathBuf::from(file_path);
+    if path.exists() { return path; }
+    if let Some(proj) = project_path {
+        let candidate = Path::new(proj).join(file_path);
+        if candidate.exists() {
+            println!("[Resolve] Found via project root: {}", candidate.display());
+            return candidate;
+        }
+        if let Some(file_name) = path.file_name() {
+            if let Some(found) = find_file_recursive(Path::new(proj), file_name) {
+                println!("[Resolve] Found via recursive search: {}", found.display());
+                return found;
+            }
+        }
+    }
+    path
+}
+
+fn v2_find_recursive(dir: &Path, target: &std::ffi::OsStr) -> Option<PathBuf> {
+    if let Ok(entries) = fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let p = entry.path();
+            if p.is_file() && p.file_name() == Some(target) { return Some(p); }
+            if p.is_dir() {
+                let n = p.file_name().unwrap_or_default().to_string_lossy();
+                if !n.starts_with('.') && n != "node_modules" && n != "target" {
+                    if let Some(f) = v2_find_recursive(&p, target) { return Some(f); }
+                }
+            }
+        }
+    }
+    None
+}
+
+fn v2_resolve(file_path: &str, project_path: Option<&str>) -> PathBuf {
+    let p = PathBuf::from(file_path);
+    if p.exists() { return p; }
+    if let Some(proj) = project_path {
+        let c = Path::new(proj).join(file_path);
+        if c.exists() { return c; }
+        if let Some(name) = p.file_name() {
+            if let Some(f) = v2_find_recursive(Path::new(proj), name) { return f; }
+        }
+    }
+    p
+}
+
+
 // COMMAND: ide_read_file
 // ============================================================================
 
@@ -376,8 +451,11 @@ pub async fn ide_read_file(
     file_path: String,
     line_start: Option<usize>,
     line_end: Option<usize>,
+    project_path: Option<String>,
 ) -> Result<IdeReadFileResult, String> {
-    let path = Path::new(&file_path);
+    let resolved = v2_resolve(&file_path, project_path.as_deref());
+    let file_path = resolved.to_string_lossy().to_string();
+    let path = resolved.as_path();
 
     if !path.exists() {
         return Ok(IdeReadFileResult {

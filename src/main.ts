@@ -21,86 +21,7 @@
 //   (window as any).X02Perf.restore()      // back to normal
 //   Auto-triggered by jetson-connected / jetson-disconnected events
 // ============================================================================
-(function installX02PerfManager() {
-  if ((window as any).X02Perf) return; // already installed
-
-  const _origSetInterval = window.setInterval.bind(window);
-  const _origClearInterval = window.clearInterval.bind(window);
-
-  interface TrackedInterval {
-    id: number;
-    fn: TimerHandler;
-    delay: number;
-    active: boolean;
-  }
-
-  const tracked: Map<number, TrackedInterval> = new Map();
-  let _throttleFactor = 1;
-
-  // Wrap setInterval to track all intervals
-  (window as any).setInterval = function(fn: TimerHandler, delay?: number, ...args: any[]): number {
-    const realDelay = delay ?? 0;
-    const id = _origSetInterval(fn, realDelay * _throttleFactor, ...args) as unknown as number;
-    tracked.set(id, { id, fn, delay: realDelay, active: true });
-    return id;
-  };
-
-  (window as any).clearInterval = function(id: number): void {
-    _origClearInterval(id);
-    tracked.delete(id);
-  };
-
-  const X02Perf = {
-    throttle(factor: number): void {
-      if (factor === _throttleFactor) return;
-      console.log('[X02Perf] Throttling intervals by ' + factor + 'x (' + tracked.size + ' tracked)');
-      _throttleFactor = factor;
-      // Restart all tracked intervals at new speed
-      tracked.forEach((entry) => {
-        if (!entry.active) return;
-        _origClearInterval(entry.id);
-        const newId = _origSetInterval(entry.fn, entry.delay * factor) as unknown as number;
-        tracked.delete(entry.id);
-        entry.id = newId;
-        tracked.set(newId, entry);
-      });
-    },
-
-    restore(): void {
-      if (_throttleFactor === 1) return;
-      console.log('[X02Perf] Restoring intervals to normal speed');
-      X02Perf.throttle(1);
-    },
-
-    status(): void {
-      console.log('[X02Perf] ' + tracked.size + ' intervals tracked, throttle=' + _throttleFactor + 'x');
-      tracked.forEach((e) => console.log('  id=' + e.id + ' delay=' + e.delay + 'ms'));
-    }
-  };
-
-  (window as any).X02Perf = X02Perf;
-
-  // Auto-wire to Jetson streaming events
-  document.addEventListener('jetson-streaming-start', () => {
-    console.log('[X02Perf] Tegrastats streaming - throttling 5x');
-    X02Perf.throttle(5);
-  });
-  document.addEventListener('jetson-streaming-stop', () => {
-    console.log('[X02Perf] Tegrastats stopped - restoring speed');
-    X02Perf.restore();
-  });
-  document.addEventListener('jetson-connected', () => {
-    console.log('[X02Perf] Jetson connected - throttling non-essential intervals 5x');
-    X02Perf.throttle(5);
-  });
-
-  document.addEventListener('jetson-disconnected', () => {
-    console.log('[X02Perf] Jetson disconnected - restoring interval speed');
-    X02Perf.restore();
-  });
-
-  console.log('[X02Perf] Interval manager installed');
-})();
+import './utils/perfManager'; // X02PerfManager - extracted to utils/perfManager.ts
 import './styles.css';
 import './utils/proxyAwareCall';
 import './utils/proxyHealthCheck';
@@ -349,39 +270,8 @@ import { initJetsonTabBridge, updateGpuButtonState } from './jetson/jetsonTabBri
 // ============================================================================
 // ?? SURGICAL EDIT ENGINE ? AI AWARENESS SYSTEM PROMPT
 // ============================================================================
-const SURGICAL_ENGINE_PROMPT = `
-[?? OPERATOR X02 CODE IDE ? Surgical Edit Engine]
-
-You are an AI coding assistant inside "Operator X02 Code IDE", a professional desktop IDE with an AUTOMATED code application system. Your code responses are NOT just displayed ? they are AUTOMATICALLY detected, analyzed, and applied to the user's files on disk.
-
-??? HOW YOUR CODE GETS APPLIED ???
-1. DETECT ? Your code blocks are auto-detected from your response
-2. SELECT ? The best/largest code block is selected per file
-3. ANALYZE ? A diff is computed against the current file
-4. ROUTE ? The Surgical Edit Engine (Rust backend) determines the safest edit strategy
-5. APPLY ? Code is written to disk with automatic backup (.bak file created)
-6. SYNC ? Monaco editor is synced from disk
-7. DECORATE ? Changed lines are highlighted (green=added, blue=modified)
-8. CONFIRM ? User sees Accept (Enter) / Reject (Escape) prompt
-
-??? RULES FOR OPTIMAL AUTO-APPLY ???
-? ALWAYS provide the COMPLETE file content, not partial snippets or diffs
-? ALWAYS include the filename BEFORE the code block (e.g., "Here is the updated App.tsx:")
-? Use fenced code blocks with the correct language tag (tsx, typescript, css, etc.)
-? ONE code block per file ? if modifying multiple files, use separate blocks with clear filenames
-? Do NOT use "// ... rest of code" or "// existing code here" ? include ALL lines
-? Do NOT provide small diffs or patches ? provide the FULL file replacement
-? The user's original code is automatically backed up before changes are applied
-? If modifying a large file, still provide the COMPLETE file
-
-??? WHAT THE USER SEES ???
-? A real-time 8-stage pipeline overlay showing progress
-? Green/blue line highlights showing what changed
-? A badge showing "+X added, -Y deleted, ~Z modified"
-? Accept/Reject buttons to confirm or revert changes
-? A Restore button to revert to original code at any time
-? A diff viewer comparing original vs modifications side-by-side
-`;
+import { SURGICAL_ENGINE_PROMPT } from './prompts/surgicalPrompt'; // extracted
+import { initializePluginMenu } from './plugins/ui/pluginManagerUI';
 
 // ?? Fast Apply Initialization
 // ============================================================================
@@ -521,194 +411,7 @@ function cleanupDuplicates(): void {
  * Initialize tab badge system for GIT tab
  * (Modified files badge is now in the file tree control panel)
  */
-function initializeTabBadges(): void {
-  console.log('??? Initializing tab badge system...');
-  
-  // Add badge styles
-  const badgeStyles = document.createElement('style');
-  badgeStyles.id = 'tab-badge-styles';
-  badgeStyles.textContent = `
-    /* Tab badge base styles */
-    .tab-badge {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 16px;
-      height: 16px;
-      padding: 0 5px;
-      margin-left: 6px;
-      font-size: 10px;
-      font-weight: 600;
-      color: #fff;
-      background: #007acc;
-      border-radius: 8px;
-      line-height: 1;
-      transition: all 0.2s ease;
-    }
-    
-    /* GIT tab badge - red for changes, green for staged */
-    .tab-badge.git-badge {
-      background: #f05033;
-      color: #fff;
-    }
-    
-    .tab-badge.git-badge.staged {
-      background: #89d185;
-      color: #1e1e1e;
-    }
-    
-    /* Hide badge when count is 0 */
-    .tab-badge.hidden {
-      display: none;
-    }
-    
-    /* Pulse animation for new changes */
-    @keyframes badgePulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-      100% { transform: scale(1); }
-    }
-    
-    .tab-badge.pulse {
-      animation: badgePulse 0.3s ease;
-    }
-    
-    /* Tab label container */
-    .explorer-tab .tab-label,
-    .explorer-tab-v3 .tab-label {
-      display: inline-flex;
-      align-items: center;
-    }
-  `;
-  
-  if (!document.getElementById('tab-badge-styles')) {
-    document.head.appendChild(badgeStyles);
-  }
-  
-  // Wait for tabs to be available
-  setTimeout(() => {
-    addBadgeToGitTab();
-    setupBadgeUpdateListeners();
-  }, 1000);
-}
-
-/**
- * Add badge to GIT tab
- */
-function addBadgeToGitTab(): void {
-  // Find GIT tab
-  const gitTab = document.querySelector('[data-tab-id="git"]') as HTMLElement;
-  
-  if (!gitTab) {
-    // Try finding by label
-    const tabs = document.querySelectorAll('.explorer-tab, .explorer-tab-v3');
-    let foundTab: HTMLElement | null = null;
-    
-    tabs.forEach(tab => {
-      const label = tab.querySelector('.tab-label');
-      if (label && label.textContent?.trim().toUpperCase() === 'GIT') {
-        foundTab = tab as HTMLElement;
-      }
-    });
-    
-    if (!foundTab) {
-      console.warn('GIT tab not found');
-      return;
-    }
-    
-    addBadgeToTab(foundTab, 'git');
-    return;
-  }
-  
-  addBadgeToTab(gitTab, 'git');
-}
-
-function addBadgeToTab(tab: HTMLElement, type: string): void {
-  // Check if badge already exists
-  if (tab.querySelector(`.${type}-badge`)) return;
-  
-  // Create badge
-  const badge = document.createElement('span');
-  badge.className = `tab-badge ${type}-badge hidden`;
-  badge.id = `${type}-tab-badge`;
-  badge.textContent = '0';
-  
-  // Add badge to tab label
-  const label = tab.querySelector('.tab-label');
-  if (label) {
-    label.appendChild(badge);
-  } else {
-    tab.appendChild(badge);
-  }
-  
-  console.log(`? ${type.toUpperCase()} tab badge added`);
-}
-
-/**
- * Update GIT tab badge with uncommitted changes count
- */
-function updateGitTabBadge(count?: number): void {
-  const badge = document.getElementById('git-tab-badge');
-  if (!badge) return;
-  
-  // If count not provided, try to get from git status
-  if (count === undefined) {
-    const gitStatus = (window as any).gitStatus || {};
-    const modified = gitStatus.modified?.length || 0;
-    const untracked = gitStatus.untracked?.length || 0;
-    const staged = gitStatus.staged?.length || 0;
-    count = modified + untracked + staged;
-    
-    // Change color if all are staged
-    if (staged > 0 && modified === 0 && untracked === 0) {
-      badge.classList.add('staged');
-    } else {
-      badge.classList.remove('staged');
-    }
-  }
-  
-  if (count > 0) {
-    badge.textContent = count > 99 ? '99+' : String(count);
-    badge.classList.remove('hidden');
-    badge.classList.add('pulse');
-    setTimeout(() => badge.classList.remove('pulse'), 300);
-  } else {
-    badge.classList.add('hidden');
-  }
-}
-
-/**
- * Setup listeners to update GIT badge automatically
- */
-function setupBadgeUpdateListeners(): void {
-  // Listen for git status changes
-  document.addEventListener('git-status-updated', (e: any) => {
-    const detail = e.detail || {};
-    const count = (detail.modified?.length || 0) + 
-                  (detail.untracked?.length || 0) + 
-                  (detail.staged?.length || 0);
-    updateGitTabBadge(count);
-  });
-  
-  window.addEventListener('git-status-changed', () => {
-    updateGitTabBadge();
-  });
-  
-  // Periodic update for GIT badge (every 5 seconds)
-  setInterval(() => {
-    updateGitTabBadge();
-  }, 5000);
-  
-  // Initial update
-  setTimeout(() => {
-    updateGitTabBadge();
-  }, 2000);
-  
-  console.log('? GIT badge update listeners setup complete');
-}
-
-// Export function for external use
-(window as any).updateGitTabBadge = updateGitTabBadge;
+import { initializeTabBadges } from './ui/tabBadges'; // extracted from main.ts
 
 
 // ============================================================================
@@ -718,65 +421,7 @@ function setupBadgeUpdateListeners(): void {
 /**
  * Create and show loading screen immediately
  */
-function showLoadingScreen(): void {
-  // Only create once
-  if (document.getElementById('app-loader')) return;
-  
-  const loader = document.createElement('div');
-  loader.id = 'app-loader';
-  loader.innerHTML = `
-    <div style="
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: #1e1e1e;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 999999;
-    ">
-      <div style="
-        width: 60px;
-        height: 60px;
-        border: 4px solid #333;
-        border-top-color: #007acc;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-      "></div>
-      <div style="
-        margin-top: 20px;
-        color: #cccccc;
-        font-family: 'Segoe UI', sans-serif;
-        font-size: 14px;
-      " id="loader-text">Loading AI IDE...</div>
-    </div>
-    <style>
-      @keyframes spin {
-        to { transform: rotate(360deg); }
-      }
-    </style>
-  `;
-  document.body.appendChild(loader);
-  console.log('?? Loading screen displayed');
-}
-
-/**
- * Remove loading screen with fade animation
- */
-function removeLoadingScreen(): void {
-  const loader = document.getElementById('app-loader');
-  if (loader) {
-    loader.style.opacity = '0';
-    loader.style.transition = 'opacity 0.3s ease';
-    setTimeout(() => {
-      loader.remove();
-      console.log('? Loading screen removed');
-    }, 300);
-  }
-}
+import { showLoadingScreen, removeLoadingScreen } from './ui/loadingScreen'; // extracted
 
 // Show loading screen immediately when DOM is ready
 if (document.readyState === 'loading') {
@@ -1437,537 +1082,7 @@ setTimeout(() => {
   }, 2000);
 
   // Initialize plugin menu system
-  setTimeout(() => {
-    const menuBar = document.querySelector('.menu-bar');
-    if (!menuBar) {
-      console.error('Menu bar not found');
-      return;
-    }
-
-    const loadPluginFromFile = () => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.js';
-      
-      input.onchange = async (e) => {
-        const file = (e.target as HTMLInputElement).files?.[0];
-        if (!file) return;
-        
-        try {
-          const manager = (window as any).externalPluginManager;
-          if (!manager) {
-            alert('Plugin system not initialized!');
-            return;
-          }
-          
-          const reader = new FileReader();
-          reader.onload = async (event) => {
-            const pluginCode = event.target.result as string;
-            const apis = (window as any).pluginAPIs;
-            
-            const pluginId = await manager.loadFromCode(pluginCode);
-            const pluginModule = manager.loadedPlugins.get(pluginId);
-            const manifest = pluginModule.manifest;
-            
-            const originalActivate = manager.loadedPlugins.get(pluginId).activate;
-            manager.loadedPlugins.get(pluginId).activate = function(context: any) {
-              Object.assign(context, apis);
-              return originalActivate(context);
-            };
-            
-            await manager.activatePlugin(pluginId);
-            
-            if ((window as any).showNotification) {
-              (window as any).showNotification(`Plugin loaded: ${manifest.name}`, 'success');
-            }
-            
-            const existingPanel = document.querySelector('[style*="position: fixed"][style*="50%"]');
-            if (existingPanel && (window as any).refreshPluginManagerContent) {
-              (window as any).refreshPluginManagerContent(existingPanel);
-            }
-          };
-          
-          reader.readAsText(file);
-          
-        } catch (error) {
-          console.error('Failed to load plugin:', error);
-          alert(`Failed to load plugin: ${error.message || 'Unknown error'}`);
-        }
-      };
-      
-      input.click();
-    };
-
-    const refreshPluginManagerContent = (panel: Element) => {
-      const manager = (window as any).externalPluginManager;
-      if (!manager) return;
-      
-      const plugins = manager.getLoadedPlugins();
-      
-      const updatedHTML = `
-        <div style="font-family: 'Segoe UI', sans-serif; color: #d4d4d4;">
-          <h3 style="margin: 0 0 15px 0;">Plugin Manager</h3>
-          
-          <button id="pm-load-btn" style="width: 100%; padding: 12px; background: #007acc; color: white; 
-                  border: none; border-radius: 4px; cursor: pointer; margin-bottom: 15px; font-size: 14px; 
-                  font-weight: 500; transition: background 0.2s;">Load New Plugin</button>
-          
-          <h4 style="color: #969696; font-size: 12px; margin: 15px 0 10px 0; text-transform: uppercase;">
-            Installed Plugins (${plugins.length})
-          </h4>
-          
-          ${plugins.length === 0 ? 
-            '<p style="color: #666; text-align: center; padding: 20px;">No plugins installed</p>' :
-            plugins.map((p: any) => `
-              <div style="background: #2d2d30; padding: 14px; margin-bottom: 10px; border-radius: 6px; 
-                          border-left: 3px solid ${p.active ? '#4CAF50' : '#666'}; transition: all 0.2s;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                  <div style="flex: 1;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                      <strong style="color: #ffffff; font-size: 14px;">${p.name}</strong>
-                      ${p.active ? 
-                        '<svg width="16" height="16" viewBox="0 0 16 16" style="fill: #4CAF50;"><circle cx="8" cy="8" r="3"/></svg>' : 
-                        '<svg width="16" height="16" viewBox="0 0 16 16" style="fill: #666;"><circle cx="8" cy="8" r="3"/></svg>'}
-                    </div>
-                    <div style="font-size: 11px; color: #666;">v${p.version} ? ${p.author}</div>
-                    <div style="font-size: 12px; color: #969696; margin-top: 4px;">${p.description}</div>
-                  </div>
-                  <div style="margin-left: 10px;">
-                    <label class="plugin-toggle" data-plugin-id="${p.id}" style="position: relative; display: inline-block; width: 48px; height: 24px; cursor: pointer;">
-                      <input type="checkbox" ${p.active ? 'checked' : ''} style="opacity: 0; width: 0; height: 0;">
-                      <span style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
-                                   background: ${p.active ? '#4CAF50' : '#666'}; border-radius: 24px; transition: 0.3s;
-                                   box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);">
-                        <span style="position: absolute; content: ''; height: 18px; width: 18px; 
-                                     left: ${p.active ? '27px' : '3px'}; bottom: 3px; background: white; 
-                                     border-radius: 50%; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></span>
-                      </span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            `).join('')}
-        </div>
-      `;
-      
-      const contentDiv = panel.querySelector('div:last-child');
-      if (contentDiv) {
-        contentDiv.innerHTML = updatedHTML;
-        
-        const loadBtn = document.getElementById('pm-load-btn');
-        if (loadBtn) {
-          loadBtn.onclick = () => loadPluginFromFile();
-          loadBtn.onmouseenter = () => (loadBtn as HTMLElement).style.background = '#005a9e';
-          loadBtn.onmouseleave = () => (loadBtn as HTMLElement).style.background = '#007acc';
-        }
-        
-        const toggleSwitches = panel.querySelectorAll('.plugin-toggle');
-        toggleSwitches.forEach(toggle => {
-          const pluginId = (toggle as HTMLElement).dataset.pluginId;
-          if (pluginId) {
-            toggle.addEventListener('click', (e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              togglePlugin(pluginId);
-              setTimeout(() => refreshPluginManagerContent(panel), 200);
-            });
-          }
-        });
-      }
-    };
-
-    (window as any).refreshPluginManagerContent = refreshPluginManagerContent;
-
-    const togglePlugin = (pluginId: string) => {
-      const manager = (window as any).externalPluginManager;
-      if (!manager) return;
-      
-      const plugins = manager.getLoadedPlugins();
-      const plugin = plugins.find((p: any) => p.id === pluginId);
-      if (!plugin) return;
-      
-      try {
-        if (plugin.active) {
-          manager.deactivatePlugin(pluginId);
-          
-          const menuBar = document.querySelector('.menu-bar');
-          if (menuBar && pluginId.includes('code-analyzer-buttons')) {
-            Array.from(menuBar.children).forEach((child: Element) => {
-              const text = child.textContent?.trim();
-              if (text === 'Analyze' || text === 'Stats' || text === 'History') {
-                child.remove();
-              }
-            });
-          }
-          
-          document.querySelectorAll(`[data-plugin="${pluginId}"]`).forEach(el => el.remove());
-          
-          if ((window as any).showNotification) {
-            (window as any).showNotification(`Plugin deactivated: ${plugin.name}`, 'info');
-          }
-        } else {
-          const apis = (window as any).pluginAPIs;
-          const originalActivate = manager.loadedPlugins.get(pluginId).activate;
-          manager.loadedPlugins.get(pluginId).activate = function(context: any) {
-            context.createdElements = [];
-            Object.assign(context, apis);
-            return originalActivate(context);
-          };
-          
-          manager.activatePlugin(pluginId);
-          if ((window as any).showNotification) {
-            (window as any).showNotification(`Plugin activated: ${plugin.name}`, 'success');
-          }
-        }
-      } catch (error) {
-        console.error('Error toggling plugin:', error);
-      }
-    };
-
-    const showPluginManager = () => {
-      const manager = (window as any).externalPluginManager;
-      if (!manager) return;
-      const plugins = manager.getLoadedPlugins();
-
-      const renderPluginCard = (p: any) => `
-        <div class="plg-card ${p.active ? 'plg-card-active' : ''}" data-plugin-id="${p.id}"
-             style="background:${p.active ? 'rgba(0,120,212,0.08)' : 'rgba(30,30,32,0.8)'};
-             border:1px solid ${p.active ? 'rgba(0,120,212,0.35)' : 'rgba(60,60,65,0.8)'};
-             border-radius:8px; padding:14px 16px; margin-bottom:8px; transition:all 0.2s;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <div style="width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;
-                 background:${p.active ? 'rgba(0,120,212,0.2)' : 'rgba(255,255,255,0.05)'};flex-shrink:0;">
-              ${p.icon || '&#129513;'}
-            </div>
-            <div style="flex:1;min-width:0;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
-                <span style="color:#fff;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.name}</span>
-                ${p.active ? '<span style="font-size:9px;padding:1px 6px;border-radius:3px;background:rgba(0,200,100,0.2);color:#4caf50;font-weight:600;letter-spacing:0.05em;">ACTIVE</span>' : ''}
-              </div>
-              <div style="font-size:11px;color:#666;">v${p.version || '1.0.0'} ? ${p.author || 'Unknown'}</div>
-              ${p.description ? `<div style="font-size:11px;color:#888;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${p.description}</div>` : ''}
-            </div>
-            <label class="plugin-toggle" data-plugin-id="${p.id}"
-                   style="position:relative;display:inline-block;width:44px;height:22px;cursor:pointer;flex-shrink:0;">
-              <input type="checkbox" ${p.active ? 'checked' : ''} style="opacity:0;width:0;height:0;">
-              <span style="position:absolute;top:0;left:0;right:0;bottom:0;
-                           background:${p.active ? '#0078d4' : '#444'};border-radius:22px;transition:0.25s;
-                           box-shadow:${p.active ? '0 0 8px rgba(0,120,212,0.4)' : 'none'};">
-                <span style="position:absolute;height:16px;width:16px;left:${p.active ? '25px' : '3px'};top:3px;
-                             background:white;border-radius:50%;transition:0.25s;
-                             box-shadow:0 1px 4px rgba(0,0,0,0.4);"></span>
-              </span>
-            </label>
-          </div>
-        </div>
-      `;
-
-      const html = `
-        <style>
-          .plg-search { width:100%; padding:8px 12px; background:rgba(255,255,255,0.06);
-            border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:#fff;
-            font-size:12px; outline:none; box-sizing:border-box; transition:border 0.2s; }
-          .plg-search:focus { border-color:rgba(0,120,212,0.6); background:rgba(255,255,255,0.08); }
-          .plg-search::placeholder { color:#555; }
-          .plg-load-btn { width:100%; padding:10px; background:linear-gradient(135deg,#0078d4,#005a9e);
-            color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:12.5px;
-            font-weight:600; letter-spacing:0.03em; transition:all 0.2s;
-            box-shadow:0 2px 8px rgba(0,120,212,0.3); display:flex; align-items:center; justify-content:center; gap:8px; }
-          .plg-load-btn:hover { background:linear-gradient(135deg,#106ebe,#004c87); box-shadow:0 4px 14px rgba(0,120,212,0.45); transform:translateY(-1px); }
-          .plg-load-btn:active { transform:translateY(0); }
-          .plg-card { cursor:default; }
-          .plg-card:hover { border-color:rgba(0,120,212,0.5) !important; background:rgba(0,120,212,0.06) !important; }
-          .plg-tab { padding:6px 14px; font-size:11px; font-weight:600; letter-spacing:0.05em;
-            text-transform:uppercase; cursor:pointer; border-radius:5px; transition:all 0.15s; color:#666; }
-          .plg-tab.active { background:rgba(0,120,212,0.2); color:#4fc3f7; }
-          .plg-tab:hover:not(.active) { color:#aaa; background:rgba(255,255,255,0.05); }
-          #plg-empty { text-align:center; padding:32px 0; color:#555; font-size:12px; }
-          #plg-empty .plg-empty-icon { font-size:32px; margin-bottom:10px; opacity:0.4; }
-        </style>
-        <div style="font-family:'Segoe UI',sans-serif;color:#d4d4d4;display:flex;flex-direction:column;gap:0;">
-
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
-            <input class="plg-search" id="plg-search" placeholder="&#128269; Search plugins..." />
-          </div>
-
-          <div style="display:flex;gap:4px;margin-bottom:14px;">
-            <div class="plg-tab active" data-tab="all">All (${plugins.length})</div>
-            <div class="plg-tab" data-tab="active">Active (${plugins.filter((p:any)=>p.active).length})</div>
-            <div class="plg-tab" data-tab="inactive">Inactive (${plugins.filter((p:any)=>!p.active).length})</div>
-          </div>
-
-          <div id="plg-list" style="max-height:320px;overflow-y:auto;padding-right:2px;">
-            ${plugins.length === 0 ?
-              `<div id="plg-empty"><div class="plg-empty-icon">&#129513;</div>No plugins installed yet</div>` :
-              plugins.map((p: any) => renderPluginCard(p)).join('')
-            }
-          </div>
-
-          <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.06);">
-            <button class="plg-load-btn" id="pm-load-btn">&#128230; Load Plugin from File</button>
-          </div>
-
-          <div style="margin-top:10px;text-align:center;font-size:10px;color:#444;letter-spacing:0.04em;">
-            ${plugins.length} plugin${plugins.length !== 1 ? 's' : ''} installed
-          </div>
-        </div>
-      `;
-
-      const uiApi = (window as any).pluginAPIs?.uiApi;
-      if (uiApi) {
-        uiApi.showPanel('Plugin Manager', html);
-        setTimeout(() => {
-          const panel = document.querySelector('[style*="position: fixed"][style*="50%"]');
-          if (!panel) return;
-
-          // Load button
-          const loadBtn = document.getElementById('pm-load-btn');
-          if (loadBtn) loadBtn.onclick = () => loadPluginFromFile();
-
-          // Toggle switches
-          panel.querySelectorAll('.plugin-toggle').forEach(toggle => {
-            const pluginId = (toggle as HTMLElement).dataset.pluginId;
-            if (pluginId) {
-              toggle.addEventListener('click', (e) => {
-                e.preventDefault();
-                togglePlugin(pluginId);
-                setTimeout(() => refreshPluginManagerContent(panel), 200);
-              });
-            }
-          });
-
-          // Search filter
-          const searchEl = document.getElementById('plg-search') as HTMLInputElement;
-          const listEl = document.getElementById('plg-list');
-          let currentTab = 'all';
-          const rerender = () => {
-            if (!listEl) return;
-            const q = searchEl?.value.toLowerCase() || '';
-            const all = manager.getLoadedPlugins();
-            const filtered = all.filter((p: any) => {
-              const matchTab = currentTab === 'all' || (currentTab === 'active' ? p.active : !p.active);
-              const matchQ = !q || p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q);
-              return matchTab && matchQ;
-            });
-            listEl.innerHTML = filtered.length === 0
-              ? `<div id="plg-empty"><div class="plg-empty-icon">&#128269;</div>No results for "${q}"</div>`
-              : filtered.map((p: any) => renderPluginCard(p)).join('');
-            listEl.querySelectorAll('.plugin-toggle').forEach(toggle => {
-              const pid = (toggle as HTMLElement).dataset.pluginId;
-              if (pid) toggle.addEventListener('click', (e) => {
-                e.preventDefault(); togglePlugin(pid);
-                setTimeout(rerender, 200);
-              });
-            });
-          };
-          if (searchEl) searchEl.oninput = rerender;
-
-          // Tab filter
-          panel.querySelectorAll('.plg-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-              panel.querySelectorAll('.plg-tab').forEach(t => t.classList.remove('active'));
-              tab.classList.add('active');
-              currentTab = (tab as HTMLElement).dataset.tab || 'all';
-              rerender();
-            });
-          });
-        }, 100);
-      }
-    };
-
-    // -- Plugin Menu (Redesigned) -----------------------------------------
-    if (!document.getElementById('x02-plugin-menu-styles')) {
-      const pmStyle = document.createElement('style');
-      pmStyle.id = 'x02-plugin-menu-styles';
-      pmStyle.textContent = `
-        @keyframes pmSlideIn {
-          from { opacity: 0; transform: translateY(-8px) scaleY(0.92); }
-          to   { opacity: 1; transform: translateY(0)   scaleY(1);    }
-        }
-        @keyframes pmItemIn {
-          from { opacity: 0; transform: translateX(-10px); }
-          to   { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes pmGlow {
-          0%,100% { box-shadow: 0 0 6px rgba(0,170,255,0.15); }
-          50%      { box-shadow: 0 0 14px rgba(0,170,255,0.35); }
-        }
-        @keyframes nvidiaGlow {
-          0%,100% { text-shadow: 0 0 6px rgba(118,185,0,0.4); }
-          50%      { text-shadow: 0 0 14px rgba(118,185,0,0.9); }
-        }
-        #x02-plugin-dropdown {
-          animation: pmSlideIn 0.18s cubic-bezier(0.22,1,0.36,1) both;
-          transform-origin: top left;
-        }
-        .pm-item {
-          display: flex; align-items: center; gap: 10px;
-          padding: 9px 14px; cursor: pointer; color: #c8c8c8;
-          font-size: 12.5px; border-radius: 5px; margin: 1px 5px;
-          transition: background 0.15s, color 0.15s, transform 0.12s;
-          position: relative; overflow: hidden; letter-spacing: 0.01em;
-        }
-        .pm-item::before {
-          content: ''; position: absolute;
-          left: 0; top: 0; bottom: 0; width: 2px;
-          background: transparent; border-radius: 2px; transition: background 0.15s;
-        }
-        .pm-item:hover { background: rgba(0,120,212,0.18); color: #fff; transform: translateX(2px); }
-        .pm-item:hover::before { background: #0078d4; }
-        .pm-item:active { transform: translateX(2px) scale(0.98); background: rgba(0,120,212,0.28); }
-        .pm-item .pm-icon {
-          width: 22px; height: 22px; display: flex; align-items: center;
-          justify-content: center; border-radius: 5px; font-size: 13px;
-          flex-shrink: 0; transition: transform 0.15s;
-        }
-        .pm-item:hover .pm-icon { transform: scale(1.15); }
-        .pm-item-nvidia { color: #76b900 !important; animation: nvidiaGlow 2.5s ease-in-out infinite; }
-        .pm-item-nvidia:hover { background: rgba(118,185,0,0.14) !important; color: #9cd400 !important; }
-        .pm-item-nvidia:hover::before { background: #76b900 !important; }
-        .pm-section-label {
-          padding: 8px 14px 4px; font-size: 10px; font-weight: 600;
-          letter-spacing: 0.08em; text-transform: uppercase; color: #555; user-select: none;
-        }
-        .pm-divider {
-          height: 1px;
-          background: linear-gradient(to right, transparent, #333 20%, #333 80%, transparent);
-          margin: 4px 0;
-        }
-        .pm-badge {
-          margin-left: auto; background: rgba(0,120,212,0.25); color: #4fc3f7;
-          font-size: 9px; padding: 1px 5px; border-radius: 3px;
-          font-weight: 600; letter-spacing: 0.05em; flex-shrink: 0;
-        }
-        .pm-badge-nvidia { background: rgba(118,185,0,0.2); color: #9cd400; }
-        #x02-plugin-btn.active {
-          color: #fff !important; background: rgba(0,120,212,0.2) !important;
-          animation: pmGlow 2s ease-in-out infinite;
-        }
-        #x02-plugin-btn .pm-chevron {
-          display: inline-block; font-size: 8px; margin-left: 3px;
-          transition: transform 0.18s; opacity: 0.6;
-        }
-        #x02-plugin-btn.active .pm-chevron { transform: rotate(180deg); opacity: 1; }
-      `;
-      document.head.appendChild(pmStyle);
-    }
-
-    const pluginMenuBtn = document.createElement('div');
-    pluginMenuBtn.id = 'x02-plugin-btn';
-    pluginMenuBtn.className = 'menu-btn';
-    pluginMenuBtn.innerHTML = 'Plugin<span class="pm-chevron">&#9660;</span>';
-    pluginMenuBtn.style.cssText = `padding: 0 13px; height: 100%; display: flex; align-items: center;
-      cursor: pointer; color: #cccccc; font-size: 13px; user-select: none;
-      position: relative; transition: background 0.15s, color 0.15s; border-radius: 0;`;
-
-    const viewMenu = document.querySelector('[data-menu="view"]');
-    if (viewMenu && viewMenu.nextSibling) {
-      menuBar.insertBefore(pluginMenuBtn, viewMenu.nextSibling);
-    } else {
-      menuBar.appendChild(pluginMenuBtn);
-    }
-
-    pluginMenuBtn.onmouseenter = () => {
-      if (!pluginMenuBtn.classList.contains('active'))
-        pluginMenuBtn.style.background = 'rgba(255,255,255,0.08)';
-    };
-    pluginMenuBtn.onmouseleave = () => {
-      if (!pluginMenuBtn.classList.contains('active'))
-        pluginMenuBtn.style.background = 'transparent';
-    };
-
-    let dropdownMenu: HTMLElement | null = null;
-
-    const closePluginMenu = () => {
-      if (!dropdownMenu) return;
-      dropdownMenu.style.animation = 'none';
-      dropdownMenu.style.opacity = '0';
-      dropdownMenu.style.transform = 'translateY(-6px) scaleY(0.95)';
-      dropdownMenu.style.transition = 'opacity 0.12s ease, transform 0.12s ease';
-      setTimeout(() => { dropdownMenu?.remove(); dropdownMenu = null; }, 120);
-      pluginMenuBtn.classList.remove('active');
-      pluginMenuBtn.style.background = 'transparent';
-    };
-
-    pluginMenuBtn.onclick = (e) => {
-      e.stopPropagation();
-      document.querySelectorAll('.menu-btn.active').forEach(btn => {
-        if (btn !== pluginMenuBtn) btn.classList.remove('active');
-      });
-      if (pluginMenuBtn.classList.contains('active')) {
-        closePluginMenu(); return;
-      }
-      pluginMenuBtn.classList.add('active');
-      pluginMenuBtn.style.background = '';
-      dropdownMenu = document.createElement('div');
-      dropdownMenu.id = 'x02-plugin-dropdown';
-      dropdownMenu.style.cssText = `
-        position: absolute; top: calc(100% + 2px); left: 0;
-        background: rgba(20,20,22,0.97);
-        backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(80,80,88,0.7);
-        border-top: 1px solid rgba(0,140,255,0.25);
-        min-width: 240px; z-index: 10000; border-radius: 8px;
-        overflow: hidden; padding: 6px 0 7px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.04), inset 0 1px 0 rgba(255,255,255,0.06);
-      `;
-      const manager = (window as any).externalPluginManager;
-      const loadedPlugins = manager ? manager.getLoadedPlugins() : [];
-      const pluginCount = loadedPlugins.length;
-      dropdownMenu.innerHTML = `
-        <div class="pm-section-label">Projects</div>
-        <div class="pm-item" data-action="new-game">
-          <span class="pm-icon" style="background:rgba(0,170,100,0.15);">&#127918;</span>
-          <span>New Game Project</span>
-          <span class="pm-badge">Android</span>
-        </div>
-        <div class="pm-item pm-item-nvidia" data-action="nvidia-samples">
-          <span class="pm-icon" style="background:rgba(118,185,0,0.12);">&#9889;</span>
-          <span>New NVIDIA Sample</span>
-          <span class="pm-badge pm-badge-nvidia">CUDA</span>
-        </div>
-        <div class="pm-divider"></div>
-        <div class="pm-section-label">Extensions</div>
-        <div class="pm-item" data-action="load">
-          <span class="pm-icon" style="background:rgba(0,120,212,0.15);">&#128230;</span>
-          <span>Load Plugin from File&#8230;</span>
-        </div>
-        <div class="pm-item" data-action="manage">
-          <span class="pm-icon" style="background:rgba(150,100,255,0.15);">&#129513;</span>
-          <span>Manage Plugins</span>
-          ${pluginCount > 0 ? `<span class="pm-badge">${pluginCount} active</span>` : ''}
-        </div>
-      `;
-      pluginMenuBtn.appendChild(dropdownMenu);
-      dropdownMenu.querySelectorAll('.pm-item').forEach((item, i) => {
-        (item as HTMLElement).style.animation = `pmItemIn 0.2s cubic-bezier(0.22,1,0.36,1) ${0.05 + i * 0.04}s both`;
-      });
-      dropdownMenu.querySelectorAll('.pm-item').forEach(item => {
-        item.addEventListener('click', (ev) => {
-          ev.stopPropagation();
-          const action = (item as HTMLElement).dataset.action;
-          closePluginMenu();
-          setTimeout(() => {
-            if (action === 'new-game') createGameProject();
-            else if (action === 'nvidia-samples') showNvidiaSampleModal();
-            else if (action === 'load') loadPluginFromFile();
-            else if (action === 'manage') showPluginManager();
-          }, 80);
-        });
-      });
-      setTimeout(() => {
-        const outsideClick = (ev: MouseEvent) => {
-          if (!pluginMenuBtn.contains(ev.target as Node)) {
-            closePluginMenu();
-            document.removeEventListener('click', outsideClick);
-          }
-        };
-        document.addEventListener('click', outsideClick);
-      }, 120);
-    };
-
-    console.log('Plugin menu initialized');
-  }, 2500);
+  setTimeout(() => initializePluginMenu({ showNvidiaSampleModal }), 2500);
 
   try {
     console.log('Setting up file runner...');
@@ -13258,12 +12373,29 @@ async function createNvidiaSample(
   projectName?: string
 ): Promise<void> {
 
-  const basePath: string =
-    (window as any).currentProjectPath ||
-    (window as any).currentFolderPath  ||
-    localStorage.getItem('ide_last_project_path') || '';
+  // FIX: always resolve to ~/OperatorX02/projects/, never nest inside open project
+  let basePath: string = "";
+  try {
+    const { invoke: _inv } = await import("@tauri-apps/api/core");
+    basePath = await _inv<string>("get_projects_path");
+  } catch {
+    // Fallback: go ONE level UP from currently open project folder
+    const cur: string =
+      (window as any).currentProjectPath ||
+      (window as any).currentFolderPath  ||
+      localStorage.getItem("ide_last_project_path") || "";
+    if (cur) {
+      const parts = cur.replace(/\\/g, "/").split("/").filter(Boolean);
+      parts.pop();
+      basePath = parts.join("/");
+      basePath = basePath.replace(/^([A-Za-z])(?=\/)/, "$1:");
+    }
+  }
 
-  if (!basePath) { alert('Open a folder first before creating a sample project.'); return; }
+  if (!basePath) {
+    alert("Cannot resolve a projects folder.\nPlease open any folder first.");
+    return;
+  }
 
   const defaultNames: Record<string,string> = {
     'hello':'cuda-hello-world','tensorrt':'tensorrt-inference','multi-gpu':'multi-gpu-pipeline',
@@ -13271,7 +12403,7 @@ async function createNvidiaSample(
     'particles':'cuda-particles','jetson-cam':'jetson-camera-pipeline',
   };
   const name = projectName || defaultNames[type];
-  const projectPath = basePath.replace(/\\/g, '/') + '/' + name;
+  const projectPath = basePath.replace(/\\/g, "/") + "/" + name;
 
   const samples: Record<string, Record<string,string>> = {
     'hello': {
@@ -13350,6 +12482,21 @@ async function createNvidiaSample(
 
     // Open project
     document.dispatchEvent(new CustomEvent('project-opened', { detail: { path: projectPath } }));
+
+    // FIX: force file tree to render after project-opened (menuSystem validation sometimes rejects event)
+    setTimeout(() => {
+      if ((window as any).refreshFileTree) {
+        (window as any).refreshFileTree();
+      } else {
+        const refreshBtn = document.querySelector(
+          '.refresh-button, [title="Refresh"], [data-action="refresh"], #refresh-file-tree'
+        ) as HTMLElement | null;
+        if (refreshBtn) refreshBtn.click();
+      }
+      // Also fire the file-tree-refresh event as a fallback
+      document.dispatchEvent(new CustomEvent('file-tree-refresh', { detail: { path: projectPath } }));
+      document.dispatchEvent(new CustomEvent('refresh-file-tree', { detail: { path: projectPath } }));
+    }, 500);
 
     // Show Android-game-style card in AI panel
     const addMsg = (window as any).addMessageToChat;

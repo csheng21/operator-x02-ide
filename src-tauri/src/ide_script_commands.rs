@@ -1,4 +1,4 @@
-// src-tauri/src/ide_script_commands.rs
+﻿// src-tauri/src/ide_script_commands.rs
 // ============================================================================
 // 🧠 IDE SCRIPT COMMANDS — High-Level AI-Invokable Scripts
 // ============================================================================
@@ -228,6 +228,81 @@ fn find_backup_file(backup_id: &str) -> Result<(PathBuf, String), String> {
     if !bp.exists() { return Err(format!("Backup file missing on disk: {}", bp.display())); }
     Ok((bp, orig))
 }
+
+
+// ============================================================
+// PATH RESOLUTION — resolves bare filename to full path
+// 1. direct  2. project_path/file  3. recursive search
+// ============================================================
+
+fn find_file_recursive(dir: &Path, target_name: &std::ffi::OsStr) -> Option<PathBuf> {
+    if let Ok(entries) = fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_file() && path.file_name() == Some(target_name) {
+                return Some(path);
+            }
+            if path.is_dir() {
+                let name = path.file_name().unwrap_or_default().to_string_lossy();
+                if !name.starts_with('.') && name != "node_modules" && name != "target" {
+                    if let Some(found) = find_file_recursive(&path, target_name) {
+                        return Some(found);
+                    }
+                }
+            }
+        }
+    }
+    None
+}
+
+fn resolve_file_path(file_path: &str, project_path: Option<&str>) -> PathBuf {
+    let path = PathBuf::from(file_path);
+    if path.exists() { return path; }
+    if let Some(proj) = project_path {
+        let candidate = Path::new(proj).join(file_path);
+        if candidate.exists() {
+            println!("[Resolve] Found via project root: {}", candidate.display());
+            return candidate;
+        }
+        if let Some(file_name) = path.file_name() {
+            if let Some(found) = find_file_recursive(Path::new(proj), file_name) {
+                println!("[Resolve] Found via recursive search: {}", found.display());
+                return found;
+            }
+        }
+    }
+    path
+}
+
+fn v2_find_recursive(dir: &Path, target: &std::ffi::OsStr) -> Option<PathBuf> {
+    if let Ok(entries) = fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let p = entry.path();
+            if p.is_file() && p.file_name() == Some(target) { return Some(p); }
+            if p.is_dir() {
+                let n = p.file_name().unwrap_or_default().to_string_lossy();
+                if !n.starts_with('.') && n != "node_modules" && n != "target" {
+                    if let Some(f) = v2_find_recursive(&p, target) { return Some(f); }
+                }
+            }
+        }
+    }
+    None
+}
+
+fn v2_resolve(file_path: &str, project_path: Option<&str>) -> PathBuf {
+    let p = PathBuf::from(file_path);
+    if p.exists() { return p; }
+    if let Some(proj) = project_path {
+        let c = Path::new(proj).join(file_path);
+        if c.exists() { return c; }
+        if let Some(name) = p.file_name() {
+            if let Some(f) = v2_find_recursive(Path::new(proj), name) { return f; }
+        }
+    }
+    p
+}
+
 
 fn restore_from_backup(file_path: &str, backup_id: &str) -> Result<usize, String> {
     let (bp, _) = find_backup_file(backup_id)?;
@@ -700,9 +775,12 @@ pub async fn ide_search(
 pub async fn ide_patch(
     file_path: String, find: String, replace: String,
     description: String, occurrence: Option<u32>,
+    project_path: Option<String>,
 ) -> Result<IdePatchResult, String> {
     println!("🩹 [IDE Script] Patch: {} — {}", file_path, &description[..description.len().min(60)]);
-    let path = Path::new(&file_path);
+    let resolved = resolve_file_path(&file_path, project_path.as_deref());
+    let file_path = resolved.to_string_lossy().to_string();
+    let path = &resolved;
     if !path.exists() { return Err(format!("File not found: {}", file_path)); }
 
     let content = fs::read_to_string(&file_path).map_err(|e| format!("Read: {}", e))?;
@@ -779,7 +857,8 @@ pub async fn ide_patch_batch(
         let d = pv["description"].as_str().unwrap_or("batch").to_string();
         let o = pv["occurrence"].as_u64().map(|v| v as u32);
 
-        match ide_patch(fp, f, r, d, o).await {
+        let proj = pv["project_path"].as_str().map(|s| s.to_string());
+        match ide_patch(fp, f, r, d, o, proj).await {
             Ok(res) => {
                 if res.success { applied += 1; } else { failed += 1; }
                 results.push(res);
@@ -819,9 +898,12 @@ pub async fn ide_patch_batch(
 pub async fn ide_insert(
     file_path: String, anchor: String, content: String,
     position: Option<String>, description: String,
+    project_path: Option<String>,
 ) -> Result<IdeInsertResult, String> {
     let pos = position.unwrap_or_else(|| "after".to_string());
     println!("📥 [IDE Script] Insert {} anchor in {}", pos, file_path);
+    let resolved = resolve_file_path(&file_path, project_path.as_deref());
+    let file_path = resolved.to_string_lossy().to_string();
 
     let file_content = fs::read_to_string(&file_path).map_err(|e| format!("Read: {}", e))?;
     let lines: Vec<&str> = file_content.lines().collect();
