@@ -6361,6 +6361,38 @@ if (actionsMap) {
   initPiPanel(); // Raspberry Pi Panel - Ctrl+Shift+B
 console.log('Application initialization complete!');
 
+  // [UnescapeFix] Unescape \\n literals in rendered code blocks
+// Unescape \n literal strings in rendered code block content
+function unescapeCodeBlocks() {
+  const codeEls = document.querySelectorAll('.muf-block pre, .enh-code-scroll, code.hljs, pre code');
+  let fixed = 0;
+  codeEls.forEach(el => {
+    if (el.dataset.unescaped) return;
+    const txt = el.innerHTML;
+    if (txt.includes('\\n') || txt.includes('\\t')) {
+      el.innerHTML = txt
+        .replace(/\\n/g, '\n')
+        .replace(/\\t/g, '\t')
+        .replace(/\\"/g, '"')
+        .replace(/\\'/g, "'");
+      el.dataset.unescaped = '1';
+      fixed++;
+    }
+  });
+  return fixed;
+}
+
+// Run once on load and observe new messages
+unescapeCodeBlocks();
+const _unescapeObs = new MutationObserver(() => {
+  unescapeCodeBlocks();
+});
+_unescapeObs.observe(document.body, { childList: true, subtree: true });
+window.__unescapeCodeBlocks = unescapeCodeBlocks;
+console.log('[UnescapeFix] Active - call window.__unescapeCodeBlocks() to force run');
+
+
+
   // [X02 Version] Inject version into status bar
   setTimeout(() => {
     import(/* @vite-ignore */ "./version").then(({ APP_VERSION }) => {
@@ -8437,7 +8469,8 @@ try {
         /^(hi|hello|hey|ok|okay|thanks|thank you|bye|goodbye|yes|no|yep|nope|sure|got it|i see|understood|great|good|nice|cool|wow|lol|haha)\b/i,
         /\b(what (time|date|day|hour|minute|second)|what.*discuss|what.*talk|when.*discuss|when.*talk|yesterday|last week|last month|summary|summarize|summarise)\b/i,
         /^(who are you|what are you|tell me about yourself|what can you do|how are you)\b/i,
-        /\b(in minutes|in hours|in seconds|how long ago|time ago|timestamp|conversation history)\b/i
+        /\b(in minutes|in hours|in seconds|how long ago|time ago|timestamp|conversation history)\b/i,
+        /^(how to|how do|how can|how should|how would|what is|what are|what does|what should|explain|tell me|can you|could you|please help|help me|show me|guide me|new project|create project|is it possible|i want to|i need to|i would like)\b/i
       ];
       const _isConversational = !((window as any).currentProjectPath || '').trim() ||
         _conversationalPatterns.some(p => p.test(msg.trim()));
