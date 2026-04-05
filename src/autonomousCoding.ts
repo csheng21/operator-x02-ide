@@ -1,4 +1,4 @@
-﻿// autonomousCoding.ts - Enhanced Autonomous Coding System with AI Assistant Integration
+// autonomousCoding.ts - Enhanced Autonomous Coding System with AI Assistant Integration
 // ?? TEMPORARY: UI PANEL DISABLED - Only backend functionality active
 import { showNotification } from './fileSystem';
 
@@ -1800,7 +1800,7 @@ function acceptChanges(): void {
   if (_sbAccept?.getCurrentChange() && _sbAccept?.isEnabled()) {
     _sbAccept.commit();
     showAutoApplyToast('Changes accepted (backup saved)', 'success');
-    console.log('🔬 [SurgicalCommit] Committed - file already on disk');
+    console.log('?? [SurgicalCommit] Committed - file already on disk');
   } else {
     triggerFileSave(codeToSave || undefined);
     showAutoApplyToast('Changes accepted and saved', 'success');
@@ -1932,7 +1932,7 @@ function rejectChanges(): void {
   // Surgical rollback: restore from backup file
   const _sbReject = (window as any).surgicalBridge;
   if (_sbReject?.getCurrentChange() && _sbReject?.isEnabled()) {
-    console.log('🔬 [SurgicalRollback] Restoring from backup...');
+    console.log('?? [SurgicalRollback] Restoring from backup...');
     _sbReject.rollback().then(() => {
       removeConfirmationBar();
       clearAllDecorations();
@@ -1941,7 +1941,7 @@ function rejectChanges(): void {
       hasUnapprovedChanges = false;
       showAutoApplyToast('Changes rejected (restored)', 'info');
     }).catch((rErr: any) => {
-      console.error('🔬 Rollback failed:', rErr);
+      console.error('?? Rollback failed:', rErr);
       showAutoApplyToast('Rollback failed', 'error');
     });
     return;
@@ -3356,7 +3356,7 @@ async function waitForFileInEditor(fileName: string, maxWaitMs: number): Promise
                         activeTab.getAttribute('data-filename') ||
                         activeTab.getAttribute('title');
         if (tabName) {
-          currentFile = tabName.toLowerCase().replace(/[�*]/g, '').trim();
+          currentFile = tabName.toLowerCase().replace(/[?*]/g, '').trim();
         }
       }
     }
@@ -4079,7 +4079,7 @@ function showStatusDialog(): void {
     </div>
     <div class="asd-footer" style="display:none;">
       <div class="asd-hint">
-        <kbd>Enter</kbd> Accept � <kbd>Esc</kbd> Reject
+        <kbd>Enter</kbd> Accept ? <kbd>Esc</kbd> Reject
       </div>
       <div class="asd-actions">
         <button class="asd-btn asd-btn-reject">
@@ -5553,9 +5553,9 @@ function scoreCodeBlock(block: HTMLElement, currentFileLang: string, currentFile
   
   const code = codeInfo.code;
   const language = codeInfo.language.toLowerCase();
+  if (language === 'ide_script' || language === 'ide_scrip' || language === 'ide_scri') return null;
   const lineCount = code.split('\n').length;
   const nonEmptyLines = code.trim().split('\n').filter(line => line.trim()).length;
-  
   let score = 0;
   const reasons: string[] = [];
   let shouldSkip = false;
@@ -5923,7 +5923,7 @@ function getUnprocessedCodeBlocks(): HTMLElement[] {
   // This catches code blocks that messageUIFix hasn't enhanced yet,
   // AND blocks that MUF touched (.muf-pre) but then SKIPPED wrapping (.muf-block)
   const enhancedBlocks = latestMessage.querySelectorAll('.cbe-wrapper, .muf-block');
-  // ? KEY FIX: Don't exclude .muf-pre � MUF may have stamped the class then skipped enhancement
+  // ? KEY FIX: Don't exclude .muf-pre ? MUF may have stamped the class then skipped enhancement
   // Instead, get ALL pre elements and filter out those already inside enhanced wrappers below
   const rawPreBlocks = latestMessage.querySelectorAll('pre');
   const codeOnlyBlocks = latestMessage.querySelectorAll('code[class*="language-"], code[class*="hljs"]');
@@ -6163,7 +6163,7 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
     
     console.log(`?? [SmartUpdate] Line analysis: +${added} added, -${deleted} deleted, ~${modified} modified`);
     
-    // ?? Pipeline: Stage 2 � ANALYZE
+    // ?? Pipeline: Stage 2 ? ANALYZE
     if (surgicalPipeline.isActive()) {
       surgicalPipeline.enter(2, `Diffing ${oldLines.length} ? ${newLines.length} lines`);
       surgicalPipeline.complete(2, `+${added} -${deleted} ~${modified}`);
@@ -6176,7 +6176,7 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
       return { success: true, message: 'No changes needed' };
     }
     
-    // ??? DESTRUCTIVE CHANGE GUARD � block if AI would delete most of the file
+    // ??? DESTRUCTIVE CHANGE GUARD ? block if AI would delete most of the file
     const deletionRatio = deleted / Math.max(oldLines.length, 1);
     const sizeRatio = newLines.length / Math.max(oldLines.length, 1);
     if (oldLines.length > 20 && (deletionRatio > 0.95 || sizeRatio < 0.05)) {
@@ -6213,13 +6213,13 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
     const startTime = performance.now();
     const _sb = (window as any).surgicalBridge;
     if (_sb?.canUse()) {
-      // ?? Pipeline: Stage 3 � ROUTE ? Surgical
+      // ?? Pipeline: Stage 3 ? ROUTE ? Surgical
       if (surgicalPipeline.isActive()) {
         surgicalPipeline.enter(3, 'Checking surgical eligibility...');
         surgicalPipeline.complete(3, '?? Surgical mode (Rust + backup)');
       }
       try {
-        // ?? Pipeline: Stage 4 � APPLY (Rust disk write)
+        // ?? Pipeline: Stage 4 ? APPLY (Rust disk write)
         if (surgicalPipeline.isActive()) {
           surgicalPipeline.enter(4, 'Writing to disk via Rust backend...');
         }
@@ -6228,7 +6228,7 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
           const backupInfo = sbResult?.changeRecord?.backupPath || 'backup created';
           surgicalPipeline.complete(4, `Disk write ? | ${backupInfo.split(/[\/\\]/).pop()}`);
         }
-        // ?? Pipeline: Stage 5 � SYNC
+        // ?? Pipeline: Stage 5 ? SYNC
         if (surgicalPipeline.isActive()) {
           surgicalPipeline.enter(5, 'Syncing Monaco editor from disk...');
           surgicalPipeline.complete(5, 'Editor synced ?');
@@ -6247,15 +6247,15 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
           forceMoveMarkers: true
         }]);
         if (surgicalPipeline.isActive()) {
-          surgicalPipeline.skip(5, 'Legacy mode � no disk sync needed');
+          surgicalPipeline.skip(5, 'Legacy mode ? no disk sync needed');
         }
       }
     } else {
-      // ?? Pipeline: Stage 3 � ROUTE ? Legacy
+      // ?? Pipeline: Stage 3 ? ROUTE ? Legacy
       if (surgicalPipeline.isActive()) {
         surgicalPipeline.enter(3, 'Surgical not available');
         surgicalPipeline.complete(3, '? Legacy mode (in-memory only)');
-        surgicalPipeline.skip(4, 'No Rust backend � using Monaco edits');
+        surgicalPipeline.skip(4, 'No Rust backend ? using Monaco edits');
         surgicalPipeline.skip(5, 'No disk sync in legacy mode');
       }
       editor.executeEdits('smart-update', [{
@@ -6276,7 +6276,7 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
     console.log(`?? [SmartUpdate] Creating decorations for ${lastChangeLines.addedLines.length} added, ${lastChangeLines.modifiedLines.length} modified lines`);
     console.log(`?? [SmartUpdate] Total lines in model: ${totalLines}`);
     
-    // ?? Pipeline: Stage 6 � DECORATE
+    // ?? Pipeline: Stage 6 ? DECORATE
     if (surgicalPipeline.isActive()) {
       surgicalPipeline.enter(6, `Highlighting ${lastChangeLines.addedLines.length + lastChangeLines.modifiedLines.length} lines`);
     }
@@ -6351,7 +6351,7 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
       }, 100);
       console.log(`?? [SmartUpdate] Decoration IDs created: ${ids.length}`);
       
-      // ?? Pipeline: Stage 6 � DECORATE complete
+      // ?? Pipeline: Stage 6 ? DECORATE complete
       if (surgicalPipeline.isActive()) {
         surgicalPipeline.complete(6, `${ids.length} highlight(s) applied`);
       }
@@ -6825,7 +6825,7 @@ async function doApplyCode(targetBlock: HTMLElement, code: string, blockId: stri
   });
   lastProcessedBlockId = blockId;
   
-  // ?? Pipeline: Stage 1 � SELECT
+  // ?? Pipeline: Stage 1 ? SELECT
   surgicalPipeline.enter(1, 'Best code block selected');
   surgicalPipeline.complete(1, `${code.split('\n').length} lines`);
   
@@ -6863,7 +6863,7 @@ async function doApplyCode(targetBlock: HTMLElement, code: string, blockId: stri
       addStatusLog('Changes applied successfully', 'success');
       setTimeout(() => closeStatusDialog(), 2500);
     
-    // ?? Pipeline: Stage 7 � CONFIRM
+    // ?? Pipeline: Stage 7 ? CONFIRM
     surgicalPipeline.enter(7, 'Accept / Reject prompt');
     surgicalPipeline.complete(7, result.message);
     surgicalPipeline.end(true);
@@ -7690,7 +7690,7 @@ function processAutoApplyCodeBlocks(): void {
 }
 
 // ============================================================================
-// ?? SURGICAL PIPELINE TRACKER � Real-time stage-by-stage visibility
+// ?? SURGICAL PIPELINE TRACKER ? Real-time stage-by-stage visibility
 // ============================================================================
 
 interface PipelineStage {
@@ -7792,7 +7792,7 @@ class SurgicalPipelineTracker {
     this.logBanner('end', success, elapsed);
 
     if (this.overlayEl) {
-      // Stop the pulse dot � set to solid green (success) or red (error)
+      // Stop the pulse dot ? set to solid green (success) or red (error)
       if ((this.overlayEl as any).__dotPulse) {
         clearInterval((this.overlayEl as any).__dotPulse);
       }
@@ -7802,7 +7802,7 @@ class SurgicalPipelineTracker {
         dot.style.opacity = '1';
       }
 
-      // Stop live timer � freeze at final time
+      // Stop live timer ? freeze at final time
       if ((this.overlayEl as any).__timerInterval) {
         clearInterval((this.overlayEl as any).__timerInterval);
       }
@@ -7813,7 +7813,7 @@ class SurgicalPipelineTracker {
         (timerEl as HTMLElement).style.fontWeight = '600';
       }
 
-      // Auto-hide overlay after 20s (user can close earlier with � button)
+      // Auto-hide overlay after 20s (user can close earlier with ? button)
       if (!this._pinned) {
         (this.overlayEl as any).__autoHide = setTimeout(() => this.hideOverlay(), 20000);
       }
@@ -7851,8 +7851,8 @@ class SurgicalPipelineTracker {
       console.table(this.stages.map(s => ({
         Stage: `${s.icon} ${s.name}`,
         Status: s.status.toUpperCase(),
-        Detail: s.detail || '�',
-        Time: s.time ? s.time.toFixed(0) + 'ms' : '�',
+        Detail: s.detail || '?',
+        Time: s.time ? s.time.toFixed(0) + 'ms' : '?',
       })));
     }
   }
@@ -7866,255 +7866,135 @@ class SurgicalPipelineTracker {
       pending: 'color:#6b7280',
     };
     console.log(
-      `%c?? [Pipeline] Stage ${stage.id}: ${stage.icon} ${stage.name} � ${stage.detail}`,
+      `%c?? [Pipeline] Stage ${stage.id}: ${stage.icon} ${stage.name} ? ${stage.detail}`,
       colors[stage.status] || colors.pending
     );
   }
 
-  // -- Visual overlay (INLINE STYLES � no CSS injection needed) --
+  // -- Visual overlay (INLINE STYLES ? no CSS injection needed) --
 
   private injectStyles(): void {
     // No-op: all styles are inline now for WebView2 compatibility
   }
 
   private showOverlay(): void {
-    // Clear any pending auto-hide timer from previous run (Bug fix: timer race)
     if ((this as any).__pendingAutoHide) {
       clearTimeout((this as any).__pendingAutoHide);
       (this as any).__pendingAutoHide = null;
     }
     this.hideOverlay();
-    // Force-remove any orphaned overlay still in DOM (Bug fix: stale element)
     const stale = document.getElementById('surgical-pipeline-overlay');
     if (stale) {
-      // Clear its timers too
-      if ((stale as any).__dotPulse) clearInterval((stale as any).__dotPulse);
       if ((stale as any).__timerInterval) clearInterval((stale as any).__timerInterval);
       if ((stale as any).__autoHide) clearTimeout((stale as any).__autoHide);
       stale.remove();
     }
+    if (!document.getElementById('sp-c-styles')) {
+      const kf = document.createElement('style');
+      kf.id = 'sp-c-styles';
+      kf.textContent = '@keyframes spPulseC{0%,100%{opacity:1}50%{opacity:.3}}@keyframes spSlideUp{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}#surgical-pipeline-overlay{animation:spSlideUp 0.18s ease}';
+      document.head.appendChild(kf);
+    }
     const el = document.createElement('div');
-    // All styles inline � no CSS class dependencies
     Object.assign(el.style, {
-      position: 'fixed',
-      top: '32px',
-      left: '8px',
-      zIndex: '2147483647',  // max 32-bit int � above EVERYTHING
-      background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
-      border: '1px solid rgba(124, 58, 237, 0.35)',
-      borderRadius: '10px',
-      padding: '10px 14px',
-      minWidth: '240px',
-      maxWidth: '320px',
-      boxShadow: '0 8px 32px rgba(124, 58, 237, 0.3), 0 0 0 1px rgba(255,255,255,0.04) inset',
-      fontFamily: "'Segoe UI', system-ui, sans-serif",
-      fontSize: '12px',
-      color: '#e2e8f0',
-      pointerEvents: 'auto',
-      opacity: '1',           // INSTANT � no fade-in delay
-      transform: 'translateY(0)',
-      transition: 'opacity 0.3s ease, transform 0.3s ease',
-      cursor: 'default',
+      position: 'fixed', bottom: '0', left: '0', right: '0',
+      zIndex: '2147483647', background: '#0d1117',
+      borderTop: '0.5px solid #30363d',
+      fontFamily: "'Cascadia Code','Consolas',monospace",
+      fontSize: '11px', color: '#e6edf3',
+      pointerEvents: 'auto', cursor: 'default', userSelect: 'none',
     });
     el.id = 'surgical-pipeline-overlay';
-
-    // -- Header row: dot + title + timer + close --
-    const header = document.createElement('div');
-    Object.assign(header.style, {
-      display: 'flex', alignItems: 'center', gap: '6px',
-      marginBottom: '8px', fontWeight: '700', fontSize: '11px',
-      textTransform: 'uppercase', letterSpacing: '0.5px', color: '#a78bfa',
-    });
-
-    // Pulsing dot
-    const dot = document.createElement('span');
+    const row = document.createElement('div');
+    Object.assign(row.style, { display: 'flex', alignItems: 'center', gap: '8px', padding: '5px 14px' });
+    const dot = document.createElement('div');
     Object.assign(dot.style, {
-      width: '6px', height: '6px', borderRadius: '50%',
-      background: '#a78bfa', display: 'inline-block',
+      width: '7px', height: '7px', borderRadius: '50%',
+      background: '#3fb950', flexShrink: '0',
+      boxShadow: '0 0 5px rgba(63,185,80,0.5)',
+      animation: 'spPulseC 1.2s ease-in-out infinite',
     });
-    let dotVisible = true;
-    const dotPulse = setInterval(() => {
-      dotVisible = !dotVisible;
-      dot.style.opacity = dotVisible ? '1' : '0.3';
-    }, 500);
-    (el as any).__dotPulse = dotPulse;
-    header.appendChild(dot);
-
-    // Title with run number
-    const titleSpan = document.createElement('span');
-    titleSpan.textContent = ` Pipeline #${this.runCount}`;
-    Object.assign(titleSpan.style, { flex: '1' });
-    header.appendChild(titleSpan);
-
-    // Live elapsed timer
+    row.appendChild(dot);
+    const label = document.createElement('span');
+    label.textContent = 'Pipeline #' + this.runCount;
+    Object.assign(label.style, { color: '#8b949e', flexShrink: '0' });
+    row.appendChild(label);
+    const sep = document.createElement('span');
+    sep.textContent = '|';
+    Object.assign(sep.style, { color: '#30363d', flexShrink: '0' });
+    row.appendChild(sep);
+    const stepName = document.createElement('span');
+    stepName.id = 'sp-step-name';
+    stepName.textContent = 'Starting...';
+    Object.assign(stepName.style, { flex: '1', color: '#e6edf3', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' });
+    row.appendChild(stepName);
+    const stepDetail = document.createElement('span');
+    stepDetail.id = 'sp-step-detail';
+    Object.assign(stepDetail.style, { color: '#8b949e', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '220px' });
+    row.appendChild(stepDetail);
+    const counter = document.createElement('span');
+    counter.id = 'sp-counter';
+    counter.textContent = '0/' + this.stages.length;
+    Object.assign(counter.style, { color: '#3fb950', flexShrink: '0', minWidth: '30px', textAlign: 'right' });
+    row.appendChild(counter);
     const timerSpan = document.createElement('span');
     timerSpan.id = 'sp-elapsed-timer';
     timerSpan.textContent = '0.0s';
-    Object.assign(timerSpan.style, {
-      fontSize: '10px', color: '#94a3b8', fontWeight: '400',
-      fontFamily: "'Cascadia Code', 'Consolas', monospace",
-      minWidth: '40px', textAlign: 'right',
-    });
-    header.appendChild(timerSpan);
-
-    // Live timer tick
+    Object.assign(timerSpan.style, { color: '#8b949e', flexShrink: '0', minWidth: '38px', textAlign: 'right' });
+    row.appendChild(timerSpan);
+    const closeBtn = document.createElement('div');
+    closeBtn.innerHTML = '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2L8 8M8 2L2 8" stroke="#6e7681" stroke-width="1.2" stroke-linecap="round"/></svg>';
+    Object.assign(closeBtn.style, { width: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: '0', borderRadius: '4px', transition: 'background 0.15s' });
+    closeBtn.addEventListener('mouseenter', () => { closeBtn.style.background = 'rgba(248,113,113,0.15)'; });
+    closeBtn.addEventListener('mouseleave', () => { closeBtn.style.background = 'transparent'; });
+    closeBtn.addEventListener('click', (e) => { e.stopPropagation(); this.hideOverlay(); });
+    row.appendChild(closeBtn);
+    el.appendChild(row);
+    const progressTrack = document.createElement('div');
+    Object.assign(progressTrack.style, { height: '2px', background: '#21262d', width: '100%' });
+    const progressFill = document.createElement('div');
+    progressFill.id = 'sp-progress-fill';
+    Object.assign(progressFill.style, { height: '100%', width: '0%', background: 'linear-gradient(90deg,#3fb950,#58a6ff)', transition: 'width 0.35s ease' });
+    progressTrack.appendChild(progressFill);
+    el.appendChild(progressTrack);
     const startMs = this.startTime;
     const timerInterval = setInterval(() => {
       const elapsed = ((performance.now() - startMs) / 1000).toFixed(1);
-      timerSpan.textContent = `${elapsed}s`;
+      timerSpan.textContent = elapsed + 's';
     }, 100);
     (el as any).__timerInterval = timerInterval;
-
-    // ?? Pin button
-    const pinBtn = document.createElement('span');
-    pinBtn.textContent = '??';
-    pinBtn.title = 'Pin overlay (prevent auto-hide)';
-    Object.assign(pinBtn.style, {
-      cursor: 'pointer', fontSize: '11px', lineHeight: '1',
-      color: '#6b7280', padding: '1px 4px', marginLeft: '2px',
-      borderRadius: '3px', transition: 'all 0.15s',
-      opacity: '0.5', filter: 'grayscale(1)',
-    });
-    const updatePinVisual = () => {
-      if (this._pinned) {
-        pinBtn.style.opacity = '1';
-        pinBtn.style.filter = 'grayscale(0)';
-        pinBtn.style.background = 'rgba(124, 58, 237, 0.2)';
-        pinBtn.title = 'Unpin overlay (allow auto-hide)';
-      } else {
-        pinBtn.style.opacity = '0.5';
-        pinBtn.style.filter = 'grayscale(1)';
-        pinBtn.style.background = 'transparent';
-        pinBtn.title = 'Pin overlay (prevent auto-hide)';
-      }
-    };
-    pinBtn.addEventListener('mouseenter', () => {
-      if (!this._pinned) { pinBtn.style.opacity = '0.8'; pinBtn.style.background = 'rgba(124, 58, 237, 0.1)'; }
-    });
-    pinBtn.addEventListener('mouseleave', () => { updatePinVisual(); });
-    pinBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this._pinned = !this._pinned;
-      updatePinVisual();
-      if (this._pinned && this.overlayEl && (this.overlayEl as any).__autoHide) {
-        clearTimeout((this.overlayEl as any).__autoHide);
-        (this.overlayEl as any).__autoHide = null;
-      }
-      if (!this._pinned && !this._isActive && this.overlayEl) {
-        (this.overlayEl as any).__autoHide = setTimeout(() => this.hideOverlay(), 20000);
-      }
-      console.log(`?? [PipelineUI] ${this._pinned ? '?? Pinned � will not auto-hide' : '?? Unpinned � will auto-hide in 20s'}`);
-    });
-    header.appendChild(pinBtn);
-
-    // Close button (�)
-    const closeBtn = document.createElement('span');
-    closeBtn.textContent = '�';
-    Object.assign(closeBtn.style, {
-      cursor: 'pointer', fontSize: '16px', lineHeight: '1',
-      color: '#6b7280', padding: '0 4px', marginLeft: '4px',
-      borderRadius: '3px', transition: 'color 0.15s, background 0.15s',
-    });
-    closeBtn.addEventListener('mouseenter', () => {
-      closeBtn.style.color = '#f87171';
-      closeBtn.style.background = 'rgba(248,113,113,0.15)';
-    });
-    closeBtn.addEventListener('mouseleave', () => {
-      closeBtn.style.color = '#6b7280';
-      closeBtn.style.background = 'transparent';
-    });
-    closeBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      this.hideOverlay();
-    });
-    header.appendChild(closeBtn);
-    el.appendChild(header);
-
-    // -- Stages container --
-    const stagesDiv = document.createElement('div');
-    stagesDiv.id = 'sp-stages-list';
-    Object.assign(stagesDiv.style, {
-      display: 'flex', flexDirection: 'column', gap: '3px',
-    });
-    el.appendChild(stagesDiv);
-
     document.body.appendChild(el);
     this.overlayEl = el;
     this.updateOverlay();
-  if ((window as any).__analysisMode) { console.log('[PipelineUI] Skipped - analysis mode'); return; }
-    console.log('?? [PipelineUI] ? Overlay SHOWN INSTANTLY (Pipeline #' + this.runCount + ')');
+    console.log('[PipelineUI] Bottom status bar shown (Pipeline #' + this.runCount + ')');
   }
 
   private updateOverlay(): void {
-    const list = this.overlayEl?.querySelector('#sp-stages-list');
-    if (!list) return;
-
-    const statusColors: Record<string, { bg: string; fg: string }> = {
-      active: { bg: 'rgba(124,58,237,0.25)', fg: '#a78bfa' },
-      done: { bg: 'rgba(5,150,105,0.2)', fg: '#34d399' },
-      error: { bg: 'rgba(220,38,38,0.2)', fg: '#f87171' },
-      skipped: { bg: 'rgba(146,64,14,0.2)', fg: '#fbbf24' },
-    };
-    const statusIcons: Record<string, string> = {
-      done: '?', error: '?', active: '?', skipped: '-', pending: '�',
-    };
-
-    list.innerHTML = '';
-    for (const s of this.stages) {
-      // Stage row
-      const row = document.createElement('div');
-      const isActive = s.status === 'active';
-      const rowOpacity = isActive ? '1' : s.status === 'done' ? '0.8' : s.status === 'error' ? '1' : s.status === 'skipped' ? '0.4' : '0.3';
-      Object.assign(row.style, {
-        display: 'flex', alignItems: 'center', gap: '6px',
-        padding: isActive ? '3px 6px' : '2px 6px',
-        opacity: rowOpacity,
-        textDecoration: s.status === 'skipped' ? 'line-through' : 'none',
-        background: isActive ? 'rgba(124, 58, 237, 0.12)' : 'transparent',
-        borderRadius: '4px',
-        borderLeft: isActive ? '2px solid #a78bfa' : '2px solid transparent',
-        transition: 'background 0.2s, border-left 0.2s',
-      });
-      // Icon
-      const icon = document.createElement('span');
-      Object.assign(icon.style, { width: '16px', textAlign: 'center', fontSize: '11px' });
-      icon.textContent = s.icon;
-      row.appendChild(icon);
-      // Name
-      const name = document.createElement('span');
-      Object.assign(name.style, {
-        flex: '1', fontSize: '11px',
-        fontWeight: isActive ? '600' : '400',
-        color: isActive ? '#c4b5fd' : 'inherit',
-      });
-      name.textContent = s.name;
-      row.appendChild(name);
-      // Badge
-      if (s.status !== 'pending') {
-        const badge = document.createElement('span');
-        const c = statusColors[s.status] || { bg: 'transparent', fg: '#6b7280' };
-        Object.assign(badge.style, {
-          fontSize: '9px', padding: '1px 5px', borderRadius: '3px',
-          fontWeight: '600', background: c.bg, color: c.fg,
-        });
-        badge.textContent = `${statusIcons[s.status] || '�'} ${s.time ? s.time.toFixed(0) + 'ms' : ''}`;
-        row.appendChild(badge);
-      }
-      list.appendChild(row);
-      // Detail
-      if (s.detail && s.status !== 'pending') {
-        const detail = document.createElement('div');
-        Object.assign(detail.style, {
-          fontSize: '10px', color: '#94a3b8', marginLeft: '22px',
-          maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-        });
-        detail.textContent = s.detail;
-        list.appendChild(detail);
-      }
+    if (!this.overlayEl) return;
+    const activeStage = this.stages.find(s => s.status === 'active');
+    const doneCount = this.stages.filter(s => s.status === 'done').length;
+    const totalCount = this.stages.length;
+    const errorStage = this.stages.find(s => s.status === 'error');
+    const currentStage = activeStage || errorStage;
+    const nameEl = this.overlayEl.querySelector('#sp-step-name') as HTMLElement;
+    if (nameEl) {
+      nameEl.textContent = currentStage ? currentStage.name : (doneCount === totalCount ? 'Complete' : 'Starting...');
+      nameEl.style.color = errorStage ? '#f87171' : activeStage ? '#e6edf3' : '#3fb950';
+    }
+    const detailEl = this.overlayEl.querySelector('#sp-step-detail') as HTMLElement;
+    if (detailEl) detailEl.textContent = currentStage?.detail || '';
+    const counterEl = this.overlayEl.querySelector('#sp-counter') as HTMLElement;
+    if (counterEl) {
+      counterEl.textContent = doneCount + '/' + totalCount;
+      counterEl.style.color = errorStage ? '#f87171' : doneCount === totalCount ? '#3fb950' : '#58a6ff';
+    }
+    const fillEl = this.overlayEl.querySelector('#sp-progress-fill') as HTMLElement;
+    if (fillEl) {
+      fillEl.style.width = (totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0) + '%';
+      fillEl.style.background = errorStage ? '#f87171' : 'linear-gradient(90deg,#3fb950,#58a6ff)';
     }
   }
-
-  private hideOverlay(): void {
+private hideOverlay(): void {
     if (this.overlayEl) {
       const el = this.overlayEl;
       // Stop all intervals and timers FIRST
@@ -8124,7 +8004,7 @@ class SurgicalPipelineTracker {
       // Remove from DOM immediately to prevent stale element collisions
       el.remove();
       this.overlayEl = null;
-      console.log('🔬 [PipelineUI] Overlay removed');
+      console.log('?? [PipelineUI] Overlay removed');
     }
   }
 }
@@ -9265,10 +9145,10 @@ function _renderChangeStats(summary: string): string {
   if (addMatch && addMatch[1] !== '0') parts.push('<span class="acd-stat-add">+' + addMatch[1] + '</span>');
   if (delMatch && delMatch[1] !== '0') parts.push('<span class="acd-stat-del">-' + delMatch[1] + '</span>');
   if (modMatch && modMatch[1] !== '0') parts.push('<span class="acd-stat-mod">~' + modMatch[1] + '</span>');
-  return parts.length ? parts.join(' ') : '<span style="color:#555">�</span>';
+  return parts.length ? parts.join(' ') : '<span style="color:#555">?</span>';
 }
 
-// Helper: Focus existing tab or open file � tries tabManager first, then DOM
+// Helper: Focus existing tab or open file ? tries tabManager first, then DOM
 function _focusOrOpenFile(filePath: string, fileName: string): void {
   // Strategy 1: Use tabManager.openFile (handles dedup internally)
   const tabMgr = (window as any).tabManager;
@@ -9992,7 +9872,7 @@ setTimeout(() => {
   _dotObserver.observe(document.body, { childList: true, subtree: true });
 }, 3000);
 
-console.log('✅ AI Change Tracker loaded (file dots + badge)');
+console.log('? AI Change Tracker loaded (file dots + badge)');
 
 
 (window as any).showAIDiffViewer = showDiffViewer;
@@ -10000,7 +9880,7 @@ console.log('✅ AI Change Tracker loaded (file dots + badge)');
   (window as any).clearAIChangedFiles = () => { aiChangedFiles.clear(); document.querySelectorAll('.ai-changed-dot').forEach(d => d.remove()); updateChangesBadge(); };
 (window as any).getAIChangeHistory = () => aiChangeHistory;
 
-console.log('✅ AI Changes Notification + Diff Viewer loaded');
+console.log('? AI Changes Notification + Diff Viewer loaded');
 console.log('   Use: window.showAIDiffViewer() to view last changes');
 
 

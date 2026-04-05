@@ -1,8 +1,11 @@
+﻿// ============================================================
+// sampleProjects.ts  |  Operator X02
+// Extracted from main.ts by refactor_main.ps1
+// showNvidiaSampleModal / createNvidiaSample
+// ============================================================
 
 // ============================================================================
-// NVIDIA SAMPLE PROJECT MODAL + createNvidiaSample (with AI panel card)
-// ============================================================================
-function showNvidiaSampleModal(): void {
+export function showNvidiaSampleModal(): void {
   const existing = document.getElementById('nvidia-sample-modal');
   if (existing) existing.remove();
 
@@ -109,17 +112,35 @@ function showNvidiaSampleModal(): void {
   };
 }
 
-async function createNvidiaSample(
+
+export async function createNvidiaSample(
   type: 'hello'|'tensorrt'|'multi-gpu'|'object-detect'|'img-proc'|'pose'|'particles'|'jetson-cam',
   projectName?: string
 ): Promise<void> {
 
-  const basePath: string =
-    (window as any).currentProjectPath ||
-    (window as any).currentFolderPath  ||
-    localStorage.getItem('ide_last_project_path') || '';
+  // FIX: always resolve to ~/OperatorX02/projects/, never nest inside open project
+  let basePath: string = "";
+  try {
+    const { invoke: _inv } = await import("@tauri-apps/api/core");
+    basePath = await _inv<string>("get_projects_path");
+  } catch {
+    // Fallback: go ONE level UP from currently open project folder
+    const cur: string =
+      (window as any).currentProjectPath ||
+      (window as any).currentFolderPath  ||
+      localStorage.getItem("ide_last_project_path") || "";
+    if (cur) {
+      const parts = cur.replace(/\\/g, "/").split("/").filter(Boolean);
+      parts.pop();
+      basePath = parts.join("/");
+      basePath = basePath.replace(/^([A-Za-z])(?=\/)/, "$1:");
+    }
+  }
 
-  if (!basePath) { alert('Open a folder first before creating a sample project.'); return; }
+  if (!basePath) {
+    alert("Cannot resolve a projects folder.\nPlease open any folder first.");
+    return;
+  }
 
   const defaultNames: Record<string,string> = {
     'hello':'cuda-hello-world','tensorrt':'tensorrt-inference','multi-gpu':'multi-gpu-pipeline',
@@ -127,7 +148,7 @@ async function createNvidiaSample(
     'particles':'cuda-particles','jetson-cam':'jetson-camera-pipeline',
   };
   const name = projectName || defaultNames[type];
-  const projectPath = basePath.replace(/\\/g, '/') + '/' + name;
+  const projectPath = basePath.replace(/\\/g, "/") + "/" + name;
 
   const samples: Record<string, Record<string,string>> = {
     'hello': {
@@ -172,7 +193,7 @@ async function createNvidiaSample(
     'jetson-cam': {
       'README.md': '# Jetson Camera Pipeline\nGStreamer CSI/USB camera with AI overlay on Jetson.\n\n## Run\n```bash\npip install -r requirements.txt\npython src/jetson_camera.py --source usb\nbash scripts/deploy.sh 192.168.43.109\n```\n',
       'src/jetson_camera.py': '#!/usr/bin/env python3\nimport argparse, cv2, time\n\ndef csi_pipeline(w=1280,h=720,fps=30):\n    return (f"nvarguscamerasrc ! video/x-raw(memory:NVMM),width={w},height={h},format=NV12,framerate={fps}/1 ! nvvidconv ! video/x-raw,format=BGRx ! videoconvert ! appsink")\n\ndef usb_pipeline(dev=0,w=1280,h=720,fps=30):\n    return (f"v4l2src device=/dev/video{dev} ! video/x-raw,width={w},height={h},framerate={fps}/1 ! videoconvert ! video/x-raw,format=BGR ! appsink")\n\ndef run(source):\n    if source=="csi":   cap=cv2.VideoCapture(csi_pipeline(),cv2.CAP_GSTREAMER)\n    elif source=="usb": cap=cv2.VideoCapture(usb_pipeline(), cv2.CAP_GSTREAMER)\n    if source not in ("csi","usb") or not cap.isOpened():\n        print("[FALLBACK] Direct open"); cap=cv2.VideoCapture(0)\n    fc=0; t0=time.time(); fps_d=0.0\n    while cap.isOpened():\n        ret,frame=cap.read()\n        if not ret: time.sleep(0.05); continue\n        fc+=1\n        el=time.time()-t0\n        if el>0.5: fps_d=fc/el; fc=0; t0=time.time()\n        cv2.putText(frame,f"Jetson | FPS:{fps_d:.1f}",(10,30),cv2.FONT_HERSHEY_SIMPLEX,0.8,(0,255,0),2)\n        cv2.imshow("Jetson Camera",frame)\n        k=cv2.waitKey(1)&0xFF\n        if k==ord("q"): break\n        if k==ord("s"): fn=f"capture_{int(time.time())}.jpg"; cv2.imwrite(fn,frame); print(f"Saved {fn}")\n    cap.release(); cv2.destroyAllWindows()\n\nif __name__=="__main__":\n    ap=argparse.ArgumentParser(); ap.add_argument("--source",default="usb",choices=["csi","usb"])\n    run(ap.parse_args().source)\n',
-      'scripts/deploy.sh': '#!/bin/bash\nIP="${1:-192.168.43.109}"; USER="${2:-orin_nano}"; DIR="/home/${USER}/jetson-cam"\nssh "${USER}@${IP}" "mkdir -p ${DIR}"\nscp -r src/ requirements.txt "${USER}@${IP}:${DIR}/"\necho "Done! ssh ${USER}@${IP} 'cd ${DIR} && python3 src/jetson_camera.py'"\n',
+      'scripts/deploy.sh': '#!/bin/bash\nIP="${1:-192.168.43.109}"; USER="${2:-orin_nano}"; DIR="/home/${USER}/jetson-cam"\nssh "${USER}@${IP}" "mkdir -p ${DIR}"\nscp -r src/ requirements.txt "${USER}@${IP}:${DIR}/"\necho "Done! ssh ${USER}@${IP} -- cd ${DIR} && python3 src/jetson_camera.py"\n',
       'requirements.txt': 'opencv-python\nnumpy\n',
       '.gitignore': 'capture_*.jpg\n__pycache__/',
     },
@@ -207,6 +228,21 @@ async function createNvidiaSample(
     // Open project
     document.dispatchEvent(new CustomEvent('project-opened', { detail: { path: projectPath } }));
 
+    // FIX: force file tree to render after project-opened (menuSystem validation sometimes rejects event)
+    setTimeout(() => {
+      if ((window as any).refreshFileTree) {
+        (window as any).refreshFileTree();
+      } else {
+        const refreshBtn = document.querySelector(
+          '.refresh-button, [title="Refresh"], [data-action="refresh"], #refresh-file-tree'
+        ) as HTMLElement | null;
+        if (refreshBtn) refreshBtn.click();
+      }
+      // Also fire the file-tree-refresh event as a fallback
+      document.dispatchEvent(new CustomEvent('file-tree-refresh', { detail: { path: projectPath } }));
+      document.dispatchEvent(new CustomEvent('refresh-file-tree', { detail: { path: projectPath } }));
+    }, 500);
+
     // Show Android-game-style card in AI panel
     const addMsg = (window as any).addMessageToChat;
     if (addMsg) {
@@ -237,3 +273,4 @@ async function createNvidiaSample(
     alert('Error creating project: ' + err);
   }
 }
+

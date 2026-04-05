@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -16,7 +16,7 @@
     <!-- ====================================================================== -->
     <script>
     (function() {
-      console.log('🛡️ Monaco Fix v4 loading...');
+      console.log('??? Monaco Fix v4 loading...');
       var monacoHealthy = true;
       var lastClickX = 0, lastClickY = 0;
       
@@ -40,11 +40,11 @@
       
       function showFallback(x, y) {
         document.querySelectorAll('.monaco-fix-menu').forEach(function(m) { m.remove(); });
-        console.log('🛡️ Showing fallback menu');
+        console.log('??? Showing fallback menu');
         
         var menu = document.createElement('div');
         menu.className = 'monaco-fix-menu';
-        menu.innerHTML = '<style>.monaco-fix-menu{position:fixed;background:#252526;border:1px solid #454545;border-radius:6px;padding:4px 0;min-width:240px;z-index:999999;box-shadow:0 8px 32px rgba(0,0,0,0.5);font:13px -apple-system,sans-serif}.monaco-fix-menu .h{padding:8px 12px;color:#f9a825;font-size:11px;border-bottom:1px solid #333}.monaco-fix-menu .i{display:flex;justify-content:space-between;padding:6px 12px;color:#ccc;cursor:pointer}.monaco-fix-menu .i:hover{background:#094771;color:#fff}.monaco-fix-menu .i .k{color:#888;font-size:11px}.monaco-fix-menu .d{height:1px;background:#454545;margin:4px 8px}.monaco-fix-menu .r{color:#4fc3f7}.monaco-fix-menu .r:hover{background:rgba(79,195,247,0.2)}</style><div class="h">⚠️ Editor Menu (needs repair)</div><div class="i" data-a="cut"><span>Cut</span><span class="k">Ctrl+X</span></div><div class="i" data-a="copy"><span>Copy</span><span class="k">Ctrl+C</span></div><div class="i" data-a="paste"><span>Paste</span><span class="k">Ctrl+V</span></div><div class="d"></div><div class="i" data-a="undo"><span>Undo</span><span class="k">Ctrl+Z</span></div><div class="i" data-a="redo"><span>Redo</span><span class="k">Ctrl+Y</span></div><div class="d"></div><div class="i" data-a="selectAll"><span>Select All</span><span class="k">Ctrl+A</span></div><div class="d"></div><div class="i" data-a="find"><span>Find</span><span class="k">Ctrl+F</span></div><div class="i" data-a="format"><span>Format Document</span><span class="k">Shift+Alt+F</span></div><div class="i" data-a="command"><span>Command Palette</span><span class="k">F1</span></div><div class="d"></div><div class="i r" data-a="repair"><span>🔄 Repair Editor (restore AI menu)</span><span class="k"></span></div>';
+        menu.innerHTML = '<style>.monaco-fix-menu{position:fixed;background:#252526;border:1px solid #454545;border-radius:6px;padding:4px 0;min-width:240px;z-index:999999;box-shadow:0 8px 32px rgba(0,0,0,0.5);font:13px -apple-system,sans-serif}.monaco-fix-menu .h{padding:8px 12px;color:#f9a825;font-size:11px;border-bottom:1px solid #333}.monaco-fix-menu .i{display:flex;justify-content:space-between;padding:6px 12px;color:#ccc;cursor:pointer}.monaco-fix-menu .i:hover{background:#094771;color:#fff}.monaco-fix-menu .i .k{color:#888;font-size:11px}.monaco-fix-menu .d{height:1px;background:#454545;margin:4px 8px}.monaco-fix-menu .r{color:#4fc3f7}.monaco-fix-menu .r:hover{background:rgba(79,195,247,0.2)}</style><div class="h">?? Editor Menu (needs repair)</div><div class="i" data-a="cut"><span>Cut</span><span class="k">Ctrl+X</span></div><div class="i" data-a="copy"><span>Copy</span><span class="k">Ctrl+C</span></div><div class="i" data-a="paste"><span>Paste</span><span class="k">Ctrl+V</span></div><div class="d"></div><div class="i" data-a="undo"><span>Undo</span><span class="k">Ctrl+Z</span></div><div class="i" data-a="redo"><span>Redo</span><span class="k">Ctrl+Y</span></div><div class="d"></div><div class="i" data-a="selectAll"><span>Select All</span><span class="k">Ctrl+A</span></div><div class="d"></div><div class="i" data-a="find"><span>Find</span><span class="k">Ctrl+F</span></div><div class="i" data-a="format"><span>Format Document</span><span class="k">Shift+Alt+F</span></div><div class="i" data-a="command"><span>Command Palette</span><span class="k">F1</span></div><div class="d"></div><div class="i r" data-a="repair"><span>?? Repair Editor (restore AI menu)</span><span class="k"></span></div>';
         menu.style.left = x + 'px';
         menu.style.top = y + 'px';
         document.body.appendChild(menu);
@@ -95,7 +95,7 @@
       }
       
       function repair() {
-        console.log('🛡️ Repairing editor...');
+        console.log('??? Repairing editor...');
         var monaco = window.monaco;
         if (!monaco) { alert('Monaco not loaded'); return; }
         
@@ -140,11 +140,11 @@
             
             var toast = document.createElement('div');
             toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#4caf50;color:white;padding:12px 24px;border-radius:8px;z-index:100000;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);';
-            toast.textContent = '✅ Editor repaired! AI menu should work now.';
+            toast.textContent = '? Editor repaired! AI menu should work now.';
             document.body.appendChild(toast);
             setTimeout(function() { toast.remove(); }, 3000);
             
-            console.log('✅ Editor repaired!');
+            console.log('? Editor repaired!');
           } catch(e) {
             alert('Repair failed: ' + e.message);
           }
@@ -168,7 +168,7 @@
         lastClickY = e.clientY;
         
         var healthy = checkHealth();
-        console.log('🛡️ Health check:', healthy ? 'OK' : 'BROKEN');
+        console.log('??? Health check:', healthy ? 'OK' : 'BROKEN');
         
         if (!healthy) {
           e.preventDefault();
@@ -184,7 +184,7 @@
       
       window.addEventListener('error', function(e) {
         if (e.message && e.message.indexOf('InstantiationService') !== -1) {
-          console.warn('🛡️ Monaco error caught');
+          console.warn('??? Monaco error caught');
           monacoHealthy = false;
           e.preventDefault();
           return true;
@@ -194,7 +194,7 @@
       window.addEventListener('unhandledrejection', function(e) {
         var msg = e.reason && e.reason.message ? e.reason.message : String(e.reason);
         if (msg.indexOf('InstantiationService') !== -1) {
-          console.warn('🛡️ Monaco rejection caught');
+          console.warn('??? Monaco rejection caught');
           monacoHealthy = false;
           e.preventDefault();
         }
@@ -207,7 +207,7 @@
         showFallback: function() { showFallback(100, 100); }
       };
       
-      console.log('✅ Monaco Fix v4 ready!');
+      console.log('? Monaco Fix v4 ready!');
     })();
     </script>
     <!-- END MONACO FIX -->
@@ -460,10 +460,10 @@
           <div class="explorer-header">
             <span>EXPLORER</span>
             <div class="explorer-actions">
-              <button class="explorer-btn" id="new-file-btn" title="New File">📄</button>
-              <button class="explorer-btn" id="new-folder-btn" title="New Folder">📁</button>
-              <button class="explorer-btn" id="refresh-btn" title="Refresh">🔄</button>
-              <button class="explorer-btn" id="collapse-all-btn" title="Collapse All">📂</button>
+              <button class="explorer-btn" id="new-file-btn" title="New File">??</button>
+              <button class="explorer-btn" id="new-folder-btn" title="New Folder">??</button>
+              <button class="explorer-btn" id="refresh-btn" title="Refresh">??</button>
+              <button class="explorer-btn" id="collapse-all-btn" title="Collapse All">??</button>
             </div>
           </div>
           <div class="file-tree" id="file-tree"></div>
@@ -485,10 +485,10 @@
               AI Assistant
             </div>
             <div class="assistant-actions">
-              <button class="tool-button" id="assistant-new-chat" title="New Conversation"><span>📝</span></button>
-              <button class="tool-button" id="assistant-clear" title="Clear Conversation"><span>🗑️</span></button>
-              <button class="tool-button" id="assistant-settings" title="Assistant Settings"><span>⚙️</span></button>
-              <button class="tool-button" id="toggle-assistant" title="Toggle Panel"><span>◀</span></button>
+              <button class="tool-button" id="assistant-new-chat" title="New Conversation"><span>??</span></button>
+              <button class="tool-button" id="assistant-clear" title="Clear Conversation"><span>???</span></button>
+              <button class="tool-button" id="assistant-settings" title="Assistant Settings"><span>??</span></button>
+              <button class="tool-button" id="toggle-assistant" title="Toggle Panel"><span>?</span></button>
             </div>
           </div>
           <div class="ai-chat-container" id="ai-chat-container"></div>
@@ -497,10 +497,10 @@
               <textarea id="ai-assistant-input" placeholder="Ask me anything..." rows="1"></textarea>
               <div class="chat-input-actions">
                 <div class="input-tools">
-                  <button class="tool-button" id="analyze-code-btn" title="Analyze Current Code"><span>🔍</span></button>
-                  <button class="tool-button" id="assistant-upload" title="Upload File"><span>📎</span></button>
+                  <button class="tool-button" id="analyze-code-btn" title="Analyze Current Code"><span>??</span></button>
+                  <button class="tool-button" id="assistant-upload" title="Upload File"><span>??</span></button>
                 </div>
-                <button class="send-button" id="send-btn"><span>Send</span><span>↵</span></button>
+                <button class="send-button" id="send-btn"><span>Send</span><span>?</span></button>
               </div>
             </div>
             <div class="quick-actions" id="quick-actions"></div>
@@ -532,42 +532,42 @@
     <!-- Context Menu for File Explorer -->
     <div id="context-menu" class="context-menu" style="display: none;">
       <div class="context-menu-item" data-action="open-file">
-        <span class="menu-icon">📄</span>
+        <span class="menu-icon">??</span>
         <span>Open File</span>
       </div>
       <div class="context-menu-item" data-action="open-folder">
-        <span class="menu-icon">📂</span>
+        <span class="menu-icon">??</span>
         <span>Open in Explorer</span>
       </div>
       <div class="context-menu-separator"></div>
       <div class="context-menu-item" data-action="new-file">
-        <span class="menu-icon">➕</span>
+        <span class="menu-icon">?</span>
         <span>New File</span>
       </div>
       <div class="context-menu-item" data-action="new-folder">
-        <span class="menu-icon">📁</span>
+        <span class="menu-icon">??</span>
         <span>New Folder</span>
       </div>
       <div class="context-menu-separator"></div>
       <div class="context-menu-item" data-action="open-terminal">
-        <span class="menu-icon">💻</span>
+        <span class="menu-icon">??</span>
         <span>Open Terminal Here</span>
       </div>
       <div class="context-menu-item" data-action="reveal-explorer">
-        <span class="menu-icon">🔍</span>
+        <span class="menu-icon">??</span>
         <span>Reveal in File Explorer</span>
       </div>
       <div class="context-menu-separator"></div>
       <div class="context-menu-item" data-action="copy-path">
-        <span class="menu-icon">📋</span>
+        <span class="menu-icon">??</span>
         <span>Copy Path</span>
       </div>
       <div class="context-menu-item" data-action="rename">
-        <span class="menu-icon">✏️</span>
+        <span class="menu-icon">??</span>
         <span>Rename</span>
       </div>
       <div class="context-menu-item" data-action="delete">
-        <span class="menu-icon">🗑️</span>
+        <span class="menu-icon">???</span>
         <span>Delete</span>
       </div>
     </div>
@@ -784,23 +784,23 @@
       function ensureEssentialTabs() {
         var explorerTabs = document.querySelector('.explorer-tabs');
         if (!explorerTabs) {
-          console.log('⚠️ Explorer tabs container not found yet');
+          console.log('?? Explorer tabs container not found yet');
           return;
         }
         
         // Check if FILES tab exists
         var filesTab = document.querySelector('[data-tab-id="files"]');
         if (!filesTab) {
-          console.log('📁 Adding missing FILES tab');
+          console.log('?? Adding missing FILES tab');
           var newFilesTab = document.createElement('div');
           newFilesTab.className = 'explorer-tab active';
           newFilesTab.dataset.tabId = 'files';
-          newFilesTab.innerHTML = '<span class="tab-icon">📁</span><span class="tab-label">FILES</span>';
+          newFilesTab.innerHTML = '<span class="tab-icon">??</span><span class="tab-label">FILES</span>';
           explorerTabs.insertBefore(newFilesTab, explorerTabs.firstChild);
           // Note: Click handler will be added by layout.ts, don't add here to avoid duplicates
         }
         
-        console.log('✅ Explorer tabs fallback check complete');
+        console.log('? Explorer tabs fallback check complete');
       }
     });
     </script>
@@ -811,5 +811,5 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/editor/editor.main.nls.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/editor/editor.main.min.js"></script>
     <script type="module" src="./src/main.ts"></script>
+  <script src="/src/plugin-system.js?v=20260328"></script>
   </body>
-</html>

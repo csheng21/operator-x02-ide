@@ -1,0 +1,13 @@
+## Components
+
+1. **Embedded Controller** (Raspberry Pi/Jetson Nano)
+2. **CUDA Processing Unit** (NVIDIA GPU)
+3. **Image Capture Module**
+4. **Communication Bridge**
+5. **Result Handler**
+
+## Safety Features
+- Memory boundary checks
+- Error recovery mechanisms
+- Secure communication channels
+- Resource monitoring

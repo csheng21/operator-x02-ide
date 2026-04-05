@@ -1,5 +1,5 @@
 ﻿# Operator X02 Version
 
-version: v1.5.1
+version: v1.5.4
 codename: Arcturus
-date: 2026-03-22
+date: 2026-04-5

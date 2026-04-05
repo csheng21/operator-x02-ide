@@ -732,6 +732,35 @@
   waitForTauri(async (invoke) => {
     console.log('[X02 Plugins] System ready [OK]');
 
+  // Fix popup positioning: position:fixed + left:50% breaks when any ancestor
+  // has CSS transform applied (explorer panel does). Use 50vw instead which
+  // always references the viewport regardless of parent transforms.
+  (function injectPopupPositionFix() {
+    var style = document.createElement('style');
+    style.id = 'x02-popup-position-fix';
+    style.textContent = [
+      '.ai-status-dialog,',
+      '.aca-toast,',
+      '.se-toast,',
+      '[class*="aca-"][class*="dialog"],',
+      '[class*="auto-mode-dialog"] {',
+      '  left: 50vw !important;',
+      '  transform: translateX(-50%) !important;',
+      '}',
+      '.ai-status-dialog.show, .aca-toast.show, .se-toast.show {',
+      '  transform: translateX(-50%) translateY(0) !important;',
+      '}',
+      '@keyframes asdSlideUp {',
+      '  from { opacity:0; transform: translateX(-50%) translateY(20px); }',
+      '  to   { opacity:1; transform: translateX(-50%) translateY(0); }',
+      '}',
+      '.aca-toast.animate-out, .se-toast.animate-out {',
+      '  transform: translateX(-50%) translateY(-10px) !important;',
+      '}'
+    ].join('\n');
+    document.head.appendChild(style);
+  })();
+
     // 1. Auto-load existing plugins
     await autoLoadAll(invoke);
 
