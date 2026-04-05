@@ -32,51 +32,16 @@ import { recordFileChange } from './changeSummaryPanel';
 // ============================================================================
 
 function resolveFilePath(filePath: string): string {
-  if (!filePath) return filePath;
-  // Already absolute (Windows drive letter or Unix root)
-  if (/^[A-Za-z]:\\/.test(filePath) || filePath.startsWith('/')) return filePath;
-  // Get project path from window globals
-  const projectPath = (window as any).currentProjectPath || '';
-  if (!projectPath) {
-    const _cmd = (args && args.command) ? args.command : '';
-    if (_cmd === 'ide_search' || _cmd === 'ide_analyse') {
-      console.warn('[IDE Script] No project open - cannot search without a project folder');
-      return { success: false, error: 'No project open. Please open a folder first.', command: _cmd };
-    }
-    console.warn('[IDE Script] No project path - using relative');
-    projectPath = '';
+  // [PathFix v2] Use currentProjectPath for relative paths
+  const _cp: string = (window as any).currentProjectPath || '';
+  const _isAbsolute = filePath.startsWith('/') || /^[A-Za-z]:[\\/]/.test(filePath);
+  if (_isAbsolute) return filePath;
+  if (_cp) {
+    const _base = _cp.replace(/[/\\]+$/, '');
+    return _base + '/' + filePath;
   }
-
-  const sep = projectPath.includes('\\') ? '\\' : '/';
-  const base = projectPath.endsWith(sep) ? projectPath : projectPath + sep;
-  const resolved = base + filePath.replace(/\//g, sep);
-  // Smart resolve: if direct path doesn't exist, search subdirectories
-  try {
-    const fileList = (window as any).aiFileExplorer?.getFiles?.() || (window as any).aiFileExplorer?.files || [];
-    const fileName = filePath.replace(/\\/g, '/').split('/').pop()?.toLowerCase() || '';
-    const filePathNorm = filePath.replace(/\\/g, '/').toLowerCase();
-
-    // Check if the AI gave a partial path like "security.ts" or "utils/security.ts"
-    const match = fileList.find((f: any) => {
-      const fPath = (f.path || f.name || '').replace(/\\/g, '/').toLowerCase();
-      return fPath.endsWith(filePathNorm) || fPath.endsWith('/' + filePathNorm) || fPath.split('/').pop() === fileName;
-    });
-
-    if (match) {
-      const matchPath = match.path || match.name || '';
-      // If match has full path, use it; otherwise build from project
-      const smartResolved = /^[A-Za-z]:\\/.test(matchPath) || matchPath.startsWith('/')
-        ? matchPath
-        : base + matchPath.replace(/\//g, sep);
-      console.log('[IDE Script] Path resolved (smart): ' + filePath + ' -> ' + smartResolved);
-      return smartResolved;
-    }
-  } catch (e) {
-    // Fallback to simple resolution
-  }
-
-  console.log('[IDE Script] Path resolved: ' + filePath + ' -> ' + resolved);
-  return resolved;
+  console.warn('[IDE Script] No project open - path is relative:', filePath);
+  return filePath;
 }
 
 // ============================================================================
@@ -368,6 +333,27 @@ interface IdeScriptCall {
  * Parse AI response text for ide_script code blocks.
  * Returns array of script calls found.
  */
+// [JSONSanitizer] Safe JSON parse for ide_script blocks that may contain real newlines in content
+function safeParseIdeScript(raw: string): any {
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    const escaped = raw.replace(/\r\n/g, '\\n').replace(/\n/g, '\\n').replace(/\r/g, '').replace(/\t/g, '\\t');
+    const parsed = JSON.parse(escaped);
+    function restoreNewlines(obj: any): any {
+      if (typeof obj === 'string') return obj.replace(/\\n/g, '\n').replace(/\\t/g, '\t');
+      if (Array.isArray(obj)) return obj.map(restoreNewlines);
+      if (obj && typeof obj === 'object') {
+        const out: any = {};
+        for (const k of Object.keys(obj)) out[k] = restoreNewlines(obj[k]);
+        return out;
+      }
+      return obj;
+    }
+    return restoreNewlines(parsed);
+  }
+}
+
 export function parseIdeScriptCalls(aiResponse: string): IdeScriptCall[] {
   const calls: IdeScriptCall[] = [];
   let match;
@@ -375,7 +361,7 @@ export function parseIdeScriptCalls(aiResponse: string): IdeScriptCall[] {
 
   while ((match = IDE_SCRIPT_REGEX.exec(aiResponse)) !== null) {
     try {
-      const parsed = JSON.parse(match[1].trim());
+      const parsed = safeParseIdeScript(match[1].trim());
       if (parsed.command && parsed.args) {
         calls.push(parsed);
       }
