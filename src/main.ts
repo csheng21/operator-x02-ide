@@ -5990,6 +5990,7 @@ setTimeout(() => {
 }, 3000);
     const embeddedPluginScript = document.createElement('script');
     embeddedPluginScript.src = 'assets/embedded-plugin.js';
+    embeddedPluginScript.onerror = () => {}; // suppress 404 - optional plugin
     document.body.appendChild(embeddedPluginScript);
     
     try {
@@ -11060,7 +11061,7 @@ setTimeout(() => {
       
       console.log('?? Terminal:', isOn ? '?? ON (pulsing)' : '? OFF (static)');
     }
-  }, 1000); // 1s polling ? no need for 100ms, state changes are infrequent
+  }, 5000); // X02-noiseFix: slowed from 1s, state changes are infrequent
   
   // ========================================
   // 2. AI PROJECT SEARCH TOOLTIP
@@ -12279,7 +12280,7 @@ setTimeout(() => {
   
   tryAttach(5);
   
-  // Periodic check: re-attach if editor model changed without event
+  // Periodic check: re-attach if editor model changed without event (X02-noiseFix: 5s)
   setInterval(() => {
     const monaco = (window as any).monaco;
     if (!monaco?.editor) return;
@@ -12291,7 +12292,7 @@ setTimeout(() => {
     if (uri !== currentModelUri) {
       attachContentListener();
     }
-  }, 2000);
+  }, 5000); // X02-noiseFix: slowed from 2s
   
   // Expose to window for debugging and other systems
   (window as any).__undoRedoTracker = {

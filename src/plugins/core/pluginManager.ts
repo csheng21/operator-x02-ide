@@ -1,4 +1,4 @@
-// plugins/core/pluginManager.ts
+﻿// plugins/core/pluginManager.ts
 // Complete Plugin Manager with Android Support and Enhanced Project Templates
 
 import { Plugin, PluginApi, PluginManifest } from './pluginInterface';
@@ -615,7 +615,7 @@ export class PluginManager {
   
   // 🆕 Load built-in plugins (register classes, don't activate)
   private async loadBuiltinPlugins(): Promise<void> {
-    console.log('📦 Loading built-in plugins...');
+    // X02-noiseFix: built-in plugins log suppressed
     
     // Note: We only register plugin classes here
     // Activation happens later when main.ts calls activatePlugin()
@@ -627,7 +627,7 @@ export class PluginManager {
     // await this.loadPythonSupportPlugin();
     // await this.loadWebDevelopmentPlugin();
     
-    console.log('📦 Built-in plugin classes registered');
+    // X02-noiseFix: plugin classes log suppressed
   }
   
   private async loadFletAssistantPlugin(): Promise<void> {
@@ -642,9 +642,9 @@ export class PluginManager {
     let success = false;
     for (const basePath of possiblePaths) {
       try {
-        console.log(`🔍 Trying Flet Assistant plugin path: ${basePath}`);
+      // X02-noiseFix: silent load attempt
         await this.loadPlugin(basePath);
-        console.log(`✅ Successfully loaded Flet Assistant from ${basePath}`);
+        // X02-noiseFix: mock success log suppressed
         success = true;
         break; // Stop trying after first success
       } catch (error) {

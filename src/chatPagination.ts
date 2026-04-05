@@ -1,4 +1,4 @@
-// chatPagination.ts — Clean Chat Pagination for IDE
+﻿// chatPagination.ts — Clean Chat Pagination for IDE
 // ====================================================================
 //
 // Shows only the last 5 messages in the chat. Everything older is hidden
@@ -1309,7 +1309,20 @@ setTimeout(() => {
       '[CONTEXT-FIX]',        // re-attach guard — fires every 15s
       '[Watchdog]',           // autoModeWatchdog localStorage checks
       '[AUTO-SCAN]',          // folder sync scan
-      '[Plugin Detection]',   // plugin file scan
+      '[Plugin Detection]',   // plugin file scan (original)
+      // X02-noiseFix: high-frequency patterns added below
+      'Captured editor context',
+      'Found chat container',
+      '[BackupManager] Getting',
+      'IDE state saved',
+      'State saved via Tauri',
+      'Handling view menu action',
+      '[X02] showTerminal',
+      '[X02] Tick:',
+      '[LoadFix] Periodic',
+      'Found 0 file items',
+      'Project path:',
+      'Captured IDE state',
     ];
 
     console.log = function (...args: any[]) {
