@@ -1321,6 +1321,10 @@ setTimeout(() => {
       '[X02] Tick:',
       '[LoadFix] Periodic',
       'Found 0 file items',
+      'tauri://drag-over',
+      'tauri://drag-enter',
+      '[MUF v15] SKIP',
+      'Skipping pre - inside',
       'Project path:',
       'Captured IDE state',
     ];
