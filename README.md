@@ -80,6 +80,21 @@ npm run tauri dev
 <img width="1674" height="1002" alt="Jetson Nano" src="https://github.com/user-attachments/assets/3894c123-fc7c-4b7e-9448-41b18b87733a" />
 
 
+
+## Community
+ 
+Join the Operator X02 Discord — get help, share projects, and connect with embedded AI developers around the world.
+ 
+- **#arduino-help** — Arduino, ESP32, ESP8266, AVR
+- **#jetson-cuda-help** — Jetson Nano/Xavier/Orin, CUDA kernels
+- **#stm32-embedded-help** — STM32, RP2040, nRF52, bare-metal C/C++
+- **#raspberry-pi-help** — Pi 4/5/Pico, Python, Linux
+- **#android-help** — Android, AOSP, Kotlin
+- **#show-your-project** — Share what you built with X02
+- **#feature-requests** — Shape the roadmap
+ 
+[Join Discord](https://discord.gg/jeq3Ss3PfX) | [GitHub Discussions](https://github.com/csheng21/operator-x02-ide/discussions)
+
 ## ✨ Full Feature List
 
 ### 🤖 AI Assistant
@@ -344,6 +359,7 @@ Operator X02 is built by **ChangSong Heng**, an automotive embedded engineer wit
 - GitHub: [@csheng21](https://github.com/csheng21)
 - YouTube: [@csh3003](https://youtube.com/@csh3003)
 - Website: [operatorx02.com](https://operatorx02.com)
+- **Discord:** [discord.gg/jeq3Ss3PfX](https://discord.gg/jeq3Ss3PfX)
 
 
 ⭐ **If Operator X02 helps your workflow, please star the repo!**
