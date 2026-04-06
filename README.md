@@ -350,7 +350,7 @@ Build from source to get 100% of all features.
 
 ---
 
-## 👨‍💻 About <img width="74" height="76" alt="heng" src="https://github.com/user-attachments/assets/b8809420-1118-4f4c-a855-3fdbdfeeb6cd" />
+## 👨‍💻 About 
 
 Operator X02 is built by **ChangSong Heng**, an automotive embedded engineer with 18+ years of experience in E/E architecture, ADAS systems, and edge computing. This is a personal passion project — built in spare time with the belief that developers working on embedded and edge AI deserve a better, purpose-built tool.
 
