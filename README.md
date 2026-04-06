@@ -93,7 +93,7 @@ Join the Operator X02 Discord — get help, share projects, and connect with emb
 - **#show-your-project** — Share what you built with X02
 - **#feature-requests** — Shape the roadmap
  
-[Join Discord](https://discord.gg/jeq3Ss3PfX) | [GitHub Discussions](https://github.com/csheng21/operator-x02-ide/discussions)
+[Join Discord](https://discord.gg/jeq3Ss3PfX) | 
 
 ## ✨ Full Feature List
 
