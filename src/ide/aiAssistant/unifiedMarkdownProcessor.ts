@@ -426,8 +426,14 @@ class UnifiedMarkdownProcessor {
   // IMPROVED UI: VS Code-like code block rendering
   // ============================================================================
   private renderCodeBlock(block: CodeBlock): string {
-    const escapedCode = this.escapeHtml(block.code);
-    const lines = block.code.split('\n');
+    // Defensive: strip AI-injected syntax-highlight markup from code content.
+    // Models sometimes emit <span class="number">..</span> / "string" / "keyword"
+    // tags (and malformed variants like "1span>") INSIDE the code they return,
+    // despite prompt guardrails. We render code by escaping it, so those tags
+    // would show as literal text. Strip them here so the displayed code is clean.
+    const cleanCode = this.stripHighlightMarkup(block.code);
+    const escapedCode = this.escapeHtml(cleanCode);
+    const lines = cleanCode.split('\n');
     const lineCount = lines.length;
     
     // v12: Check if this is documentation content
@@ -475,7 +481,7 @@ class UnifiedMarkdownProcessor {
           <div class="code-content-wrapper documentation-content">
             <pre style="padding: 12px 16px; white-space: pre-wrap; word-wrap: break-word; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 12.5px; line-height: 1.5;"><code data-code-id="${block.id}">${escapedCode}</code></pre>
           </div>
-          <textarea class="hidden-code-data" data-code-id="${block.id}" style="display:none;">${block.code}</textarea>
+          <textarea class="hidden-code-data" data-code-id="${block.id}" style="display:none;">${cleanCode}</textarea>
         </div>
       `;
     }
@@ -533,11 +539,39 @@ class UnifiedMarkdownProcessor {
             </button>
           </div>
         ` : ''}
-        <textarea class="hidden-code-data" data-code-id="${block.id}" style="display:none;">${block.code}</textarea>
+        <textarea class="hidden-code-data" data-code-id="${block.id}" style="display:none;">${cleanCode}</textarea>
       </div>
     `;
   }
   
+  // ============================================================================
+  // Strip AI-injected highlight markup from code content
+  // ============================================================================
+  private stripHighlightMarkup(code: string): string {
+    if (!code || code.indexOf('span') === -1) return code;
+
+    let out = code;
+
+    // Well-formed highlight spans: <span class="number">123</span> -> 123
+    // Covers number / string / keyword / comment / etc. — any class.
+    out = out.replace(/<span\s+class="[^"]*">([\s\S]*?)<\/span>/g, '$1');
+
+    // Malformed opening tags the model sometimes emits, e.g.
+    //   <span class="number">1span>:   ->  1:
+    // Remove a leftover "span>" immediately following the captured text.
+    out = out.replace(/<span\s+class="[^"]*">([\s\S]*?)span>/g, '$1');
+
+    // Any orphaned span tags left over (opening or closing).
+    out = out.replace(/<\/?span[^>]*>/g, '');
+
+    // Some models also prefix each line with a literal "Line N:" label.
+    // Only strip when it's clearly an added listing prefix, not real code.
+    // (Left disabled by default — uncomment if your AI adds these.)
+    // out = out.replace(/^Line\s+\d+:\s?/gm, '');
+
+    return out;
+  }
+
   // ============================================================================
   // NEW: Line numbers for code blocks
   // ============================================================================

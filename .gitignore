@@ -1,48 +1,56 @@
-﻿node_modules/
-dist/
-.vite/
-src-tauri/target/
-src-tauri/New folder/
-*.pdb
-*.rlib
-*.rmeta
+﻿# --- Secrets (NEVER commit) ---
+api.txt
+*.env
 .env
 .env.*
-*.log
-logs/
-.DS_Store
-Thumbs.db
-src-tauri/gen/
-*.msi
-*.exe
-*.dmg
-*.AppImage
+**/apikeys*
+**/secrets*
 
-src-tauri/src/operator-x02-core/
+# --- Private modules (Pro / not open source) ---
+src/ide/buildMode/
+src/ide/x02Knowledge.ts
+src-tauri/src/pty_commands.rs
+src-tauri/src/license_commands.rs
 
+# --- Private .rs backups (real code) ---
 *.private_backup
-fix_*.ps1
-scan_*.ps1
-fix_*.py
-diagnose_*.ps1
 
-src/generate tree.txt
-src/*.txt
+# --- Scratch / local junk ---
+desktop.ini
+**/desktop.ini
+*.snapshot-rest-start
+summary.txt
+architecture.txt
+run_cmd.bat
+run_cmd.txt
+generate tree.txt
+readme.txt
+readme_Main.txt
+readme_Main_arch.txt
+X02_SESSION_JOURNAL.md
+tree.txt
+src-tauri/src/tree.txt
 
-backup_*.ts
-fix_backups_*/
-fix_errors_*/
-fix_remaining_*/
-inject_*.ps1
-find_*.ps1
-*.bak
+# --- Build artifacts ---
+node_modules/
+dist/
+src-tauri/target/
 
-fix_*/
-backup_*.ts
+# --- Embedded private core repo (must be submodule or excluded) ---
+src-tauri/src/operator-x02-core/
+operator-x02-core/
 
-contextMenuOptionB.ts
-fix_welcome_*.ts
-webui_intelligence_patch.ts
+# --- Stray build folder ---
+src-tauri/New folder/
 
-# Dev patch scripts
+# --- Loose patch/dev scripts (not for public repo) ---
 *.ps1
+**/*.snapshot-rest-start
+src/_tree.txt
+src-tauri/src/App.ts
+src-tauri/src/App.tsx
+src-tauri/src/components/
+src-tauri/src/index.html
+src-tauri/src/package.js
+src-tauri/src/package.json
+src-tauri/src/postcss.config.js

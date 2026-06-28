@@ -44,7 +44,7 @@ function syntaxHighlightCode(code: string, language: string): string {
     }
     
     // Numbers
-    highlighted = highlighted.replace(/\b(\d+\.?\d*)\b/g, '<span class="number">$1</span>');
+    highlighted = highlighted.replace(/(?<!&#)(?<!&#x)\b(\d+\.?\d*)\b/g, '<span class="number">$1</span>');
     
     // Functions (before other identifiers)
     highlighted = highlighted.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*(?=\()/g, '<span class="function">$1</span>');

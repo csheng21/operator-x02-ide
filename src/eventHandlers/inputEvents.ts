@@ -3,6 +3,7 @@
 import { messageInput, apiKeyInput, apiBaseUrlInput, showCommandHint } from '../ui';
 import { sendMessage, createNewConversation } from '../conversation';
 import { getDomElement } from './domUtils';
+import { waitForElement } from './domReady';
 import { currentConversationId } from '../state';
 
 // Set up input event listeners
@@ -17,7 +18,7 @@ export function setupInputEventListeners(): void {
 
 // Set up message input event handler
 // Set up message input event handler
-function setupMessageInputHandler(): void {
+async function setupMessageInputHandler(): Promise<void> {
   const keydownHandler = (e: KeyboardEvent) => {
     // Enter key to send
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -62,11 +63,14 @@ function setupMessageInputHandler(): void {
   }
   
   // Fall back to direct DOM query
-  const msgInput = getDomElement('message-input');
+  let msgInput = getDomElement('message-input');
+  if (!msgInput) {
+    msgInput = await waitForElement('#message-input');
+  }
   if (msgInput) {
-    msgInput.addEventListener('keydown', keydownHandler);
+    msgInput.addEventListener('keydown', keydownHandler as EventListener);
     console.log('Message input handler set up (using DOM reference)');
   } else {
-    console.error('Message input not found');
+    console.warn('Message input not found after waiting');
   }
 }

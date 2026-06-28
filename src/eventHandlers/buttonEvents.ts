@@ -16,6 +16,7 @@ import {
 } from '../conversation';
 
 import { getDomElement } from './domUtils';
+import { waitForElement } from './domReady';
 
 // Set up button event listeners
 export function setupButtonEventListeners(): void {
@@ -67,12 +68,12 @@ export function setupButtonEventListeners(): void {
 }
 
 // Helper function to set up button event handlers
-function setupButtonHandler(
+async function setupButtonHandler(
   uiRef: HTMLButtonElement | null, 
   elementId: string, 
   elementName: string,
   handler: (event: Event) => void
-): void {
+): Promise<void> {
   // Try UI reference first
   if (uiRef) {
     uiRef.addEventListener('click', handler);
@@ -81,11 +82,17 @@ function setupButtonHandler(
   }
   
   // Fall back to direct DOM query
-  const element = getDomElement(elementId);
+  let element = getDomElement(elementId);
+
+  // If not present yet, wait for it (panel mounts asynchronously)
+  if (!element) {
+    element = await waitForElement(`#${elementId}`);
+  }
+
   if (element) {
     element.addEventListener('click', handler);
     console.log(`${elementName} handler set up (using DOM reference)`);
   } else {
-    console.error(`${elementName} not found`);
+    console.warn(`${elementName} not found after waiting`);
   }
 }

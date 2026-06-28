@@ -1,4 +1,4 @@
-﻿// src/ide/preview/PreviewTab.ts
+// src/ide/preview/PreviewTab.ts
 
 // ============================================================================
 // [PreviewTab] Wait for dev server to be ready before loading iframe
@@ -50,6 +50,7 @@ class PreviewTabManager {
   private hasError: boolean = false;
   private lastError: string = '';
   private errorCheckInterval: number | null = null;
+  private _coLoggedUrl: string = '';  // last URL a cross-origin notice was logged for
   private _terminalCheckTimeout: number | null = null;
 
   /**
@@ -754,6 +755,21 @@ class PreviewTabManager {
       return;
     }
     
+    // Cross-origin previews (e.g. a Vite dev server on another port) can NEVER be read
+    // via contentDocument. Skip the futile DOM poll + console spam; rely on terminal-based
+    // error detection, which is cross-origin safe. This was the runaway-loop source.
+    try {
+      const _target = new URL(this.url || this.iframe.src || '', window.location.href);
+      if (_target.origin !== window.location.origin) {
+        if (this._coLoggedUrl !== this.url) {
+          log('ℹ️ Preview is cross-origin — using terminal-based error detection only');
+          this._coLoggedUrl = this.url;
+        }
+        this.checkTerminalForErrors();
+        return;
+      }
+    } catch { /* URL parse failed — fall through to the normal same-origin check */ }
+
     let iframeFailed = false;
     
     try {
@@ -1207,7 +1223,7 @@ Please:
    * Copy current URL to clipboard
    */
   private copyUrl(btn: HTMLElement): void {
-    const url = this.url || 'http://localhost:3000';
+    const url = this.url || (window as any).__lastServerUrl || 'http://localhost:3000';
     navigator.clipboard.writeText(url).then(() => {
       log('📋 URL copied:', url);
       this.setStatus('URL copied!');
@@ -1316,7 +1332,7 @@ Please:
    * Open current URL in external browser
    */
   private openExternal(): void {
-    const url = this.url || 'http://localhost:3000';
+    const url = this.url || (window as any).__lastServerUrl || 'http://localhost:3000';
     log('🌐 Opening in browser:', url);
     
     // Try Tauri shell API first

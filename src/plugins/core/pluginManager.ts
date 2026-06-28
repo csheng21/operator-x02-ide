@@ -71,6 +71,9 @@ export class PluginManager {
   private pluginContexts: Map<string, PluginContext> = new Map();
   private disposables: Map<string, (() => void)[]> = new Map();
   
+  // Plugin-registered views (ui.registerView / ui.showView)
+  private __pluginViews?: Map<string, () => HTMLElement>;
+  
   private constructor() {
     this.api = createPluginApi(this);
     console.log('🔌 Plugin Manager initialized');
@@ -523,22 +526,86 @@ export class PluginManager {
         showErrorMessage: (message: string) => this.showErrorMessage(message),
         showQuickPick: (items: any[], options?: any) => this.showQuickPick(items, options),
         registerLanguage: (languageId: string, config: any) => this.registerEditorLanguage(languageId, config),
-        registerCommand: (commandId: string, handler: Function) => this.registerEditorCommand(commandId, handler)
+        registerCommand: (commandId: string, handler: Function) => this.registerEditorCommand(commandId, handler),
+        // VS Code-style document handle backed by the active Monaco model.
+        // Returns a thin wrapper with getText/setText so plugins can read and
+        // rewrite the current file without touching Monaco directly.
+        getDocument: () => {
+          const editor = this.getActiveEditor();
+          const model = editor?.getModel?.() ?? null;
+          return {
+            getText: () => model?.getValue?.() ?? '',
+            setText: async (text: string) => {
+              if (!model) return;
+              const fullRange = model.getFullModelRange();
+              editor.executeEdits('plugin', [{ range: fullRange, text }]);
+            },
+            uri: model?.uri?.toString?.() ?? ''
+          };
+        }
       },
       
       // Terminal access
       terminal: {
         executeCommand: (command: string, options?: any) => this.executeTerminalCommand(command, options),
-        showMessage: (message: string) => this.showTerminalMessage(message)
+        showMessage: (message: string) => this.showTerminalMessage(message),
+        // Subscribe to terminal output. Callback receives (output, isError) to
+        // match plugin expectations. Returns a disposable for deactivate().
+        // Falls back to a no-op subscription if no output source is wired yet.
+        onOutput: (callback: (output: string, isError: boolean) => void): (() => void) => {
+          const handler = (e: Event) => {
+            const detail = (e as CustomEvent).detail;
+            try {
+              const output = typeof detail === 'string' ? detail : detail?.data ?? detail?.output ?? '';
+              const isError = typeof detail === 'object' ? Boolean(detail?.isError) : false;
+              callback(output, isError);
+            } catch (err) {
+              console.error('terminal.onOutput callback error:', err);
+            }
+          };
+          document.addEventListener('x02:terminal-output', handler);
+          return () => document.removeEventListener('x02:terminal-output', handler);
+        }
       },
       
       // UI access
       ui: {
-        showNotification: (message: string, type?: string) => this.showNotification(message, type),
+        // Accept both the legacy (message, type) form AND the object form
+        // { title, message, type, duration, actions } that plugins use.
+        showNotification: (arg: any, type?: string) => {
+          if (typeof arg === 'string') return this.showNotification(arg, type);
+          const msg = arg?.title ? `${arg.title}: ${arg.message ?? ''}` : (arg?.message ?? '');
+          return this.showNotification(msg, arg?.type ?? 'info');
+        },
         showQuickPick: (items: any[], options?: any) => this.showQuickPick(items, options),
         showInputBox: (options?: any) => this.showInputBox(options),
         showOpenDialog: (options?: any) => this.showOpenDialog(options),
-        createWebView: (options?: any) => this.createWebView(options)
+        createWebView: (options?: any) => this.createWebView(options),
+        // ui.registerCommand(id, title, handler) — VS Code-style 3-arg form.
+        // Adapt into the manager's PluginCommand object registry.
+        registerCommand: (id: string, title: string, handler: () => void) =>
+          this.registerCommand({ id, title, handler } as PluginCommand),
+        executeCommand: (commandId: string, ...args: any[]) => this.executeCommand(commandId, ...args),
+        // View registry — plugins register a factory; showView mounts it.
+        // Stored on the instance so showView can find and render it.
+        registerView: (viewId: string, factory: () => HTMLElement) => {
+          if (!this.__pluginViews) this.__pluginViews = new Map();
+          this.__pluginViews.set(viewId, factory);
+          return () => this.__pluginViews?.delete(viewId);
+        },
+        showView: (viewId: string) => {
+          const factory = this.__pluginViews?.get(viewId);
+          if (!factory) {
+            console.warn(`[PluginApi] showView: no view registered for "${viewId}"`);
+            return;
+          }
+          try {
+            const el = factory();
+            if (el instanceof HTMLElement) document.body.appendChild(el);
+          } catch (err) {
+            console.error(`[PluginApi] showView("${viewId}") failed:`, err);
+          }
+        }
       }
     };
   }
@@ -631,30 +698,48 @@ export class PluginManager {
   }
   
   private async loadFletAssistantPlugin(): Promise<void> {
-    // Try different path formats to increase chance of success
-    const possiblePaths = [
-      'plugins/builtin/fletAssistant',
-      './plugins/builtin/fletAssistant',
-      '/plugins/builtin/fletAssistant'
-    ];
-    
-    // Try each path until one works
-    let success = false;
-    for (const basePath of possiblePaths) {
-      try {
-      // X02-noiseFix: silent load attempt
-        await this.loadPlugin(basePath);
-        // X02-noiseFix: mock success log suppressed
-        success = true;
-        break; // Stop trying after first success
-      } catch (error) {
-        console.warn(`⚠️ Failed to load Flet Assistant from ${basePath}:`, error.message);
-        // Continue to the next path
+    // fletAssistant lives in the source tree, so use a STATIC import literal.
+    // Vite can only bundle dynamic imports whose specifier is statically
+    // analyzable at build time. A runtime string path cannot be resolved by
+    // the bundler and resolves relative to THIS file's folder at runtime,
+    // which produced the doubled `src/plugins/core/plugins/builtin/...` 404.
+    //
+    // NOTE: path is relative to this file (src/plugins/core/pluginManager.ts).
+    // Adjust '../builtin/fletAssistant/...' if your folder layout differs.
+    try {
+      const [mod, manifestMod] = await Promise.all([
+        import('../builtin/fletAssistant/index'),
+        import('../builtin/fletAssistant/manifest.json'),
+      ]);
+
+      const manifest = (manifestMod as any).default ?? manifestMod;
+
+      // Dedup by id (mirrors loadPlugin's own guard)
+      if (this.plugins.has(manifest.id)) {
+        console.warn(`Plugin ${manifest.id} already loaded, skipping`);
+        return;
       }
-    }
-    
-    if (!success) {
-      console.warn('⚠️ Could not load Flet Assistant plugin from any path - this is okay if you don\'t have it implemented');
+
+      const plugin: any = {
+        id: manifest.id,
+        name: manifest.name,
+        version: manifest.version,
+        description: manifest.description,
+        author: manifest.author,
+        activate: (mod as any).activate || (async () => {}),
+        deactivate: (mod as any).deactivate || (async () => {}),
+        __manifest: manifest,
+        __sourcePath: 'builtin/fletAssistant',
+      };
+
+      this.plugins.set(plugin.id, plugin);
+      await this.enablePlugin(plugin.id);
+    } catch (error) {
+      // Genuinely optional — fine if the plugin isn't present
+      console.warn(
+        'Flet Assistant plugin not loaded (this is okay if not implemented):',
+        (error as Error).message
+      );
     }
   }
   

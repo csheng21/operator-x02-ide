@@ -230,9 +230,12 @@ const processMarkdown = (content: string): string => {
   html = html.replace(/^---+$/gm, '<hr>');
   html = html.replace(/^\*\*\*+$/gm, '<hr>');
   
-  // ========== LINE BREAKS ==========
+  // ========== LINE BREAKS (protect <pre> code blocks) ==========
+  const __preBlocks: string[] = [];
+  html = html.replace(/<pre[\s\S]*?<\/pre>/g, (m) => { __preBlocks.push(m); return `\uE000PRE${__preBlocks.length - 1}\uE000`; });
   html = html.replace(/\n\n+/g, '</p><p>');
   html = html.replace(/\n/g, '<br>');
+  html = html.replace(/\uE000PRE(\d+)\uE000/g, (_m, i) => __preBlocks[Number(i)]);
   
   // Wrap in <p> if needed
   if (!html.startsWith('<')) {

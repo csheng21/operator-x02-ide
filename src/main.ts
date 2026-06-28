@@ -1,4 +1,4 @@
-﻿import { showStartupDialog } from './startupDialog';
+import { showStartupDialog } from './startupDialog';
 // ============================================================================
 // INTEGRATED VERSION (Using AssistantUI) - January 24, 2026
 // Uses existing UI from assistantUI.ts/messageUI.ts:
@@ -51,6 +51,11 @@ import './directFileOpener';
 import { initializeFileOperations } from './fileOperations';
 import { invoke } from '@tauri-apps/api/core';
 import { initializeTerminal } from './ide/terminal';
+
+// PTY terminal (v1.5.7) - registers window.__createTestTerminal() helper
+import './ide/terminal/ptyTerminal';
+import './ide/aiTools/headlessExecute';
+import './ide/aiTools/projectAnalysis';
 import persistenceManager from './fileOperations/persistenceManager';
 import { initializeAssistantUI } from './ide/aiAssistant/assistantUI';
 import { aiFileCreatorUI } from './ide/aiAssistant/aiFileCreatorUI';
@@ -78,6 +83,7 @@ import { default as RobustExplorerFilter } from './robustFilterSolution';
 import { default as FolderFileToggle } from './folderFileToggle';
 import { initializeProjectContextIntegration } from './ide/aiAssistant/projectContextIntegration';
 import { getOrchestrator, orchestratedSend, detectTaskType } from './multiProviderOrchestrator';
+import { initBuildMode } from './ide/buildMode/buildMode';
 import { getCurrentApiConfigurationForced } from './ide/aiAssistant/apiProviderManager';
 import { initializeOrchestratorUI, showOrchestratorSettings } from './orchestratorUI';
 import { initializeCalibration } from './calibrationIntegration';
@@ -117,6 +123,7 @@ import './editor/fileDeletionHandler';
 // Add to your imports
 import './fileOperations/buildSystemIntegration';
 import './ui/buildSystemUI';
+import './ide/buildFixLoop';
 import { intelligentAssistant } from './ide/aiAssistant/intelligentAssistant';
 // ? DISABLED: Pink icon layer - using unified-status-bar instead
 // import { initializeIntelligentAssistantUI } from './ide/aiAssistant/intelligentAssistantUI';
@@ -214,6 +221,8 @@ import { initAutonomousCoding } from './autonomousCoding';
 import { initSurgicalEditEngine } from './ide/surgicalEditEngine';
 import { initBackupManager, showBackupManagerUI } from './ide/surgicalBackupManager';
 import { initIdeScriptBridge, isScriptModeEnabled, getIdeScriptSystemPrompt, processAiScriptResponse } from './ide/ideScriptBridge';
+import { isAboutIDE, X02_KNOWLEDGE } from './ide/x02Knowledge';
+import { mountLanguageSelector, getLanguageDirective } from './ide/languageSelector';
 import { initIdeScriptUI } from './ide/ideScriptUI';
 import { openJetsonTerminal }     from './jetson/jetsonTerminal';
 import { openJetsonFileBrowser }  from './jetson/jetsonFileBrowser';
@@ -4970,6 +4979,9 @@ function initializePreviewTab(): void {
 // MAIN INITIALIZATION
 // ============================================================================
 async function init(): Promise<void> {
+  // X02 Build Mode - Initialize Phase 1
+  initBuildMode();
+
   // Show startup dialog
   setTimeout(() => showStartupDialog(), 1500);
   try {
@@ -5407,9 +5419,9 @@ function injectTerminalWelcomeUI(): void {
 function x02TerminalTick(): boolean {
   // 1. Find and click the TERMINAL tab if not already active
   const termTab = document.querySelector('[data-tab="terminal"]') as HTMLElement;
-  const isActive = termTab && termTab.classList.contains('active');
+  if (!termTab) return false;
 
-  if (termTab && !isActive) {
+  if (!termTab.classList.contains('active')) {
     termTab.click();
     console.log('[X02] Tick: terminal tab clicked.');
   }
@@ -5419,7 +5431,8 @@ function x02TerminalTick(): boolean {
     injectTerminalWelcomeUI();
   }
 
-  // Return true if both jobs are done
+  // Re-read state AFTER click/inject so an activating tick can also report done
+  const isActive = termTab.classList.contains('active');
   return !!(isActive && (window as any).__terminalWelcomeDone);
 }
 
@@ -5938,7 +5951,12 @@ if (import.meta.env.DEV) {
     // ? FIX: Removed renderCurrentConversation() - replaced by coordinated render
     // renderCurrentConversation();
 
-    setupEventListeners();
+    // [X02] Legacy event layer disabled. setupEventListeners() wired button/
+    // input/modal handlers to an OLD chat UI (ids: message-input, new-chat-btn,
+    // settings-btn, ...). The current panel is driven by assistantUI.ts and uses
+    // different ids (e.g. ai-assistant-input), so these handlers only logged
+    // "not found" warnings and wired nothing. Chat verified working without it.
+    // setupEventListeners();
     initializeConversationModule();
 
     // ? FIX: Single coordinated render replaces 5+ competing paths
@@ -8024,6 +8042,38 @@ const contextAwareSendHandler = async () => {
     msg = String(msg || '');
   }
   const originalUserText = msg;
+
+  // X02 BUILD MODE - Intent Detection (v1.5.6)
+  // build preview: MUST come before build:
+  if (originalUserText.toLowerCase().startsWith('build preview:')) {
+    console.log('[BuildMode] build_preview intent detected:', originalUserText.slice(14).trim());
+    if ((window as any).handleBuildPreview) {
+      (window as any).handleBuildPreview(originalUserText.slice(14).trim());
+      return false;
+    }
+  }
+  if (originalUserText.toLowerCase().startsWith('build:')) {
+    console.log('[BuildMode] build_mode intent detected:', originalUserText.slice(6).trim());
+    if ((window as any).handleBuildMode) {
+      (window as any).handleBuildMode(originalUserText.slice(6).trim());
+      return;
+    }
+  }
+  if (originalUserText.toLowerCase().startsWith('retry:')) {
+    console.log('[BuildMode] build_retry intent detected:', originalUserText.slice(6).trim());
+    if ((window as any).handleBuildRetry) {
+      (window as any).handleBuildRetry(originalUserText.slice(6).trim());
+      return;
+    }
+  }
+  if (originalUserText.toLowerCase().includes('fix build errors') || originalUserText.toLowerCase().includes('fix build error')) {
+    console.log('[BuildMode] fix_build_errors intent detected');
+    if ((window as any).handleFixBuildErrors) {
+      (window as any).handleFixBuildErrors();
+      return;
+    }
+  }
+  // END BUILD MODE INTENT DETECTION
   
   // ?? INTELLIGENT HISTORY SEARCH - AI decides when to search past conversations
   if ((window as any).enhanceMessageWithHistory) {
@@ -8369,7 +8419,7 @@ ${code.split('\n').slice(0, 100).join('\n')}
     }
 
     // ?? Inject IDE Script system prompt when script mode is enabled
-    if (isScriptModeEnabled()) {
+    if (isScriptModeEnabled() && !isAboutIDE(msg)) {
       const projPath = (window as any).currentProjectPath || 
                        (window as any).__currentFolderPath ||
                        localStorage.getItem('lastProjectPath') || '';
@@ -8406,8 +8456,15 @@ ${code.split('\n').slice(0, 100).join('\n')}
       }
     }
 
-    let fullMessage = context ? `${context}\n[User]\n${msg}` : msg;
+  if (isAboutIDE(msg)) {
+      context += '\n\n' + X02_KNOWLEDGE;
+    }
 
+    // Language directive: reply in the user's chosen language
+    context += getLanguageDirective();
+
+    
+let fullMessage = context ? `${context}\n[User]\n${msg}` : msg;
 // Add project context for follow-up questions
 const projectHelper = (window as any).projectContextHelper;
 if (projectHelper?.shouldInclude?.(msg)) {
@@ -9573,10 +9630,11 @@ try {
                       "The user asked: " + (fullMessage.length > 500 ? fullMessage.substring(0, 500) + "..." : fullMessage) + "\n\n" +
                       "The IDE Script system executed commands and got these results:\n" +
                       JSON.stringify(detailedResults, null, 2) + "\n\n" +
-                      "Based on these results, provide detailed expert analysis and feedback. " +
-                      "Highlight important findings, potential issues, suggestions for improvement, " +
-                      "and any actionable recommendations. Be specific and reference actual data from the results. " +
-                      "Do NOT output any ide_script blocks - just provide your analysis in plain text/markdown.";
+                      "Based on these file contents, fulfill the user's original request by writing the COMPLETE updated file. " +
+                      "Rules: 1) Output the ENTIRE file content, never a partial snippet or diff. " +
+                      "2) On the line immediately before the code block, write the exact filename you are updating (e.g. App.tsx). " +
+                      "3) Use one fenced code block with the correct language tag. " +
+                      "4) Do NOT output ide_script blocks and do NOT write analysis - just a short sentence then the full updated file.";
 
                     const feedbackResp = await (window as any).smartAICall({
                       provider: cfg.provider,
@@ -9683,7 +9741,7 @@ try {
           body: JSON.stringify({
             model: cfg.model,
             messages: [
-              { role: 'system', content: 'You are an AI coding assistant in Operator X02 Code IDE with Surgical Edit Engine. You have full context of the user\'s current file and code. IMPORTANT: Your code blocks are AUTO-APPLIED to disk with backup. Rules: 1) ALWAYS provide COMPLETE file content, never partial 2) Include filename before each code block 3) Use correct language tags 4) One code block per file 5) Reference their actual code 6) Be specific and actionable' },
+              { role: 'system', content: 'You are an AI coding assistant in Operator X02 Code IDE with Surgical Edit Engine. You have full context of the user\'s current file and code. IMPORTANT: Your code blocks are AUTO-APPLIED to disk with backup. Rules: 1) ALWAYS provide COMPLETE file content, never partial 2) Include filename before each code block 3) Use correct language tags 4) One code block per file 5) Reference their actual code 6) Be specific and actionable. TOOLS: When the user asks about file content you do not already have, request it with an ide_script block instead of guessing. Format: triple-backtick + ide_script + newline + {"command":"ide_read_file","args":{"file_path":"App.css"}} + newline + triple-backtick. The IDE will auto-execute and feed you the content. NEVER output bare JSON outside an ide_script fence - it will be shown to the user as text and confuse them. Available: ide_read_file (file_path), ide_search (query), ide_analyse (file_path).' },
               { role: 'user', content: fullMessage }
             ],
             max_tokens: cfg.maxTokens || 4000
@@ -9804,6 +9862,11 @@ try {
                 const textBefore = aiResp.substring(0, blockStart);
                 const textAfter = blockEnd >= 0 ? aiResp.substring(blockEnd + 3) : '';
                 const resultJson = JSON.stringify(result, null, 2);
+                // X02 GUARD: prevent AutoApply from writing tool-result JSON back to disk.
+                // Mirrors the pattern in projectFolderContextMenu.ts:1156-1162.
+                // The 1500ms window covers chat render + MutationObserver + auto-apply setTimeout chain.
+                (window as any).__analysisMode = true;
+                setTimeout(() => { (window as any).__analysisMode = false; }, 1500);
                 aiResp = textBefore + '**IDE Script Result** (' + cmd + '):\n```json\n' + resultJson + '\n```' + textAfter;
               }
             }
@@ -12307,3 +12370,6 @@ setTimeout(() => {
   };
   
 }, 2000);
+
+// Auto-mount the AI response language selector (self-retries until ready)
+try { mountLanguageSelector(); /* x02-lang-mount */ } catch (e) { /* selector retries internally */ }

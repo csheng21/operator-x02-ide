@@ -1,4 +1,4 @@
-﻿// src/fileOperations/buildSystemIntegration.ts
+// src/fileOperations/buildSystemIntegration.ts
 // Build System Integration - With Animated Text Progress & Smart Error Suggestions
 // Uses same terminal as fileRunner.ts - integrated-terminal-output
 // Updated with Preview Tab Integration & Terminal Error Badge
@@ -3338,7 +3338,31 @@ export async function runProject(buildSystem?: BuildSystem): Promise<BuildResult
   
   termHeader('>>', `Running with ${buildSystem.displayName}`, projectName);
   termCommand(runCommand);
-  
+
+  // Ensure dependencies are installed before starting a dev server.
+  // Fresh scaffolds have no node_modules, so vite/next is not found and
+  // the dev command fails instantly. Mirrors the install block in buildProject.
+  if (isDevServer && buildSystem.installCommand) {
+    const needsInstall = await checkNeedsInstall(projectPath, buildSystem);
+    if (needsInstall) {
+      termLine("Installing dependencies (first run)...", "#9cdcfe");
+      termCommand(buildSystem.installCommand);
+      startProgress("Installing packages", "spinner");
+      const installResult = await executeCommand(buildSystem.installCommand, projectPath);
+      stopProgress();
+      if (installResult.output) {
+        const __ilines = installResult.output.split("\n").filter(l => l.trim());
+        __ilines.slice(0, 3).forEach(line => termLine(line, "#6a737d"));
+        if (__ilines.length > 3) termLine(`... ${__ilines.length - 3} more lines`, "#4a4a4a");
+      }
+      if (installResult.exitCode !== 0) {
+        termLine("Dependency install failed - cannot start dev server", "#f85149");
+        return { success: false, output: installResult.output || "", error: "Dependency install failed", duration: 0, exitCode: installResult.exitCode || 1 };
+      }
+      termLine("Dependencies installed", "#3fb950");
+    }
+  }
+
   if (isDevServer) {
     // Use streaming for dev servers
     return await runDevServer(runCommand, projectPath);
@@ -3402,6 +3426,11 @@ async function runDevServer(command: string, workingDir: string): Promise<BuildR
   
   // Detect likely port from command or defaults
   const port = detectPort(command, workingDir);
+
+  // Free the target port first: a dev server left running from a previous session or
+  // project keeps the port (e.g. 5173) and makes the preview show the OLD app. Clearing
+  // it lets the new server bind the expected port that the preview opens.
+  await freePort(port, workingDir);
   
   try {
     // Start the process (don't await - it won't return for long-running processes)
@@ -3413,7 +3442,7 @@ async function runDevServer(command: string, workingDir: string): Promise<BuildR
     
     // Race between command output and timeout
     const timeoutPromise = new Promise<{timeout: true}>((resolve) => {
-      setTimeout(() => resolve({ timeout: true }), 5000); // 5 second timeout
+      setTimeout(() => resolve({ timeout: true }), 12000); // 12s - give Vite/webpack time to print its real URL before we fall back to the guessed port
     });
     
     const result = await Promise.race([executePromise, timeoutPromise]);
@@ -3521,6 +3550,9 @@ function detectPort(command: string, workingDir: string): number {
   }
   
   // Default ports by framework
+  // 'npm run dev' / 'yarn dev' / 'pnpm dev' do not contain the framework name;
+  // in this IDE scaffolded projects are Vite, whose dev server is 5173.
+  if (/\b(run\s+)?dev\b/.test(command) && !command.includes('next') && !command.includes('nuxt')) return 5173;
   if (command.includes('vite')) return 5173;
   if (command.includes('next')) return 3000;
   if (command.includes('nuxt')) return 3000;
@@ -3634,6 +3666,26 @@ async function stopDevServer(): Promise<void> {
       // Process may already be stopped
     }
     devServerProcess = null;
+  }
+}
+
+// Best-effort: terminate whatever process is currently LISTENING on `port` so a stale dev
+// server (e.g. a previous project still on 5173) cannot keep the port. Scoped to the single
+// port, time-boxed, and never throws \u2014 if it fails the new server may just pick another port.
+async function freePort(port: number, workingDir: string): Promise<void> {
+  try {
+    const cmd =
+      'powershell -NoProfile -Command "' +
+      `Get-NetTCPConnection -LocalPort ${port} -State Listen -ErrorAction SilentlyContinue | ` +
+      'Select-Object -ExpandProperty OwningProcess -Unique | ' +
+      'ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }"';
+    await Promise.race([
+      invoke('execute_build_command', { command: cmd, workingDir: workingDir || '.', streamOutput: false }),
+      new Promise<void>((r) => setTimeout(r, 4000)),  // never block startup more than ~4s
+    ]);
+    console.log(`[BuildSystem] Freed port ${port} (cleared any stale listener) before starting dev server`);
+  } catch (e) {
+    console.warn('[BuildSystem] freePort best-effort failed:', e);
   }
 }
 

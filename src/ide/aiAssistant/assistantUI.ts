@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // INTEGRATED VERSION - IDE Message Styles (January 24, 2026)
 // Added:
 //   - 🎨 ideMessageStyles import (line ~52)
@@ -61,6 +61,7 @@ import './messageUI_collapse_styles.css';
 // 🎨 IDE MESSAGE STYLES - Compact, professional formatting
 import { initializeIDEMessageStyles } from './ideMessageStyles';
 import { transformContentForIDE, postProcessHTML } from './ideMarkdownTransformer';
+import { isAboutIDE, X02_KNOWLEDGE } from '../x02Knowledge';
 
 // ============================================================================
 // ⚡ INSTANT TERMINAL ERROR SOLUTIONS
@@ -1090,6 +1091,57 @@ export function getProviderInfo(provider: string): { icon: string; name: string;
   }
   
   return providers.custom;
+}
+
+// ============================================================================
+// 👁️ VISION CAPABILITY CHECK
+// ============================================================================
+
+/**
+ * Returns true if the given provider+model can actually SEE images.
+ * Conservative: only returns false for providers/models known to be text-only
+ * (so we never wrongly block a real vision model). operator_x02 / x02-coder is
+ * text-only (proxy reports Vision off), as is DeepSeek and base Groq/Ollama text models.
+ */
+export function isVisionCapableModel(provider: string, model: string): boolean {
+  const p = (provider || '').toLowerCase();
+  const m = (model || '').toLowerCase();
+
+  // Hard NO: operator_x02 / x02-coder is text-only (proxy: Vision off)
+  if (p.includes('operator') && p.includes('x02')) return false;
+  if (m.includes('x02-coder') || m.includes('x02coder')) return false;
+
+  // Hard NO: DeepSeek has no vision models
+  if (p.includes('deepseek')) return false;
+
+  // Provider-level YES for vision-first providers
+  if (p.includes('gemini')) return true;
+  if (p.includes('claude') || p.includes('anthropic')) {
+    if (m.includes('claude-2') || m.includes('instant')) return false;
+    return true;
+  }
+  if (p.includes('openai')) {
+    if (m.includes('3.5') || m.includes('gpt-3')) return false;
+    if (m.includes('4o') || m.includes('4.1') || m.includes('4-turbo') ||
+        m.includes('4-vision') || /\bo[1-9]/.test(m) || m.includes('gpt-4')) return true;
+    return false;
+  }
+
+  // Groq: only its vision-tagged models see images
+  if (p.includes('groq')) {
+    return m.includes('vision') || m.includes('scout') || m.includes('maverick') || m.includes('llava');
+  }
+
+  // Ollama: only llava / vision-tagged local models
+  if (p.includes('ollama')) {
+    return m.includes('llava') || m.includes('vision') || m.includes('bakllava') || m.includes('moondream');
+  }
+
+  // Custom / unknown: trust the model name if it advertises vision; else assume text-only
+  if (m.includes('vision') || m.includes('-vl') || m.includes('llava') || m.includes('4o') || m.includes('gemini')) {
+    return true;
+  }
+  return false;
 }
 
 // ============================================================================
@@ -3006,6 +3058,12 @@ export async function sendMessageDirectly(message: string, overrideConfig?: any,
           enhancedMessage = `${projectContext}${fileContents}\n\n---\n\n${enhancedMessage}`;
           console.log('✅ [ProjectContext] Message enhanced with project context');
         }
+        if (isAboutIDE(message)) {
+          enhancedMessage = enhancedMessage + '\n\n' + X02_KNOWLEDGE;
+          console.log('✅ [X02Knowledge] Appended IDE self-knowledge (identity/product/policy)');
+        }
+        if (false) {
+        }
         
         // 🔍 VISUAL FEEDBACK: Hide scanning indicator with success
         hideAIScanningIndicator(filesReadCount);
@@ -3159,12 +3217,66 @@ export async function sendMessageDirectly(message: string, overrideConfig?: any,
       provider: actualProvider
     });
 
-    // IDE Script Bridge: Execute ide_script commands from AI response
+    // IDE Script Bridge: Execute ide_script commands, then two-pass feedback (Bug B fix)
     if (apiResponse.includes('ide_script') && (window as any).processAiScriptResponse) {
       try {
         const scriptResult = await (window as any).processAiScriptResponse(apiResponse);
-        if (scriptResult.executed > 0) {
-          console.log('[IDE Script] Executed ' + scriptResult.executed + ' command(s), ' + scriptResult.results.filter((r: any) => r.success).length + ' succeeded');
+        const _results = (scriptResult && scriptResult.results) ? scriptResult.results : [];
+        const _hasScripts = scriptResult && (scriptResult.hasScripts || _results.length > 0);
+        const _okResults = _results.filter((r: any) => !r.error && !(r.result && r.result.error));
+        console.log('[IDE Script] Processed ' + _results.length + ' call(s), ' + _okResults.length + ' succeeded');
+
+        if (_hasScripts && _okResults.length > 0) {
+          // Build detailed results for AI feedback
+          const _detailed = _results.map((r: any) => {
+            if (r.error) return { command: r.command, status: 'failed', error: r.error };
+            if (r.result && r.result.error) return { command: r.command, status: 'failed', error: r.result.error };
+            return { command: r.command, status: 'success', data: r.result };
+          });
+
+          const _origMsg = (typeof message === 'string' && message.length > 500)
+            ? message.substring(0, 500) + '...'
+            : (message || '');
+
+          const _feedbackPrompt = 'You are an expert code analyst in Operator X02 Code IDE. ' +
+            'The user asked: ' + _origMsg + '\n\n' +
+            'The IDE Script system executed commands and got these results:\n' +
+            JSON.stringify(_detailed, null, 2) + '\n\n' +
+            'Based on these file contents, fulfill the user\'s original request by writing the COMPLETE updated file. ' +
+            'Rules: 1) Output the ENTIRE file content, never a partial snippet or diff. ' +
+            '2) On the line immediately before the code block, write the exact filename you are updating (e.g. App.tsx). ' +
+            '3) Use one fenced code block with the correct language tag. ' +
+            '4) Do NOT output ide_script blocks and do NOT write analysis - just a short sentence then the full updated file.';
+
+          console.log('[IDE Script] Requesting AI feedback (two-pass) on results...');
+          let _feedbackResp = '';
+          try {
+            _feedbackResp = await callGenericAPI(_feedbackPrompt, config, []);
+          } catch (_fbErr) {
+            console.error('[IDE Script] Feedback call failed:', _fbErr);
+          }
+
+          if (_feedbackResp && _feedbackResp.trim().length > 20) {
+            console.log('[IDE Script] AI feedback received: ' + _feedbackResp.length + ' chars');
+            const _fbId = generateId();
+            const _fbTransformed = transformContentForIDE(_feedbackResp);
+            await addMessageToChat('assistant', _fbTransformed, {
+              shouldSave: false,
+              messageId: _fbId,
+              providerName: currentProvider || config.provider
+            });
+            conversationManager.addMessage('assistant', _feedbackResp, {
+              messageType: 'normal',
+              provider: currentProvider || config.provider
+            });
+            try {
+              if ((window as any).__isAutonomousModeActive === true) {
+                autoApplyCodeFromResponse(_feedbackResp);
+              }
+            } catch (_aaErr) { console.error('Auto-apply (feedback) error:', _aaErr); }
+          } else {
+            console.warn('[IDE Script] Feedback too short or empty, leaving tool result as-is');
+          }
         }
       } catch (scriptErr) {
         console.error('[IDE Script] Execution error:', scriptErr);
@@ -3248,10 +3360,54 @@ async function handleEnhancedSendMessage(): Promise<void> {
   
   console.log('📨 handleEnhancedSendMessage called with:', message.substring(0, 100));
   
+  // 👁️ VISION GUARD: image attached but active model can't see -> warn instead of hallucinating
+  try {
+    const hasImageAttachment = attachedFiles.some((f: any) => f && f.category === 'image');
+    if (hasImageAttachment) {
+      const visCfg = getCurrentApiConfigurationForced();
+      const canSee = isVisionCapableModel(visCfg?.provider || '', visCfg?.model || '');
+      if (!canSee) {
+        const pInfo = getProviderInfo(visCfg?.provider || '');
+        const visModel = visCfg?.model || 'unknown';
+        console.warn('👁️ [VisionGuard] Image attached but ' + pInfo.name + ' (' + visModel + ') is text-only - blocking hallucinated response');
+        const userPreview = (message && message.trim()) ? message.trim() : 'Please analyze the attached image.';
+        await addMessageToChat('user', userPreview, false);
+        const warnMsg =
+          `⚠️ **${pInfo.name} can't read images.** The current model (\`${visModel}\`) is text-only, ` +
+          `so it only receives the file name - not the picture itself. Any description it gives would be guessed, not seen.\n\n` +
+          `To actually analyze this image, switch to a vision-capable provider:\n` +
+          `🟣 **Claude** (Sonnet / Opus)\n` +
+          `🟢 **OpenAI** (GPT-4o / 4.1)\n` +
+          `💎 **Gemini** (1.5 / 2.x)\n\n` +
+          `Tip: you can also send a one-off with a tag, e.g. \`#claude what is this?\``;
+        addSystemMessage(warnMsg);
+        try { showNotification(pInfo.icon + ' ' + pInfo.name + " can't see images - switch to Claude, GPT-4o, or Gemini", 'error'); } catch (_) {}
+        messageInput.value = '';
+        messageInput.style.height = 'auto';
+        try { chatFileDrop?.stopProcessing?.(); } catch (_) {}
+        try { chatFileDrop?.clearFiles?.(); } catch (_) {}
+        return;
+      }
+    }
+  } catch (visErr) {
+    console.warn('👁️ [VisionGuard] check failed (non-fatal), continuing normally:', visErr);
+  }
+  
   // Clear input immediately
   messageInput.value = '';
   messageInput.style.height = 'auto';
   
+  // X02 Build Mode - Early intercept (before AI call)
+  if (message.toLowerCase().startsWith('build preview:')) {
+    if ((window as any).handleBuildPreview) { (window as any).handleBuildPreview(message.slice(14).trim()); return; }
+  }
+  if (message.toLowerCase().startsWith('build:')) {
+    if ((window as any).handleBuildMode) { (window as any).handleBuildMode(message.slice(6).trim()); return; }
+  }
+  if (message.toLowerCase().startsWith('retry:')) {
+    if ((window as any).handleBuildRetry) { (window as any).handleBuildRetry(message.slice(6).trim()); return; }
+  }
+  // END Build Mode intercept
   // ✅ Check for multiple provider tags (chained requests)
   // Example: "#groq how many lines. #gemini review this."
   const isMultiProvider = hasMultipleProviders(message);
@@ -3347,8 +3503,16 @@ async function handleEnhancedSendMessage(): Promise<void> {
   // ✅ Stop file processing animation
   chatFileDrop?.stopProcessing?.();
   
-  // ✅ Clear files after sending
-  chatFileDrop?.clearFiles();
+  // 📌 Keep attached files for follow-up questions: move them from the pending
+  //    (blue) bar into the Context (grey) bar instead of discarding them. The chip
+  //    stays visible, content is preserved in context memory, and getFilesForAI()
+  //    (which only reads pending files) won't re-paste the full content next message.
+  //    Remove a file anytime via the x on its Context chip.
+  if (chatFileDrop?.markAsRead) {
+    chatFileDrop.markAsRead();
+  } else {
+    chatFileDrop?.clearFiles?.();
+  }
 }
 // ============================================================================
 // MAIN INITIALIZATION

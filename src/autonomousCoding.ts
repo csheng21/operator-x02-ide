@@ -1,7 +1,7 @@
 // autonomousCoding.ts - Enhanced Autonomous Coding System with AI Assistant Integration
 // ?? TEMPORARY: UI PANEL DISABLED - Only backend functionality active
 import { showNotification } from './fileSystem';
-
+import { sanitizeExtractedCode } from './ide/codeIntegrityGuard';
 // ? v15: Module load banner - if you see this, the v15 file IS in the build
 
 // ================================================================
@@ -972,6 +972,33 @@ const AUTO_APPLY_ICONS = {
 let autoApplyEnabled = false;
 let lastProcessedBlockId = '';
 let processedBlockIds = new Set<string>();
+let restoredBlockIds = new Set<string>();
+function clearProcessedBlocks(): void {
+  // Reset processed tracking but KEEP restored (already-applied) blocks,
+  // so reloading a saved conversation never re-applies old code on restart.
+  processedBlockIds = new Set<string>(restoredBlockIds);
+}
+
+// ============================================================================
+// STARTUP / RESTORE GUARD for auto-apply.
+// On boot the IDE restores the saved conversation; its old code blocks re-enter
+// the DOM and the MutationObserver would auto-apply them (the "Processing App.tsx"
+// popup on the splash screen, sometimes corrupting the file). Real AI output ALWAYS
+// follows a genuine user action, so we arm auto-apply only after the first trusted
+// user interaction. At that moment we snapshot every code block already on screen as
+// already-processed, so restored blocks never apply; only blocks that arrive AFTER
+// the user acts will be applied.
+let _autoApplyArmed = false;
+function _armAutoApply(): void {
+  if (_autoApplyArmed) return;
+  _autoApplyArmed = true;
+  try { markExistingBlocksAsProcessed(); } catch (e) { /* non-fatal */ }
+  console.log('[AutoApply] Armed by user interaction \u2014 restored blocks snapshotted; future AI output will apply');
+}
+if (typeof window !== 'undefined') {
+  window.addEventListener('pointerdown', (e) => { if ((e as Event).isTrusted) _armAutoApply(); }, true);
+  window.addEventListener('keydown',     (e) => { if ((e as Event).isTrusted) _armAutoApply(); }, true);
+}
 let isTypingInProgress = false;
 let stopTypingFlag = false;
 let lineDelay = 30;
@@ -3472,6 +3499,16 @@ async function processMultiFileApply(): Promise<void> {
     console.log('?? [MultiFile] Auto-apply is disabled');
     return;
   }
+
+  // EXPLANATION GUARD: never apply when the user asked for an explanation.
+  if (allBlocksAreAgentLoop()) {
+    try { getUnprocessedCodeBlocks().forEach(b => processedBlockIds.add(generateBlockId(b))); } catch (e) { /* non-fatal */ }
+    console.log('[MultiFile] Skipped - all blocks are X02 agent-loop (read-only; marked processed)');
+    return;
+  }  if (isExplanationRequest()) {
+    console.log('[MultiFile] Skipped - user asked for an explanation, not a code change');
+    return;
+  }
   
   if (isProcessingMultiFile) {
     return; // Silent skip - already processing
@@ -3527,9 +3564,17 @@ async function processMultiFileApply(): Promise<void> {
     // Group blocks by target file
     const fileBlocks: Map<string, MultiFileApplyItem[]> = new Map();
     
+    const __rawCodeMap = buildRawCodeMapFromMessage();
     let blockNum = 0;
     for (const block of unprocessedBlocks) {
       blockNum++;
+      if (isAgentLoopBlock(block)) {
+        const _alId = generateBlockId(block);
+        processedBlockIds.add(_alId);
+        markBlockAsChecked(block, _alId);
+        console.log('  Skipping: block belongs to an X02 agent-loop message (read-only)');
+        continue;
+      }
       console.log(`\n?? [MultiFile] Analyzing block ${blockNum}/${unprocessedBlocks.length}...`);
       
       const codeInfo = extractCodeFromBlockForApply(block);
@@ -3582,6 +3627,16 @@ async function processMultiFileApply(): Promise<void> {
         detectedFileName = normalizedFileName;
       }
       
+      // ===== PERMANENT FIX: prefer clean source from raw message (additive; falls back to DOM) =====
+      try {
+        const __rawKey = String(detectedFileName).split(/[\\/]/).pop()?.toLowerCase() || '';
+        const __clean = __rawKey ? __rawCodeMap.get(__rawKey) : undefined;
+        if (__clean && __clean.code.trim() && __clean.code !== codeInfo.code) {
+          console.log(`?? [RawSource] Clean source for ${detectedFileName}: ${__clean.code.split('\n').length} lines (DOM scrape was ${codeInfo.code.split('\n').length})`);
+          codeInfo.code = __clean.code;
+        }
+      } catch (e) { console.warn('[RawSource] override skipped:', e); }
+
       // ===== SNIPPET FILTER: Skip tiny code blocks that are just examples =====
       const codeLines = codeInfo.code.trim().split('\n').filter(line => line.trim());
       const minLines = 5; // Minimum lines to be considered a real file update (increased from 3)
@@ -5471,6 +5526,40 @@ interface CodeBlockScore {
   shouldSkip: boolean;
 }
 
+// X02 AGENT-LOOP GUARD: when the current turn is part of the read-only agent
+// loop (the AI is reacting to a [X02 TOOL RESULT] feedback message, or just
+// emitted an @@X02_ tool sentinel), its code blocks must NEVER be auto-applied.
+// The agent loop is for READING the project, not editing it.
+function isAgentLoopTurn(): boolean {
+  try {
+    const msgs = document.querySelectorAll('.user-message, .human-message, [class*="user-msg"], [data-role="user"], .ai-message, .assistant-message, [data-role="assistant"]');
+    const start = msgs.length - 1;
+    const stop = Math.max(0, msgs.length - 3);
+    for (let i = start; i >= stop; i--) {
+      const t = (msgs[i] && msgs[i].textContent) || '';
+      if (t.indexOf('[X02 TOOL RESULT]') !== -1) return true;
+      if (t.indexOf('@@X02_') !== -1) return true;
+    }
+  } catch (e) { /* ignore */ }
+  return false;
+}
+function isAgentLoopBlock(block: HTMLElement | null): boolean {
+  if (!block) return false;
+  try {
+    const msg = block.closest('.message, .ai-message, .assistant-message, .user-message, .human-message, [class*="message"]') as HTMLElement | null;
+    const t = (msg && msg.textContent) || '';
+    if (t.indexOf('[X02 TOOL RESULT]') !== -1) return true;
+    if (t.indexOf('@@X02_') !== -1) return true;
+  } catch (e) { /* ignore */ }
+  return false;
+}
+function allBlocksAreAgentLoop(): boolean {
+  try {
+    const blocks = getUnprocessedCodeBlocks();
+    if (!blocks || blocks.length === 0) return false;
+    return blocks.every(b => isAgentLoopBlock(b));
+  } catch (e) { return false; }
+}
 function isExplanationRequest(): boolean {
   const userMessages = document.querySelectorAll('.user-message, .human-message, [class*="user-msg"], [data-role="user"]');
   let lastUserMsg = userMessages[userMessages.length - 1];
@@ -5494,7 +5583,7 @@ function isExplanationRequest(): boolean {
   if (/\b(code\s*)?line\s*\d+/i.test(msgText)) return true;
   if (/what('s| is)\s+(on\s+)?line/i.test(msgText)) return true;
   
-  const explanationKeywords = ['explain', 'what is', 'what does', 'why does', 'how does', 'tell me about', 'describe', 'meaning of', 'understand', 'clarify', 'show me line', 'what\'s line', 'line number'];
+  const explanationKeywords = ['explain', 'what is', 'what does', 'why does', 'how does', 'tell me about', 'describe', 'meaning of', 'understand', 'clarify', 'show me line', 'what\'s line', 'line number', 'analyze', 'analyse', 'review', 'summarize', 'summarise', 'overview', 'walk me through', 'project structure', 'what files', 'list the files', 'show me the project', 'show me the structure'];
   const modificationKeywords = ['fix', 'update', 'change', 'modify', 'improve', 'refactor', 'rewrite', 'add', 'remove', 'delete', 'replace', 'create', 'make', 'build', 'write', 'generate'];
   
   for (const keyword of modificationKeywords) {
@@ -5850,6 +5939,12 @@ function selectBestCodeBlock(blocks: HTMLElement[]): HTMLElement | null {
   
   if (skippedBlocks.length > 0) {
     console.log(`   ?? Skipping ${skippedBlocks.length} blocks`);
+    // FIX: consume permanently-unusable blocks so the periodic+forceApply timers stop re-finding the same block
+    try {
+      skippedBlocks
+        .filter(b => !b.reasons.some(r => r.includes('WILL AUTO-OPEN')))
+        .forEach(b => { if (b.block) processedBlockIds.add(generateBlockId(b.block)); });
+    } catch (e) { /* non-fatal */ }
   }
   
   if (validBlocks.length === 0) {
@@ -5883,7 +5978,8 @@ function selectBestCodeBlock(blocks: HTMLElement[]): HTMLElement | null {
   
   const isAutoOpenBlock = best.reasons.some(r => r.includes('WILL AUTO-OPEN'));
   
-  if (best.score < MIN_SCORE_TO_APPLY && !isAutoOpenBlock) {
+  const isPlainExample = best.reasons.some(r => r.includes('PLAINTEXT (example)'));
+  if ((best.score < MIN_SCORE_TO_APPLY && !isAutoOpenBlock) || isPlainExample) {
     console.log(`   ?? Best score (${best.score}) below threshold`);
     showAutoApplyToast('?? Skipped: No suitable code block', 'success');
     blocks.forEach(b => processedBlockIds.add(generateBlockId(b)));
@@ -6017,6 +6113,45 @@ function getUnprocessedCodeBlocks(): HTMLElement[] {
   console.log(`?? [GetBlocks] Total: ${unprocessed.length} unprocessed blocks`);
   
   return unprocessed;
+}
+
+// ============================================================================
+// RESTORED-CONVERSATION GUARD
+// ============================================================================
+// processedBlockIds is in-memory only and resets on every IDE restart.
+// When a saved conversation is re-rendered on startup, its old code blocks
+// re-enter the DOM with no record that they were already applied, so the
+// auto-apply pipeline re-processes them ("Full replace via fallback" on boot).
+//
+// markExistingBlocksAsProcessed() scans whatever code blocks are currently in
+// the DOM and registers their IDs as already-processed. Call this right after
+// the render coordinator finishes hydrating a saved conversation. Blocks that
+// arrive LATER (live AI streaming) are not in the DOM yet, so they remain
+// eligible for auto-apply as normal.
+export function markExistingBlocksAsProcessed(): number {
+  const blocks = document.querySelectorAll(
+    '.cbe-wrapper, .muf-block, pre:has(code), .code-content-wrapper:has(pre), pre'
+  );
+  let marked = 0;
+  blocks.forEach(block => {
+    const el = block as HTMLElement;
+    // Skip pre elements already inside enhanced wrappers (avoid double-id)
+    if (el.tagName === 'PRE' && (el.closest('.muf-block') || el.closest('.cbe-wrapper'))) return;
+    const blockId = generateBlockId(el);
+    if (!processedBlockIds.has(blockId)) {
+      processedBlockIds.add(blockId);
+      restoredBlockIds.add(blockId);
+      marked++;
+    }
+  });
+  if (marked > 0) {
+    console.log(`?? [RestoreGuard] Marked ${marked} restored block(s) as processed (will not auto-apply on restart)`);
+  }
+  return marked;
+}
+
+if (typeof window !== 'undefined') {
+  (window as any).markExistingBlocksAsProcessed = markExistingBlocksAsProcessed;
 }
 
 // ============================================================================
@@ -6177,6 +6312,49 @@ async function applySmartUpdate(newCode: string): Promise<{ success: boolean; me
     }
     
     // ??? DESTRUCTIVE CHANGE GUARD ? block if AI would delete most of the file
+    // FLATTENING-COLLAPSE GUARD - catch newline-stripped code that keeps most
+    // of the characters but crams them into far fewer lines (e.g. 298 -> 55).
+    // The ratio guard below only fires at >95% deletion, so an ~81% line
+    // collapse that preserved ~87% of the characters slipped through and
+    // overwrote a good file. Detect the flattening signature explicitly.
+    const _oldChars = oldCode.length;
+    const _newChars = newCode.length;
+    const _avgOldLen = _oldChars / Math.max(oldLines.length, 1);
+    const _avgNewLen = _newChars / Math.max(newLines.length, 1);
+    if (
+      oldLines.length > 20 &&
+      newLines.length < oldLines.length * 0.5 &&
+      _newChars >= _oldChars * 0.6 &&
+      _avgNewLen > _avgOldLen * 2.5
+    ) {
+      const _keepPct = ((_newChars / Math.max(_oldChars, 1)) * 100).toFixed(0);
+      const _linePct = ((newLines.length / Math.max(oldLines.length, 1)) * 100).toFixed(0);
+      console.warn(
+        '[SAFETY] BLOCKED flattening collapse!\n' +
+        '   Original: ' + oldLines.length + ' lines / ' + _oldChars + ' chars\n' +
+        '   New code: ' + newLines.length + ' lines / ' + _newChars + ' chars\n' +
+        '   Keeps ' + _keepPct + '% of chars in only ' + _linePct + '% of the lines.\n' +
+        '   Looks like newline-stripped code, not a real edit. Rejecting auto-apply.'
+      );
+      showAutoApplyToast(
+        'BLOCKED: the code to apply lost its line breaks (' + newLines.length +
+        ' lines vs ' + oldLines.length + ' in your file) but kept the text. ' +
+        'This is corruption, not a fix - your file was NOT changed.',
+        'error'
+      );
+      if (surgicalPipeline.isActive()) {
+        surgicalPipeline.fail(3 as any, 'Blocked: flattening collapse ' + newLines.length + '/' + oldLines.length + ' lines');
+        surgicalPipeline.end(false);
+      }
+      isTypingInProgress = false;
+      originalCodeBeforeApply = '';
+      pendingNewCode = '';
+      return {
+        success: false,
+        message: 'Blocked: code lost its line breaks (' + newLines.length + ' lines vs ' + oldLines.length + '). Corruption, not applied.'
+      };
+    }
+
     const deletionRatio = deleted / Math.max(oldLines.length, 1);
     const sizeRatio = newLines.length / Math.max(oldLines.length, 1);
     if (oldLines.length > 20 && (deletionRatio > 0.95 || sizeRatio < 0.05)) {
@@ -6429,7 +6607,7 @@ export function toggleAutoApply(showDialogNotification: boolean = false): boolea
       showAutoApplyToast('?? Auto Mode ON', 'success');
     }
     console.log('?? [Autonomous] Enabled');
-    processedBlockIds.clear();
+    clearProcessedBlocks();
     lastProcessedBlockId = '';
     
     // ? When Auto Mode is ON, also turn ON Project Search
@@ -6475,7 +6653,7 @@ export function setAutoApply(enabled: boolean): void {
   }
   
   if (enabled) {
-    processedBlockIds.clear();
+    clearProcessedBlocks();
     lastProcessedBlockId = '';
     
     // ? When Auto Mode is ON, also turn ON Project Search
@@ -6618,6 +6796,13 @@ async function autoApplyNewCodeBlock(block: HTMLElement | null = null): Promise<
       return;
     }
   }
+  // STARTUP / RESTORE GUARD: never auto-apply until the user has interacted this
+  // session. During the boot/restore phase no trusted interaction has happened, so
+  // restored conversation blocks are skipped instead of being re-applied on the splash.
+  if (!_autoApplyArmed) {
+    console.log('[AutoApply] Skipped - IDE still loading / no user interaction yet (restore guard)');
+    return;
+  }
   // X02: Skip if block is inside an analysis result (Quick/Deep Analyze output)
   if (block && block.closest("[data-analysis-result]")) {
     console.log("[AutoApply] Skipped - inside analysis result");
@@ -6628,6 +6813,24 @@ async function autoApplyNewCodeBlock(block: HTMLElement | null = null): Promise<
   if (!autoApplyEnabled) {
     return; // Disabled
   }
+
+  // ===== EXPLANATION GUARD =====
+  // Never auto-apply when the user asked the AI to EXPLAIN/describe something
+  // rather than change code. Explanation responses contain illustrative code
+  // blocks (e.g. a "How to Run" bash snippet, file examples) that must not be
+  // applied to the open file. isExplanationRequest() inspects the last user
+  // message for explanation vs modification intent.
+  if (allBlocksAreAgentLoop()) {
+    // FIX: consume current blocks so the MutationObserver does not re-scan them
+    // every tick (read-only turn never applies, but must still mark-processed or it loops).
+    try { getUnprocessedCodeBlocks().forEach(b => processedBlockIds.add(generateBlockId(b))); } catch (e) { /* non-fatal */ }
+    console.log('[AutoApply] Skipped - all blocks are X02 agent-loop (read-only; marked processed)');
+    return;
+  }  if (isExplanationRequest()) {
+    console.log('[AutoApply] Skipped - user asked for an explanation, not a code change');
+    return;
+  }
+  // ===== END EXPLANATION GUARD =====
   
   if (isTypingInProgress) {
     return; // Typing in progress
@@ -6646,6 +6849,12 @@ async function autoApplyNewCodeBlock(block: HTMLElement | null = null): Promise<
       const targetFiles = new Map<string, HTMLElement[]>();
       
       for (const blk of unprocessedBlocks) {
+        if (isAgentLoopBlock(blk)) {
+          const _alId = generateBlockId(blk);
+          processedBlockIds.add(_alId);
+          markBlockAsChecked(blk, _alId);
+          continue;
+        }
         // GUARD: skip ide_script blocks before any extraction
         const _blkLang = (blk.getAttribute('data-language') || blk.getAttribute('data-lang') || blk.className || '').toLowerCase();
         if (_blkLang.includes('ide_scrip') || _blkLang.includes('ide_script')) continue;
@@ -6712,7 +6921,7 @@ async function autoApplyNewCodeBlock(block: HTMLElement | null = null): Promise<
     // Mark the message as processed FIRST to prevent re-clearing
     markMessageProcessed();
     // Then clear for this new message
-    processedBlockIds.clear();
+    clearProcessedBlocks();
     console.log('?? [AutoApply] New message - cleared processed blocks');
   }
   
@@ -6884,6 +7093,44 @@ function getMonacoEditorForApply(): any {
   if (!monaco?.editor) return null;
   const editors = monaco.editor.getEditors();
   return editors?.find((e: any) => e.hasTextFocus()) || editors?.[0] || null;
+}
+
+function buildRawCodeMapFromMessage(): Map<string, { code: string; language: string }> {
+  const map = new Map<string, { code: string; language: string }>();
+  try {
+    const cm = (window as any).conversationManager;
+    const conv = cm?.getCurrentConversation?.();
+    const msgs: any[] = conv?.messages || [];
+    if (!msgs.length) return map;
+    let raw = '';
+    for (let i = msgs.length - 1; i >= 0; i--) {
+      const m = msgs[i] || {};
+      const role = String(m.role || m.sender || m.type || '').toLowerCase();
+      const content = String(m.content || m.text || '');
+      if (role.indexOf('assist') !== -1 && content.indexOf('```') !== -1) { raw = content; break; }
+    }
+    if (!raw) return map;
+    const fnRe = /([a-zA-Z0-9_\-./\\]+\.(?:tsx?|jsx?|py|rs|css|scss|html?|json|xml|vue|svelte|go|rb|php|cs|java|c|h|cpp|hpp|ino|pde|md|ya?ml|sh|toml|cfg|ini))/ig;
+    const fence = /```([a-zA-Z0-9_+\-]*)[^\n]*\n([\s\S]*?)```/g;
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = fence.exec(raw)) !== null) {
+      const language = String(match[1] || 'plaintext').toLowerCase();
+      const code = match[2].replace(/[\s\uFEFF]+$/, '');
+      const preceding = raw.slice(lastIndex, match.index);
+      lastIndex = fence.lastIndex;
+      const names = preceding.match(fnRe);
+      if (!names || !names.length) continue;
+      const base = String(names[names.length - 1]).split(/[\\/]/).pop();
+      if (base && code.trim()) {
+        map.set(base.toLowerCase(), { code, language });
+      }
+    }
+    if (map.size) console.log(`?? [RawSource] Parsed ${map.size} clean code block(s) from message`);
+  } catch (e) {
+    console.warn('[RawSource] buildRawCodeMapFromMessage failed:', e);
+  }
+  return map;
 }
 
 function extractCodeFromBlockForApply(block: HTMLElement): { code: string; language: string } | null {
@@ -7118,6 +7365,7 @@ function extractCodeFromBlockForApply(block: HTMLElement): { code: string; langu
     }
   }
   
+  code = sanitizeExtractedCode(code, block.getAttribute('data-file') || block.getAttribute('data-filename') || '(block)');
   return { code, language };
 }
 
@@ -8819,7 +9067,7 @@ if (typeof window !== 'undefined') {
     
     // ? When Auto Mode is ON, also turn ON Project Search
     if (enabled) {
-      processedBlockIds.clear();
+      clearProcessedBlocks();
       lastProcessedBlockId = '';
       
       // Auto-enable Project Search
@@ -8907,7 +9155,7 @@ if (typeof window !== 'undefined') {
   (window as any).resetMultiFileProcessing = () => {
     console.log('?? [MultiFile] Manual reset triggered');
     isProcessingMultiFile = false; (window as any).surgicalBridge?.exitMultiFileGuard();
-    processedBlockIds.clear();
+    clearProcessedBlocks();
     const bar = document.querySelector('.aca-confirm-bar, #aca-confirm-bar, .multi-file-confirm-bar');
     if (bar) bar.remove();
     hasUnapprovedChanges = false;
@@ -8929,7 +9177,7 @@ if (typeof window !== 'undefined') {
   
   (window as any).resumeAutonomousAfterMultiFile = () => {
     console.log('?? [AutoApply] Resuming after multi-file processing');
-    processedBlockIds.clear();
+    clearProcessedBlocks();
   };
 }
 

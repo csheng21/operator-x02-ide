@@ -22,8 +22,8 @@ const BINARY_EXTENSIONS = new Set([
   'zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'iso',
   // Executables
   'exe', 'dll', 'so', 'dylib', 'bin', 'msi', 'dmg', 'apk',
-  // Office (binary formats)
-  'doc', 'xls', 'ppt',
+  // Office (binary + modern OOXML formats)
+  'doc', 'xls', 'ppt', 'docx', 'xlsx', 'pptx',
   // Fonts
   'ttf', 'otf', 'woff', 'woff2', 'eot',
   // Database & Compiled

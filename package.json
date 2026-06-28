@@ -22,8 +22,14 @@
     "@tensorflow-models/coco-ssd": "^2.2.3",
     "@tensorflow-models/mobilenet": "^2.1.1",
     "@tensorflow/tfjs": "^4.22.0",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/addon-web-links": "^0.12.0",
+    "@xterm/xterm": "^6.0.0",
+    "mammoth": "^1.12.0",
     "monaco-editor": "^0.54.0",
-    "tesseract.js": "^6.0.1"
+    "pdfjs-dist": "^6.0.227",
+    "tesseract.js": "^6.0.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.8.4",

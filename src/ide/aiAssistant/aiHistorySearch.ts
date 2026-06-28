@@ -1,4 +1,4 @@
-﻿// src/ide/aiAssistant/aiHistorySearch.ts
+// src/ide/aiAssistant/aiHistorySearch.ts
 // AI Intelligent History Search - Advanced Conversation Memory System
 // Version: 3.0 - MAJOR UPGRADE
 // 
@@ -834,7 +834,7 @@ const HISTORY_TRIGGER_PATTERNS = {
     /\b(the|that|my)\s*(file|component|module|package|library)\s*(we|you|I)?\b/i,
     /\b(in|from)\s*(the|that|which)\s*(file|component|module)\b/i,
     /\b(\.ts|\.js|\.tsx|\.jsx|\.py|\.rs|\.cpp|\.c|\.java|\.go)\s*(file)?\s*(we|you)?\b/i,
-    /\b(main|index|app|config|utils|helpers)\s*(\.ts|\.js|\.py)?\s*(file)?\b/i,
+    /\b(main|index|app|config|utils|helpers)\s*(\.ts|\.js|\.py)\b/i,
     /\bwhat\s*(file|component|module)\s*(was|is|did)\b/i,
     
     // === API & BACKEND REFERENCES ===
@@ -874,7 +874,7 @@ const HISTORY_TRIGGER_PATTERNS = {
     // === FRAMEWORK & LIBRARY REFERENCES ===
     /\b(react|vue|angular|svelte|next|nuxt|gatsby)\s*(app|project|code|issue)?\b/i,
     /\b(node|express|fastify|nest|django|flask|spring)\s*(app|server|issue)?\b/i,
-    /\b(typescript|javascript|python|rust|go|java)\s*(code|error|issue)?\b/i,
+    /\b(typescript|javascript|python|rust|go|java)\s+(code|error|issue|file|function|bug|version)\b/i,
     /\b(tauri|electron|flutter|react\s*native)\s*(app|issue)?\b/i,
     
     // === CONFIG & SETUP REFERENCES ===
@@ -923,6 +923,28 @@ const HISTORY_TRIGGER_PATTERNS = {
 };
 
 function shouldSearchHistory(message: string): { should: boolean; reason: string } {
+  // Strip box-drawing / banner noise before trigger-matching. The IDE welcome
+  // banner and ASCII art contain words that falsely trip the explicit-reference
+  // patterns. Blank line-art chars, then drop lines that are mostly non-alnum.
+  message = String(message || '')
+    .replace(/[\u2500-\u257F\u2580-\u259F\u25A0-\u25FF\u2190-\u21FF\u2022\u00A6]/g, ' ')
+    .split(/\r?\n/)
+    .filter(function (line) {
+      const t = line.trim();
+      if (!t) return false;
+      const alnum = (t.match(/[a-zA-Z0-9]/g) || []).length;
+      return alnum >= 3 && alnum >= t.length * 0.3;
+    })
+    .join(String.fromCharCode(10));
+  // Agent-loop and system-generated messages must never pull history.
+  // They are machine continuations, not user references to past chats;
+  // letting them through spirals the reference counts on every turn.
+  if (/^\s*(\[X02 TOOL RESULT\]|\[PROJECT CONTEXT\]|=== IMPORTANT: PREVIOUS CONVERSATION|I ran this command in my terminal)/i.test(message)) {
+    if (CONFIG.debug) {
+      console.log('[AI History] Skipped - system/agent-loop message');
+    }
+    return { should: false, reason: 'System or agent-loop message - no history search' };
+  }
   // 🔍 DEBUG: Log what we're checking
   if (CONFIG.debug) {
     console.log(`[AI History] 🔍 Checking triggers for: "${message.substring(0, 50)}..."`);

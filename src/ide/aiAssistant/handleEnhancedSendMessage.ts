@@ -30,8 +30,11 @@ async function handleEnhancedSendMessage(): Promise<void> {
     }
   }
   
-  // Check for project creation
-  if (isProjectCreationRequest(originalMessage)) {
+  // Check for project creation. When AI Search is ON the agent-loop handles
+  // build requests via @@X02_NEW_PROJECT, so the manual scaffolding UI would be
+  // redundant - skip it. When AI Search is OFF the manual UI is the only path.
+  const aiSearchOn = (window as any).aiSearchEnabled === true;
+  if (!aiSearchOn && isProjectCreationRequest(originalMessage)) {
     await handleProjectScaffoldingRequest(originalMessage, messageInput);
     attachedFiles = [];
     updateAttachmentDisplay();

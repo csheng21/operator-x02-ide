@@ -205,6 +205,13 @@ export async function refreshFileTree(): Promise<void> {
  * Load directory recursively - builds proper tree structure
  * NOTE: Tauri v2 readDir only returns name, we must construct full path
  */
+// Folders we show in the tree but never walk into. They hold thousands of files
+// (node_modules alone is ~4000) and recursing them makes the file tree crawl.
+const IGNORE_WALK_DIRS = new Set([
+  'node_modules', '.git', '.svn', '.hg', 'dist', 'build', 'out',
+  'target', '.vite', '.next', '.nuxt', '.cache', 'coverage', '.idea'
+]);
+
 async function loadDirectoryRecursive(dirPath: string): Promise<any[]> {
   try {
     const { readDir } = await import('@tauri-apps/plugin-fs');
@@ -232,9 +239,15 @@ async function loadDirectoryRecursive(dirPath: string): Promise<any[]> {
         isDirectory: isDirectory
       };
       
-      // For directories, recursively load children
+      // For directories, recursively load children — but DON'T walk heavy folders
+      // like node_modules/.git, which made the tree crawl on big projects.
       if (isDirectory) {
-        node.children = await loadDirectoryRecursive(entryPath);
+        if (IGNORE_WALK_DIRS.has(entryName.toLowerCase())) {
+          node.children = [];     // show the folder, skip walking its contents
+          node.isLazy = true;
+        } else {
+          node.children = await loadDirectoryRecursive(entryPath);
+        }
       }
       
       result.push(node);

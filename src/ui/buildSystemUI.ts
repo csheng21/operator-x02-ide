@@ -1,4 +1,4 @@
-﻿// src/ui/buildSystemUI.ts
+// src/ui/buildSystemUI.ts
 // Build System UI - TOP MENU BAR VERSION
 // FIXED: Styling matches other menu items (File, View, Run, etc.)
 
@@ -482,7 +482,7 @@ function showArduinoCLIInstallDialog(): void {
     <div style="background: #252526; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
       <div style="margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #3c3c3c;">
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-          <span style="color: #89D185; font-size: 16px;">?</span>
+          <span style="color: #89D185; font-size: 16px;">📥</span>
           <span style="color: #89D185; font-weight: bold; font-size: 14px;">Install Arduino CLI</span>
           <span style="color: #fff; font-size: 10px; background: #0e639c; padding: 2px 6px; border-radius: 3px;">Recommended</span>
         </div>
@@ -503,7 +503,7 @@ function showArduinoCLIInstallDialog(): void {
       
       <div>
         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-          <span style="color: #888; font-size: 16px;">?</span>
+          <span style="color: #888; font-size: 16px;">✕</span>
           <span style="color: #888; font-weight: bold; font-size: 14px;">Cancel</span>
         </div>
         <p style="color: #888; margin: 0; font-size: 12px; line-height: 1.4; padding-left: 24px;">
@@ -766,25 +766,30 @@ async function getProjectScripts(): Promise<Record<string, string> | null> {
   if (alreadyDetectedAsNode) return {};
 
   try {
-    const fileSystem = (window as any).fileSystem;
-    if (fileSystem?.readFile) {
-      // Check for Gradle wrapper or build files � strictly in projectPath only, no parent walk
-      let hasGradle = false;
-      try { const _g = await fileSystem.readFile(`${projectPath}/gradlew.bat`); hasGradle = !!_g; } catch { hasGradle = false; } // [X02Fix 3] silent
-      if (!hasGradle) try { await fileSystem.readFile(`${projectPath}/build.gradle.kts`); hasGradle = true; } catch {}
-      if (!hasGradle) try { await fileSystem.readFile(`${projectPath}/build.gradle`); hasGradle = true; } catch {}
-      
-      if (hasGradle) {
-        return {
-          'assembleDebug': 'gradlew assembleDebug',
-          'assembleRelease': 'gradlew assembleRelease',
-          'installDebug': 'gradlew installDebug',
-          'clean': 'gradlew clean',
-          'build': 'gradlew build',
-          'test': 'gradlew test',
-          'lint': 'gradlew lint'
-        };
-      }
+    // Probe for Gradle files with path_exists (silent) instead of readFile.
+    // readFile logs an error internally before throwing when the file is
+    // missing, which spammed the console on every non-Gradle project.
+    const { invoke } = await import('@tauri-apps/api/core');
+    const exists = async (p: string): Promise<boolean> => {
+      try { return await invoke<boolean>('path_exists', { path: p }); }
+      catch { return false; }
+    };
+
+    const hasGradle =
+      await exists(`${projectPath}/gradlew.bat`) ||
+      await exists(`${projectPath}/build.gradle.kts`) ||
+      await exists(`${projectPath}/build.gradle`);
+
+    if (hasGradle) {
+      return {
+        'assembleDebug': 'gradlew assembleDebug',
+        'assembleRelease': 'gradlew assembleRelease',
+        'installDebug': 'gradlew installDebug',
+        'clean': 'gradlew clean',
+        'build': 'gradlew build',
+        'test': 'gradlew test',
+        'lint': 'gradlew lint'
+      };
     }
   } catch {}
 
@@ -1286,22 +1291,22 @@ export function removeBuildSystemIndicator(): void {
  */
 function getScriptStyle(scriptName: string): { icon: string; color: string; priority: number } {
   const styles: Record<string, { icon: string; color: string; priority: number }> = {
-    'dev': { icon: '?', color: '#4EC9B0', priority: 1 },
-    'start': { icon: '?', color: '#4EC9B0', priority: 2 },
-    'serve': { icon: '?', color: '#4EC9B0', priority: 3 },
-    'build': { icon: '?', color: '#CE9178', priority: 10 },
-    'preview': { icon: '??', color: '#89D185', priority: 20 },
-    'test': { icon: '?', color: '#DCDCAA', priority: 30 },
-    'lint': { icon: '?', color: '#569CD6', priority: 40 },
-    'format': { icon: '?', color: '#569CD6', priority: 42 },
-    'clean': { icon: '?', color: '#F48771', priority: 50 },
+    'dev': { icon: '🚀', color: '#4EC9B0', priority: 1 },
+    'start': { icon: '🚀', color: '#4EC9B0', priority: 2 },
+    'serve': { icon: '🌐', color: '#4EC9B0', priority: 3 },
+    'build': { icon: '🔨', color: '#CE9178', priority: 10 },
+    'preview': { icon: '👁️', color: '#89D185', priority: 20 },
+    'test': { icon: '🧪', color: '#DCDCAA', priority: 30 },
+    'lint': { icon: '🔍', color: '#569CD6', priority: 40 },
+    'format': { icon: '✨', color: '#569CD6', priority: 42 },
+    'clean': { icon: '🧹', color: '#F48771', priority: 50 },
   };
   
   if (styles[scriptName]) return styles[scriptName];
   for (const [key, style] of Object.entries(styles)) {
     if (scriptName.includes(key)) return { ...style, priority: style.priority + 100 };
   }
-  return { icon: '�', color: '#888', priority: 200 };
+  return { icon: '📜', color: '#888', priority: 200 };
 }
 
 /**
@@ -1314,21 +1319,21 @@ async function createArduinoDropdownContent(
 ): Promise<void> {
   // Arduino action items
   const arduinoActions = [
-    { icon: '?', label: 'Verify / Compile', action: 'compile', color: '#4EC9B0', shortcut: 'Ctrl+R' },
-    { icon: '?', label: 'Upload', action: 'upload', color: '#89D185', shortcut: 'Ctrl+U' },
+    { icon: '✓', label: 'Verify / Compile', action: 'compile', color: '#4EC9B0', shortcut: 'Ctrl+R' },
+    { icon: '⬆️', label: 'Upload', action: 'upload', color: '#89D185', shortcut: 'Ctrl+U' },
     { divider: true },
-    { icon: '??', label: 'Serial Monitor (Beta)', action: 'serial', color: '#CE9178', shortcut: 'Ctrl+Shift+M' },
-    { icon: '??', label: 'Serial Plotter AI', action: 'plotter', color: '#569CD6' },
-    { icon: '??', label: 'Pin Visualizer', action: 'pin-visualizer', color: '#4EC9B0' },
+    { icon: '📟', label: 'Serial Monitor (Beta)', action: 'serial', color: '#CE9178', shortcut: 'Ctrl+Shift+M' },
+    { icon: '📈', label: 'Serial Plotter AI', action: 'plotter', color: '#569CD6' },
+    { icon: '📌', label: 'Pin Visualizer', action: 'pin-visualizer', color: '#4EC9B0' },
     { divider: true },
-    { icon: '??', label: 'Select Board...', action: 'board', color: '#888' },
-    { icon: '??', label: 'Select Port...', action: 'port', color: '#888' },
+    { icon: '🔲', label: 'Select Board...', action: 'board', color: '#888' },
+    { icon: '🔌', label: 'Select Port...', action: 'port', color: '#888' },
     { divider: true },
-    { icon: '??', label: 'Library Manager', action: 'libraries', color: '#DCDCAA' },
-    { icon: '??', label: 'Board Manager', action: 'boards', color: '#DCDCAA' },
+    { icon: '📚', label: 'Library Manager', action: 'libraries', color: '#DCDCAA' },
+    { icon: '🗂️', label: 'Board Manager', action: 'boards', color: '#DCDCAA' },
     { divider: true },
-    { icon: '??', label: 'CLI Info', action: 'cli-info', color: '#888' },
-    { icon: '???', label: 'Uninstall CLI...', action: 'uninstall-cli', color: '#f48771' },
+    { icon: 'ℹ️', label: 'CLI Info', action: 'cli-info', color: '#888' },
+    { icon: '🗑️', label: 'Uninstall CLI...', action: 'uninstall-cli', color: '#f48771' },
   ];
   
   arduinoActions.forEach(item => {
@@ -1446,7 +1451,7 @@ async function createArduinoDropdownContent(
     background: transparent;
   `;
   infoItem.innerHTML = `
-    <span style="width: 18px; text-align: center; font-size: 14px;">?</span>
+    <span style="width: 18px; text-align: center; font-size: 14px;">ℹ️</span>
     <span>Build System Info</span>
   `;
   infoItem.addEventListener('mouseenter', () => infoItem.style.background = '#094771');
@@ -1724,7 +1729,7 @@ async function showBoardSelectionDialog(): Promise<void> {
       <span style="color: #fff; font-weight: 600; font-size: 15px;">Select Board</span>
     </div>
     <div style="padding: 40px 20px; text-align: center;">
-      <div style="color: #4EC9B0; font-size: 24px; margin-bottom: 12px;">?</div>
+      <div style="color: #4EC9B0; font-size: 24px; margin-bottom: 12px;">⏳</div>
       <div style="color: #888;">Loading boards...</div>
     </div>
   `;
@@ -1869,7 +1874,7 @@ async function showPortSelectionDialog(): Promise<void> {
       <span style="color: #fff; font-weight: 600; font-size: 15px;">Select Port</span>
     </div>
     <div style="padding: 40px 20px; text-align: center;">
-      <div style="color: #4EC9B0; font-size: 24px; margin-bottom: 12px;">?</div>
+      <div style="color: #4EC9B0; font-size: 24px; margin-bottom: 12px;">⏳</div>
       <div style="color: #888;">Scanning ports...</div>
     </div>
   `;
@@ -2567,7 +2572,7 @@ async function showSerialPlotter(): Promise<void> {
   // Close button
   const closeBtn = document.createElement('button');
   closeBtn.style.cssText = 'background:none; border:none; color:#888; font-size:16px; cursor:pointer; padding:2px 6px; line-height:1;';
-  closeBtn.textContent = '�';
+  closeBtn.textContent = '✕';
   closeBtn.title = 'Close';
   closeBtn.onmouseenter = () => { closeBtn.style.color = '#ff5555'; closeBtn.style.background = 'rgba(255,85,85,0.15)'; closeBtn.style.borderRadius = '3px'; };
   closeBtn.onmouseleave = () => { closeBtn.style.color = '#888'; closeBtn.style.background = 'none'; };
@@ -2645,7 +2650,7 @@ async function showSerialPlotter(): Promise<void> {
       plotterContainer.style.display = 'none';
       panel.style.height = 'auto';
       panel.style.resize = 'none';
-      minBtn.textContent = '?';
+      minBtn.textContent = '▢';
       minBtn.title = 'Restore';
       isMinimized = true;
     }
@@ -3466,7 +3471,7 @@ async function createDropdownMenu(buildSystem: any): Promise<HTMLElement> {
     align-items: center;
     gap: 8px;
   `;
-  infoItem.innerHTML = '<span style="font-size: 11px; width: 14px; text-align: center;">?</span><span>Build System Info</span>';
+  infoItem.innerHTML = '<span style="font-size: 11px; width: 14px; text-align: center;">ℹ️</span><span>Build System Info</span>';
   
   infoItem.addEventListener('mouseenter', () => { infoItem.style.background = '#37373d'; infoItem.style.color = '#ccc'; });
   infoItem.addEventListener('mouseleave', () => { infoItem.style.background = 'transparent'; infoItem.style.color = '#888'; });
@@ -3589,7 +3594,7 @@ export async function addBuildSystemIndicator(): Promise<void> {
     ${iconHtml}
     <span style="color: #4EC9B0;">${buildSystem.displayName}</span>
     <span style="color: #888; font-size: 11px;">(${scriptCount} ${countLabel})</span>
-    <span style="color: #888; font-size: 8px; margin-left: 2px;">?</span>
+    <span style="color: #888; font-size: 8px; margin-left: 2px;">▾</span>
   `;
   
   menuButton.title = `${buildSystem.displayName} - ${scriptCount} ${countLabel}`;

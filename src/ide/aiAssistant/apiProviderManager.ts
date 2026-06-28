@@ -1,9 +1,11 @@
-﻿// apiProviderManager.ts - Complete Enhanced Multi-Provider API Management
+import { getLanguageDirective } from '../languageSelector';
+// apiProviderManager.ts - Complete Enhanced Multi-Provider API Management
 // UPDATED: Multi-provider support with Supabase proxy
 
 import { getCurrentApiConfiguration, getProviderDisplayName, saveApiConfiguration, validateApiConfiguration } from '../../state';
 import { isTauriEnvironment, callClaudeViaTauri, callAiApiViaTauri } from "../../utils/tauriApiClient";
 import { buildIntelligentSystemPrompt } from '../../intelligentContextProvider';
+const X02_BUILDER_CONTRACT = "\n\n=== OPERATOR X02 BUILDER CONTRACT ===\nYou produce working deliverables, not just explanations.\nFor any build/create/make-an-app request:\n1. PLAN briefly (2-3 sentences). Do NOT scan project files unless the task needs existing code.\n2. BUILD: output COMPLETE files as fenced code blocks. Begin each block with a path comment, e.g. // path: src/CanScope.jsx. Never partial snippets, never 'rest unchanged'.\n3. HAND OFF: after the files, give the exact steps to run them (create or open project, npm install X, npm run dev).\nIf no project is open, say so and tell the user to open or create one. NEVER scan the IDE's own directory. Be honest about uncertainty rather than guessing. Do the work now rather than offering to do it later.";
 import { getIdeScriptAwarePrompt } from '../ideScriptBridge';
 import { showCalibrationPanel } from '../../calibrationUI';
 import './quickSwitchEffects';
@@ -1196,6 +1198,42 @@ async function callClaudeAPIWithProxy(message: string, config: ApiConfiguration)
  * @param config - Optional API configuration (uses current if not provided)
  * @returns Promise resolving to AI response
  */
+// ============================================================================
+// PROJECT INSPECTION TOOLS â€” system-prompt fragment (paired with the agent
+// loop in ptyTerminal.ts). Teaches the model the @@X02_FS / @@X02_RUN protocol.
+// ============================================================================
+function getTerminalToolsPrompt(): string {
+  return [
+    '',
+    '',
+    '=== PROJECT INSPECTION TOOLS ===',
+    'You can inspect the current project on your own when it helps you answer. Two tools:',
+    '1. Directory structure -> write a single line:  @@X02_FS: <folder path>',
+    '   Omit the path for the project root. Use this for layout and which files exist.',
+    '2. Read-only command -> write a single line:  @@X02_RUN: <command>',
+    '   Use only for what a listing cannot answer: text search (Select-String), git status,',
+    '   file contents (Get-Content), counts, version checks. Commands are READ-ONLY.',
+    '3. Create a new project -> write a single line:  @@X02_NEW_PROJECT: <type> <name>  (type = react, vue, nextjs, or nodejs; default react)',
+    '   When the user asks to BUILD, CREATE, or MAKE an app or project, this is your FIRST action.',
+    '   It scaffolds and opens a runnable React project (src/App.jsx starts with a working counter),',
+    '   then you build what they asked for by editing the project files.',
+    '   IMPORTANT: do NOT use @@X02_FS to check the project first for a build request. The directory',
+    '   tree you can see is the IDE OWN source code, not the user project. A non-empty tree does',
+    '   NOT mean a project is open. A request to build or create or make something means go straight',
+    '   to @@X02_NEW_PROJECT. Use @@X02_FS ONLY when the user asks about EXISTING code they opened.',
+    '',
+    'How to use a tool:',
+    '- Prefer @@X02_FS for structure; use @@X02_RUN only for command output.',
+    '- Write exactly ONE tool line, on its own line, and then STOP. Write nothing after it.',
+    '- The result comes back as the next message starting with [X02 TOOL RESULT].',
+    '- Read it, then answer the user. Request another tool only if you still need one.',
+    '- Keep @@X02_RUN commands short; terminal output can wrap. Never request writes, edits,',
+    '  deletes, installs, moves, or network commands - they are blocked and waste a step.',
+    '- If you already have enough information, just answer. Do not call a tool needlessly.',
+    ''
+  ].join('\n');
+}
+
 export async function callGenericAPI(message: string, config?: ApiConfiguration, messagesWithContext?: Array<{role: string, content: any}>): Promise<string> {
   const apiConfig = config || getCurrentApiConfigurationForced();
   const cleanConfig = ensureProviderConsistency(apiConfig);
@@ -1224,7 +1262,7 @@ export async function callGenericAPI(message: string, config?: ApiConfiguration,
       // 1. System prompt
       proxyMessages.push({
         role: 'system',
-        content: buildIntelligentSystemPrompt() + getIdeScriptAwarePrompt()
+        content: buildIntelligentSystemPrompt() + getIdeScriptAwarePrompt() + getLanguageDirective() + getTerminalToolsPrompt() + X02_BUILDER_CONTRACT
       });
 
       // 2. Conversation history (for context like "yes", "2nd option", etc.)
@@ -1272,6 +1310,17 @@ export async function callGenericAPI(message: string, config?: ApiConfiguration,
         }
       }
 
+      // â”€â”€ Language directive re-assertion (anti-drift) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      // The directive is already in the first system message, but up to 10
+      // history turns are appended after it, and models weight recent turns
+      // heavily â€” so a prior turn in another language can override it. Re-assert
+      // it here, AFTER history and right before the current user message, so
+      // recency favors the SELECTED language. Honors the selector either way.
+      const __langDirective = getLanguageDirective();
+      if (__langDirective && __langDirective.trim()) {
+        proxyMessages.push({ role: 'system', content: __langDirective });
+        console.log('[Proxy] Re-asserted language directive after history');
+      }
       // 4. Current user message
       // 4. Current user message (use multimodal from messagesWithContext if available)
       const lastUserMsg = messagesWithContext?.slice().reverse().find(m => m.role === 'user');
@@ -1467,7 +1516,7 @@ export async function callGenericAPI(message: string, config?: ApiConfiguration,
       // 1. Main system prompt (always use the intelligent one)
       messagesArray.push({
         role: 'system',
-        content: buildIntelligentSystemPrompt() + getIdeScriptAwarePrompt()
+        content: buildIntelligentSystemPrompt() + getIdeScriptAwarePrompt() + getLanguageDirective() + getTerminalToolsPrompt() + X02_BUILDER_CONTRACT
       });
       
       // 2. ✅ NEW: Inject conversation history from messagesWithContext

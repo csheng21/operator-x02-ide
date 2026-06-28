@@ -1,4 +1,4 @@
-﻿// src-tauri/src/main.rs
+// src-tauri/src/main.rs
 // Complete Tauri v2 main.rs with all features including Arduino Integration
 
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
@@ -32,7 +32,7 @@ mod svn_commands;
 use svn_commands::*;
 
 // ================================
-// ðŸ”Œ ARDUINO INTEGRATION MODULE
+// 🔌 ARDUINO INTEGRATION MODULE
 // ================================
 mod arduino_commands;
 use arduino_commands::*;
@@ -50,7 +50,7 @@ mod pi_remote_commands;
 use pi_remote_commands::*;
 
 // ================================
-// ðŸ“Š SERIAL PORT COMMANDS MODULE
+// 📊 SERIAL PORT COMMANDS MODULE
 // ================================
 mod serial_commands;
 use serial_commands::*;
@@ -74,7 +74,7 @@ mod unified_backup_commands;
 use unified_backup_commands::*;
 
 // ================================
-// ðŸ§  IDE SCRIPT COMMANDS MODULE
+// 🧠 IDE SCRIPT COMMANDS MODULE
 // ================================
 mod ide_script_commands;
 use ide_script_commands::*;
@@ -87,6 +87,16 @@ use ide_script_commands_v2::*;
 // ================================
 mod nvidia_commands;
 mod ssh_manager;
+
+// LICENSE VALIDATION MODULE
+mod license_commands;
+use license_commands::*;
+
+// ============================================================================
+// PTY TERMINAL MODULE
+// ============================================================================
+mod pty_commands;
+use pty_commands::*;
 use nvidia_commands::*;
 
 // ================================
@@ -110,7 +120,7 @@ fn create_hidden_command(program: &str) -> Command {
 }
 
 // ================================
-// ðŸ“ OPERATOR X02 HOME FOLDER SETUP
+// 📁 OPERATOR X02 HOME FOLDER SETUP
 // ================================
 
 /// Get the OperatorX02 home directory: C:\Users\{user}\OperatorX02
@@ -137,7 +147,7 @@ fn ensure_app_folders() {
         let path = base.join(folder);
         if !path.exists() {
             if let Err(e) = fs::create_dir_all(&path) {
-                eprintln!("âš ï¸ Failed to create folder {}: {}", path.display(), e);
+                eprintln!("⚠️ Failed to create folder {}: {}", path.display(), e);
             }
         }
     }
@@ -240,7 +250,7 @@ fn save_storage_config(mode: String, path: Option<String>) -> Result<(), String>
 }
 pub fn run() {
     tauri::Builder::default()
-        // âœ… SINGLE INSTANCE PLUGIN - Prevents multiple windows opening
+        // ✅ SINGLE INSTANCE PLUGIN - Prevents multiple windows opening
         .plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
             // When user tries to open second instance, focus the existing window
             if let Some(window) = app.get_webview_window("main") {
@@ -249,7 +259,7 @@ pub fn run() {
             }
         }))
         
-        // âœ… REGISTER OTHER PLUGINS
+        // ✅ REGISTER OTHER PLUGINS
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_shell::init())
@@ -259,7 +269,8 @@ pub fn run() {
         // Register ALL commands
         .manage(ssh_manager::SshState::new())
         .manage(pi_remote_commands::PiState::new())
-        .invoke_handler(tauri::generate_handler![
+        .manage(pty_commands::PtyState::default())
+        .invoke_handler(tauri::generate_handler![run_shell_command,
             // CMD and PowerShell commands
             execute_build_command,
             execute_build_with_context,
@@ -273,6 +284,11 @@ pub fn run() {
             open_folder,
             get_resource_path,
             
+            //
+            validate_license,
+            validate_license_cached,
+            get_license_info,
+            remove_license,
             // Path memory dialog commands
             open_folder_dialog_with_path,
             open_file_dialog_with_path,
@@ -291,6 +307,13 @@ pub fn run() {
             write_clipboard,
             get_os,
             run_command,
+
+            // PTY terminal commands (v1.5.7)
+            pty_spawn,
+            pty_write,
+            pty_resize,
+            pty_kill,
+            pty_list,
             
             // Persistence commands for IDE state
             write_state_file,
@@ -321,7 +344,8 @@ pub fn run() {
             // File operation commands
             create_directory,
             read_file_content,
-            write_file_content,
+            read_file_content,
+                        write_file_content,
             read_directory_simple,
             read_directory_detailed,
             read_directory_contents,
@@ -353,14 +377,14 @@ pub fn run() {
             open_tortoise_svn,
             svn_cleanup,
             
-            // ðŸ” AI File Explorer commands
+            // 🔍 AI File Explorer commands
             ai_search_files,
             ai_search_file_contents,
             ai_list_directory_recursive,
             ai_generate_tree_text,
             create_files_batch,
             
-            // ðŸ”€ Git Integration commands
+            // 🔀 Git Integration commands
             git_check_installed,
             git_is_repo,
             git_is_repo_root,
@@ -393,7 +417,7 @@ pub fn run() {
             git_clone,
             open_tortoise_git,
             
-            // ðŸš€ Git Virtual Scrolling / Batch Operations
+            // 🚀 Git Virtual Scrolling / Batch Operations
             git_stage,
             git_stage_all,
             git_unstage_files,
@@ -405,7 +429,7 @@ pub fn run() {
             git_diff_file,
             git_current_branch,
             
-            // ðŸ†• Git Advanced Features - Stash Manager
+            // 🆕 Git Advanced Features - Stash Manager
             git_stash_list_detailed,
             git_stash_save,
             git_stash_apply,
@@ -414,16 +438,16 @@ pub fn run() {
             git_stash_show_files,
             git_stash_branch,
             
-            // ðŸ†• Git Blame
+            // 🆕 Git Blame
             git_blame,
             
-            // ðŸ†• Git Extended History
+            // 🆕 Git Extended History
             git_log_extended,
             git_show_files,
             git_show,
             git_show_file,
             
-            // ðŸ†• Git Merge Conflict Resolution
+            // 🆕 Git Merge Conflict Resolution
             git_get_conflict_files,
             git_show_version,
             git_resolve,
@@ -431,9 +455,9 @@ pub fn run() {
             git_merge,
             git_cherry_pick,
             
-            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-            // ðŸ”Œ ARDUINO INTEGRATION COMMANDS
-            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+            // ═══════════════════════════════════════════════════════
+            // 🔌 ARDUINO INTEGRATION COMMANDS
+            // ═══════════════════════════════════════════════════════
             
             // Arduino CLI Detection
             arduino_check_cli,
@@ -497,7 +521,7 @@ pub fn run() {
             arduino_list_programmers,
             arduino_debug_check,
             
-            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+            // ═══════════════════════════════════════════════════════
 
             // ANDROID INTEGRATION COMMANDS
             android_check_adb,
@@ -527,8 +551,8 @@ pub fn run() {
             android_reverse_port,
             android_install_adb,
 
-            // ðŸ“Š SERIAL PORT COMMANDS (Monitor & Plotter)
-            // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+            // 📊 SERIAL PORT COMMANDS (Monitor & Plotter)
+            // ═══════════════════════════════════════════════════════
             list_serial_ports,
             serial_read_values,
             serial_read_lines,
@@ -537,7 +561,7 @@ pub fn run() {
             serial_port_info,
             serial_get_baud_rates,
             
-            // ðŸ“ App Folder Commands
+            // 📁 App Folder Commands
             get_app_home_path,
             get_conversations_path,
             get_config_path,
@@ -581,7 +605,7 @@ pub fn run() {
             unified_backup_delete,
             unified_backup_cleanup,
 
-            // ðŸ§  IDE Script Commands (AI high-level operations)
+            // 🧠 IDE Script Commands (AI high-level operations)
             ide_analyse,
             ide_review,
             ide_search,
@@ -676,64 +700,64 @@ pub fn run() {
             save_storage_config,
         ])
          .setup(|app| {
-            // âœ… Create OperatorX02 home folders on first launch
+            // ✅ Create OperatorX02 home folders on first launch
             ensure_app_folders();
             
-            // âœ… Only auto-open DevTools in dev builds (F12 still works in production)
+            // ✅ Only auto-open DevTools in dev builds (F12 still works in production)
             #[cfg(debug_assertions)]
             if let Some(window) = app.get_webview_window("main") {
                 window.open_devtools();
             }
             
             let home_path = get_operator_home();
-            println!("â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
-            println!("ðŸš€ AI Code IDE - Operator X02 Started Successfully!");
-            println!("â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
-            println!("ðŸ“ Home folder: {}", home_path.display());
-            println!("   ðŸ’¬ Conversations: {}", home_path.join("conversations").display());
-            println!("   ðŸ“‚ Projects: {}", home_path.join("projects").display());
-            println!("   ðŸ”Œ Plugins: {}", home_path.join("plugins").display());
-            println!("   ðŸ’¾ Backups: {}", home_path.join("backups").display());
-            println!("   âš™ï¸ Config: {}", home_path.join("config").display());
-            println!("ðŸ”€ Git integration enabled");
-            println!("ðŸš€ Git Virtual Scrolling enabled - handles 6000+ files!");
-            println!("ðŸ“‹ Git Blame integration enabled");
-            println!("ðŸ“œ Git History viewer enabled");
+            println!("═══════════════════════════════════════════════════════");
+            println!("🚀 AI Code IDE - Operator X02 Started Successfully!");
+            println!("═══════════════════════════════════════════════════════");
+            println!("📁 Home folder: {}", home_path.display());
+            println!("   💬 Conversations: {}", home_path.join("conversations").display());
+            println!("   📂 Projects: {}", home_path.join("projects").display());
+            println!("   🔌 Plugins: {}", home_path.join("plugins").display());
+            println!("   💾 Backups: {}", home_path.join("backups").display());
+            println!("   ⚙️ Config: {}", home_path.join("config").display());
+            println!("🔀 Git integration enabled");
+            println!("🚀 Git Virtual Scrolling enabled - handles 6000+ files!");
+            println!("📋 Git Blame integration enabled");
+            println!("📜 Git History viewer enabled");
             println!("âš¡ Git Merge conflict resolution enabled");
-            println!("ðŸ“¦ Git Stash manager enabled");
-            println!("ðŸ—ï¸ Build System Integration enabled!");   
+            println!("📦 Git Stash manager enabled");
+            println!("🏗️ Build System Integration enabled!");   
             println!("   - 40+ build systems supported");   
-            println!("ðŸ¤– AI API backend enabled with Claude integration");
-            println!("ðŸ“¸ Claude Vision API enabled for camera analysis");
-            println!("ðŸ’¾ File creation and execution commands loaded");
-            println!("ðŸ“„ Persistence commands for IDE state loaded");
-            println!("ðŸ“‚ File Explorer integration enabled");
-            println!("ðŸ“¥ Downloads folder quick access enabled");
-            println!("ðŸ“ Path memory support enabled for dialogs");
-            println!("ðŸ“‹ Clipboard support enabled");
-            println!("ðŸ’» Terminal integration enabled");
-            println!("ðŸ–¥ï¸ CMD and PowerShell support added!");
-            println!("ðŸ”„ SVN integration enabled (TortoiseSVN compatible)");
-            println!("ðŸ” AI File Explorer enabled - AI can search and read files");
-            println!("â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
+            println!("🤖 AI API backend enabled with Claude integration");
+            println!("📸 Claude Vision API enabled for camera analysis");
+            println!("💾 File creation and execution commands loaded");
+            println!("📄 Persistence commands for IDE state loaded");
+            println!("📂 File Explorer integration enabled");
+            println!("📥 Downloads folder quick access enabled");
+            println!("📁 Path memory support enabled for dialogs");
+            println!("📋 Clipboard support enabled");
+            println!("💻 Terminal integration enabled");
+            println!("🖥️ CMD and PowerShell support added!");
+            println!("🔄 SVN integration enabled (TortoiseSVN compatible)");
+            println!("🔍 AI File Explorer enabled - AI can search and read files");
+            println!("═══════════════════════════════════════════════════════");
             println!("===============================================================");
             println!("Android Integration Enabled!");
             println!("   - ADB device management (USB + Wi-Fi)");
             println!("   - Logcat viewer with AI analysis");
             println!("   - Gradle build + install + run pipeline");
             println!("   - Android + Arduino IoT bridge");
-            println!("ðŸ”Œ Arduino Integration Enabled!");
+            println!("🔌 Arduino Integration Enabled!");
             println!("   - Arduino CLI support");
             println!("   - CH341/CH340/FTDI/CP210x driver detection");
             println!("   - ESP32/ESP8266/STM32 board support");
             println!("   - Serial Monitor with real-time output");
             println!("   - Core & Library management");
-            println!("â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
-            println!("ðŸ“Š Serial Port Commands Enabled!");
+            println!("═══════════════════════════════════════════════════════");
+            println!("📊 Serial Port Commands Enabled!");
             println!("   - Real-time Serial Monitor");
             println!("   - Serial Plotter with live graphs");
             println!("   - Send/Receive data to Arduino");
-            println!("â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
+            println!("═══════════════════════════════════════════════════════");
             println!("===============================================================");
             println!("[GPU] NVIDIA GPU Detection Enabled!");
             println!("   - nvidia-smi integration");
@@ -746,8 +770,8 @@ pub fn run() {
             println!("   - Auto-backup and rollback support");
             println!("   - Duplicate detection and syntax verification");
             println!("   - AI-integrated editing pipeline");
-            println!("âœ… All plugins registered successfully!");
-            println!("ðŸ”§ All systems operational!");
+            println!("✅ All plugins registered successfully!");
+            println!("🔧 All systems operational!");
             Ok(())
         })
         .run(tauri::generate_context!())
@@ -817,7 +841,7 @@ struct GenericAiRequest {
 // Open CMD at specific path (for tab context menu)
 #[tauri::command]
 async fn open_cmd(path: String) -> Result<(), String> {
-    println!("ðŸ’» Opening CMD at: {}", path);
+    println!("💻 Opening CMD at: {}", path);
     
     // Clean the path for Windows
     let clean_path = path.replace("/", "\\");
@@ -828,7 +852,7 @@ async fn open_cmd(path: String) -> Result<(), String> {
         if let Some(parent) = Path::new(&clean_path).parent() {
             if parent.exists() {
                 let parent_path = parent.to_string_lossy().to_string();
-                println!("ðŸ“‚ File not found, opening parent directory: {}", parent_path);
+                println!("📂 File not found, opening parent directory: {}", parent_path);
                 return open_cmd_at_directory(parent_path);
             }
         }
@@ -852,7 +876,7 @@ async fn open_cmd(path: String) -> Result<(), String> {
 
 // Helper function to open CMD at a directory
 fn open_cmd_at_directory(directory: String) -> Result<(), String> {
-    println!("ðŸ“‚ Opening CMD in directory: {}", directory);
+    println!("📂 Opening CMD in directory: {}", directory);
     
     #[cfg(target_os = "windows")]
     {
@@ -862,7 +886,7 @@ fn open_cmd_at_directory(directory: String) -> Result<(), String> {
             .spawn();
         
         if result.is_ok() {
-            println!("âœ… CMD opened successfully using start command");
+            println!("✅ CMD opened successfully using start command");
             return Ok(());
         }
         
@@ -873,7 +897,7 @@ fn open_cmd_at_directory(directory: String) -> Result<(), String> {
             .spawn();
         
         if result.is_ok() {
-            println!("âœ… CMD opened successfully using direct spawn");
+            println!("✅ CMD opened successfully using direct spawn");
             return Ok(());
         }
         
@@ -889,7 +913,7 @@ fn open_cmd_at_directory(directory: String) -> Result<(), String> {
             .spawn();
         
         if result.is_ok() {
-            println!("âœ… CMD opened successfully using PowerShell");
+            println!("✅ CMD opened successfully using PowerShell");
             return Ok(());
         }
         
@@ -904,7 +928,7 @@ fn open_cmd_at_directory(directory: String) -> Result<(), String> {
             .spawn()
             .map_err(|e| format!("Failed to open Terminal: {}", e))?;
             
-        println!("âœ… Terminal opened successfully (macOS)");
+        println!("✅ Terminal opened successfully (macOS)");
         Ok(())
     }
     
@@ -920,7 +944,7 @@ fn open_cmd_at_directory(directory: String) -> Result<(), String> {
                 .spawn();
             
             if result.is_ok() {
-                println!("âœ… Terminal {} opened successfully", terminal);
+                println!("✅ Terminal {} opened successfully", terminal);
                 return Ok(());
             }
         }
@@ -928,16 +952,10 @@ fn open_cmd_at_directory(directory: String) -> Result<(), String> {
         Err("No supported terminal found on Linux".to_string())
     }
 }
-#[tauri::command]
-async fn create_directory(path: String) -> Result<(), String> {
-    println!("Creating directory: {}", path);
-    std::fs::create_dir_all(&path)
-        .map_err(|e| format!("Failed to create directory '{}': {}", path, e))
-}
 // Alternative command for PowerShell
 #[tauri::command]
 async fn open_powershell(path: String) -> Result<(), String> {
-    println!("ðŸ’» Opening PowerShell at: {}", path);
+    println!("💻 Opening PowerShell at: {}", path);
     
     let clean_path = path.replace("/", "\\");
     
@@ -958,7 +976,7 @@ async fn open_powershell(path: String) -> Result<(), String> {
             .spawn();
         
         if wt_result.is_ok() {
-            println!("âœ… Windows Terminal with PowerShell opened");
+            println!("✅ Windows Terminal with PowerShell opened");
             return Ok(());
         }
         
@@ -969,7 +987,7 @@ async fn open_powershell(path: String) -> Result<(), String> {
             .spawn()
             .map_err(|e| format!("Failed to open PowerShell: {}", e))?;
             
-        println!("âœ… PowerShell opened successfully");
+        println!("✅ PowerShell opened successfully");
     }
     
     #[cfg(not(target_os = "windows"))]
@@ -985,13 +1003,13 @@ async fn open_powershell(path: String) -> Result<(), String> {
 // ================================
 
 // ============================================================================
-// âœ… FIXED: Open folder dialog - Uses COM-based dialog that shows properly
+// ✅ FIXED: Open folder dialog - Uses COM-based dialog that shows properly
 // ============================================================================
 #[tauri::command]
 fn open_folder_dialog_with_path(default_path: Option<String>) -> Result<Option<String>, String> {
-    println!("ðŸ“‚ Opening folder dialog with default path: {:?}", default_path);
+    println!("📂 Opening folder dialog with default path: {:?}", default_path);
     
-    // âœ… FIX: Use Shell.Application COM object which is more reliable
+    // ✅ FIX: Use Shell.Application COM object which is more reliable
     // This creates a proper modal dialog that appears on top
     let ps_command = if let Some(path) = &default_path {
         let clean_path = path.replace("/", "\\").replace("'", "''");
@@ -1140,9 +1158,9 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
 "#.to_string()
     };
     
-    println!("ðŸ”„ Executing PowerShell dialog command...");
+    println!("🔄 Executing PowerShell dialog command...");
     
-    // âœ… FIX: Don't use -WindowStyle Hidden for the main process
+    // ✅ FIX: Don't use -WindowStyle Hidden for the main process
     // This ensures the dialog can properly capture focus
     let output = create_hidden_command("powershell")
         .args(&[
@@ -1152,36 +1170,36 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
         ])
         .output()
         .map_err(|e| {
-            println!("âŒ Failed to execute PowerShell: {}", e);
+            println!("❌ Failed to execute PowerShell: {}", e);
             format!("Failed to execute dialog: {}", e)
         })?;
     
     // Log any errors
     if !output.stderr.is_empty() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        println!("âš ï¸ PowerShell stderr: {}", stderr);
+        println!("⚠️ PowerShell stderr: {}", stderr);
     }
     
     let binding = String::from_utf8_lossy(&output.stdout);
     let path = binding.trim();
     
-    println!("ðŸ“‚ Folder dialog result: '{}'", path);
+    println!("📂 Folder dialog result: '{}'", path);
     
     if path.is_empty() {
-        println!("â„¹ï¸ User cancelled folder dialog or no path selected");
+        println!("ℹ️ User cancelled folder dialog or no path selected");
         Ok(None)
     } else {
-        println!("âœ… Folder selected: {}", path);
+        println!("✅ Folder selected: {}", path);
         Ok(Some(path.to_string()))
     }
 }
 
 // ============================================================================
-// âœ… FIXED: Open file dialog - Shows properly on top
+// ✅ FIXED: Open file dialog - Shows properly on top
 // ============================================================================
 #[tauri::command]
 fn open_file_dialog_with_path(default_path: Option<String>) -> Result<Option<String>, String> {
-    println!("ðŸ“„ Opening file dialog with default path: {:?}", default_path);
+    println!("📄 Opening file dialog with default path: {:?}", default_path);
     
     let ps_command = if let Some(path) = default_path {
         let clean_path = path.replace("/", "\\");
@@ -1274,7 +1292,7 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
 "#.to_string()
     };
     
-    println!("ðŸ”„ Executing file dialog command...");
+    println!("🔄 Executing file dialog command...");
     
     let output = create_hidden_command("powershell")
         .args(&[
@@ -1284,19 +1302,19 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
         ])
         .output()
         .map_err(|e| {
-            println!("âŒ Failed to execute PowerShell: {}", e);
+            println!("❌ Failed to execute PowerShell: {}", e);
             format!("Failed to execute dialog: {}", e)
         })?;
     
     if !output.stderr.is_empty() {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        println!("âš ï¸ PowerShell stderr: {}", stderr);
+        println!("⚠️ PowerShell stderr: {}", stderr);
     }
     
     let binding = String::from_utf8_lossy(&output.stdout);
     let path = binding.trim();
     
-    println!("ðŸ“„ File dialog result: '{}'", path);
+    println!("📄 File dialog result: '{}'", path);
     
     if path.is_empty() {
         Ok(None)
@@ -1306,11 +1324,11 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
 }
 
 // ============================================================================
-// âœ… FIXED: Save file dialog - Shows properly on top
+// ✅ FIXED: Save file dialog - Shows properly on top
 // ============================================================================
 #[tauri::command]
 fn save_file_dialog_with_path(default_name: String, default_path: Option<String>) -> Result<Option<String>, String> {
-    println!("ðŸ’¾ Opening save file dialog - name: {}, path: {:?}", default_name, default_path);
+    println!("💾 Opening save file dialog - name: {}, path: {:?}", default_name, default_path);
     
     let ps_command = if let Some(path) = default_path {
         let clean_path = path.replace("/", "\\");
@@ -1415,7 +1433,7 @@ if ($result -eq [System.Windows.Forms.DialogResult]::OK) {{
     let binding = String::from_utf8_lossy(&output.stdout);
     let path = binding.trim();
     
-    println!("ðŸ’¾ Save dialog result: '{}'", path);
+    println!("💾 Save dialog result: '{}'", path);
     
     if path.is_empty() {
         Ok(None)
@@ -1454,7 +1472,7 @@ fn save_file_dialog_legacy(default_name: Option<String>) -> Result<Option<String
 // Open file or folder in system file explorer (reveal in explorer)
 #[tauri::command]
 async fn reveal_in_explorer(path: String) -> Result<(), String> {
-    println!("ðŸ“‚ Revealing in system explorer: {}", path);
+    println!("📂 Revealing in system explorer: {}", path);
     
     // Clean the path for the current OS
     let clean_path = if cfg!(target_os = "windows") {
@@ -1537,7 +1555,7 @@ async fn reveal_in_explorer(path: String) -> Result<(), String> {
         }
     }
     
-    println!("âœ… Successfully opened in system explorer");
+    println!("✅ Successfully opened in system explorer");
     Ok(())
 }
 
@@ -1553,14 +1571,14 @@ async fn open_in_explorer(path: String) -> Result<(), String> {
 // Opens the system Downloads folder in the file explorer
 #[tauri::command]
 async fn open_downloads_folder() -> Result<(), String> {
-    println!("ðŸ“‚ Opening Downloads folder...");
+    println!("📂 Opening Downloads folder...");
     
     // Get the downloads directory using the dirs crate
     let downloads_path = dirs::download_dir()
         .ok_or_else(|| "Could not determine Downloads directory".to_string())?;
     
     let downloads_str = downloads_path.to_string_lossy().to_string();
-    println!("ðŸ“ Downloads path: {}", downloads_str);
+    println!("📁 Downloads path: {}", downloads_str);
     
     #[cfg(target_os = "windows")]
     {
@@ -1586,14 +1604,14 @@ async fn open_downloads_folder() -> Result<(), String> {
             .map_err(|e| format!("Failed to open Downloads folder: {}", e))?;
     }
     
-    println!("âœ… Successfully opened Downloads folder");
+    println!("✅ Successfully opened Downloads folder");
     Ok(())
 }
 
 // Open terminal at specific path (existing command, kept for compatibility)
 #[tauri::command]
 async fn open_terminal(path: String) -> Result<(), String> {
-    println!("ðŸ’» Opening terminal at: {}", path);
+    println!("💻 Opening terminal at: {}", path);
     
     let clean_path = if cfg!(target_os = "windows") {
         path.replace("/", "\\")
@@ -1650,14 +1668,14 @@ async fn open_terminal(path: String) -> Result<(), String> {
         }
     }
     
-    println!("âœ… Terminal opened successfully");
+    println!("✅ Terminal opened successfully");
     Ok(())
 }
 
 // Write to clipboard
 #[tauri::command]
 async fn write_clipboard(text: String) -> Result<(), String> {
-    println!("ðŸ“‹ Writing to clipboard: {} chars", text.len());
+    println!("📋 Writing to clipboard: {} chars", text.len());
     
     #[cfg(target_os = "windows")]
     {
@@ -1705,7 +1723,7 @@ async fn write_clipboard(text: String) -> Result<(), String> {
         child.wait().map_err(|e| format!("Failed to wait for xclip: {}", e))?;
     }
     
-    println!("âœ… Clipboard updated successfully");
+    println!("✅ Clipboard updated successfully");
     Ok(())
 }
 
@@ -1728,7 +1746,7 @@ fn get_os() -> String {
 // Run system command with arguments
 #[tauri::command]
 async fn run_command(command: String, args: Vec<String>) -> Result<(), String> {
-    println!("ðŸ”§ Running command: {} with args: {:?}", command, args);
+    println!("🔧 Running command: {} with args: {:?}", command, args);
     
     create_hidden_command(&command)
         .args(&args)
@@ -1745,7 +1763,7 @@ async fn run_command(command: String, args: Vec<String>) -> Result<(), String> {
 // Write state file for IDE persistence
 #[tauri::command]
 async fn write_state_file(filename: String, content: String) -> Result<(), String> {
-    println!("ðŸ’¾ Writing state file: {} (content length: {})", filename, content.len());
+    println!("💾 Writing state file: {} (content length: {})", filename, content.len());
     
     use std::env;
     
@@ -1774,14 +1792,14 @@ async fn write_state_file(filename: String, content: String) -> Result<(), Strin
     fs::write(&file_path, content)
         .map_err(|e| format!("Failed to write state file '{}': {}", file_path, e))?;
     
-    println!("âœ… State file written successfully: {}", file_path);
+    println!("✅ State file written successfully: {}", file_path);
     Ok(())
 }
 
 // Read state file for IDE persistence
 #[tauri::command]
 async fn read_state_file(filename: String) -> Result<String, String> {
-    println!("ðŸ“‚ Reading state file: {}", filename);
+    println!("📂 Reading state file: {}", filename);
     
     use std::env;
     
@@ -1809,14 +1827,14 @@ async fn read_state_file(filename: String) -> Result<String, String> {
     let content = fs::read_to_string(&file_path)
         .map_err(|e| format!("Failed to read state file '{}': {}", file_path, e))?;
     
-    println!("âœ… State file read successfully: {} ({} bytes)", file_path, content.len());
+    println!("✅ State file read successfully: {} ({} bytes)", file_path, content.len());
     Ok(content)
 }
 
 // Delete state file for IDE persistence
 #[tauri::command]
 async fn delete_state_file(filename: String) -> Result<(), String> {
-    println!("ðŸ—‘ï¸ Deleting state file: {}", filename);
+    println!("🗑️ Deleting state file: {}", filename);
     
     use std::env;
     
@@ -1838,9 +1856,9 @@ async fn delete_state_file(filename: String) -> Result<(), String> {
         fs::remove_file(&file_path)
             .map_err(|e| format!("Failed to delete state file '{}': {}", file_path, e))?;
         
-        println!("âœ… State file deleted successfully: {}", file_path);
+        println!("✅ State file deleted successfully: {}", file_path);
     } else {
-        println!("â„¹ï¸ State file does not exist, nothing to delete: {}", file_path);
+        println!("ℹ️ State file does not exist, nothing to delete: {}", file_path);
     }
     
     Ok(())
@@ -1902,7 +1920,7 @@ async fn get_state_directory_info() -> Result<serde_json::Value, String> {
 // Save file dialog with proper path handling (legacy)
 #[tauri::command]
 async fn save_file_dialog(filename: String, content: String) -> Result<String, String> {
-    println!("ðŸš€ Save file dialog - Filename: {}, Content length: {}", filename, content.len());
+    println!("🚀 Save file dialog - Filename: {}, Content length: {}", filename, content.len());
     
     let output = create_hidden_command("powershell")
         .args(&[
@@ -1936,7 +1954,7 @@ async fn save_file_dialog(filename: String, content: String) -> Result<String, S
     let binding = String::from_utf8_lossy(&output.stdout);
     let path = binding.trim();
     
-    println!("âœ… File saved to: {}", path);
+    println!("✅ File saved to: {}", path);
     
     if path.is_empty() {
         Err("User cancelled save dialog".to_string())
@@ -1948,16 +1966,16 @@ async fn save_file_dialog(filename: String, content: String) -> Result<String, S
 // Direct file execution with proper error handling
 #[tauri::command]
 async fn execute_file_direct(path: String, extension: String) -> Result<String, String> {
-    println!("ðŸš€ Executing file: {} (extension: {})", path, extension);
+    println!("🚀 Executing file: {} (extension: {})", path, extension);
     
     // Check if file exists first
     if !Path::new(&path).exists() {
-        return Err(format!("âŒ File not found: {}", path));
+        return Err(format!("❌ File not found: {}", path));
     }
     
     // Get file size for verification
     let metadata = fs::metadata(&path).map_err(|e| format!("Failed to read file metadata: {}", e))?;
-    println!("ðŸ“‹ File size: {} bytes", metadata.len());
+    println!("📋 File size: {} bytes", metadata.len());
     
     // Determine command based on file extension
     let (command, args) = match extension.as_str() {
@@ -1981,14 +1999,14 @@ async fn execute_file_direct(path: String, extension: String) -> Result<String, 
         "cs" => ("dotnet", vec!["run".to_string()]),
         "go" => ("go", vec!["run".to_string(), path.clone()]),
         "rs" => ("cargo", vec!["run".to_string()]),
-        _ => return Err(format!("âŒ Unsupported file extension: {}", extension))
+        _ => return Err(format!("❌ Unsupported file extension: {}", extension))
     };
     
-    println!("ðŸ“‹ Executing command: {} with args: {:?}", command, args);
+    println!("📋 Executing command: {} with args: {:?}", command, args);
     
     // Set working directory to file's directory
     let working_dir = Path::new(&path).parent().unwrap_or(Path::new("."));
-    println!("ðŸ“‚ Working directory: {:?}", working_dir);
+    println!("📂 Working directory: {:?}", working_dir);
     
     // Execute command
     let mut cmd = create_hidden_command(command);
@@ -2008,18 +2026,18 @@ async fn execute_file_direct(path: String, extension: String) -> Result<String, 
             let stdout = String::from_utf8_lossy(&output.stdout);
             let stderr = String::from_utf8_lossy(&output.stderr);
             
-            println!("ðŸ”¤ Command exit code: {:?}", output.status.code());
-            println!("ðŸ”¤ Stdout length: {}", stdout.len());
-            println!("ðŸ”¤ Stderr length: {}", stderr.len());
+            println!("🔤 Command exit code: {:?}", output.status.code());
+            println!("🔤 Stdout length: {}", stdout.len());
+            println!("🔤 Stderr length: {}", stderr.len());
             
             if output.status.success() {
                 let result = if stdout.trim().is_empty() && !stderr.trim().is_empty() {
                     // Some programs output to stderr even on success
-                    format!("âœ… Execution completed:\n{}", stderr)
+                    format!("✅ Execution completed:\n{}", stderr)
                 } else {
-                    format!("âœ… Execution completed:\n{}", stdout)
+                    format!("✅ Execution completed:\n{}", stdout)
                 };
-                println!("âœ… Execution successful");
+                println!("✅ Execution successful");
                 Ok(result)
             } else {
                 let error_msg = if !stderr.trim().is_empty() {
@@ -2027,13 +2045,13 @@ async fn execute_file_direct(path: String, extension: String) -> Result<String, 
                 } else {
                     stdout.to_string()
                 };
-                println!("âŒ Execution failed: {}", error_msg);
-                Err(format!("âŒ Execution failed:\n{}", error_msg))
+                println!("❌ Execution failed: {}", error_msg);
+                Err(format!("❌ Execution failed:\n{}", error_msg))
             }
         }
         Err(e) => {
-            eprintln!("âŒ Failed to execute command '{}': {}", command, e);
-            Err(format!("âŒ Failed to execute command '{}': {}\nðŸ’¡ Make sure {} is installed and in your PATH", command, e, command))
+            eprintln!("❌ Failed to execute command '{}': {}", command, e);
+            Err(format!("❌ Failed to execute command '{}': {}\n💡 Make sure {} is installed and in your PATH", command, e, command))
         }
     }
 }
@@ -2042,7 +2060,7 @@ async fn execute_file_direct(path: String, extension: String) -> Result<String, 
 async fn compile_and_run_cpp(source_path: &str, exe_path: &str, extension: &str) -> Result<String, String> {
     let compiler = if extension == "cpp" { "g++" } else { "gcc" };
     
-    println!("ðŸ”¨ Compiling {} file: {}", extension.to_uppercase(), source_path);
+    println!("🔨 Compiling {} file: {}", extension.to_uppercase(), source_path);
     
     // Compile first
     let compile_result = create_hidden_command(compiler)
@@ -2053,17 +2071,17 @@ async fn compile_and_run_cpp(source_path: &str, exe_path: &str, extension: &str)
         Ok(output) => {
             if !output.status.success() {
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                return Err(format!("âŒ Compilation failed:\n{}", stderr));
+                return Err(format!("❌ Compilation failed:\n{}", stderr));
             }
-            println!("âœ… Compilation successful");
+            println!("✅ Compilation successful");
         }
         Err(e) => {
-            return Err(format!("âŒ Failed to run compiler '{}': {}", compiler, e));
+            return Err(format!("❌ Failed to run compiler '{}': {}", compiler, e));
         }
     }
     
     // Run the compiled executable
-    println!("ðŸš€ Running compiled executable: {}", exe_path);
+    println!("🚀 Running compiled executable: {}", exe_path);
     match create_hidden_command(exe_path).output() {
         Ok(output) => {
             let stdout = String::from_utf8_lossy(&output.stdout);
@@ -2073,15 +2091,15 @@ async fn compile_and_run_cpp(source_path: &str, exe_path: &str, extension: &str)
             let _ = fs::remove_file(exe_path);
             
             if output.status.success() {
-                Ok(format!("âœ… Compilation and execution successful:\n{}", stdout))
+                Ok(format!("✅ Compilation and execution successful:\n{}", stdout))
             } else {
-                Err(format!("âŒ Execution failed:\n{}\n{}", stderr, stdout))
+                Err(format!("❌ Execution failed:\n{}\n{}", stderr, stdout))
             }
         }
         Err(e) => {
             // Clean up executable even if execution failed
             let _ = fs::remove_file(exe_path);
-            Err(format!("âŒ Failed to execute compiled program: {}", e))
+            Err(format!("❌ Failed to execute compiled program: {}", e))
         }
     }
 }
@@ -2089,7 +2107,7 @@ async fn compile_and_run_cpp(source_path: &str, exe_path: &str, extension: &str)
 // Delete file with proper path handling
 #[tauri::command]
 async fn delete_file(path: String) -> Result<String, String> {
-    println!("ðŸ—‘ï¸ Deleting file: {}", path);
+    println!("🗑️ Deleting file: {}", path);
     
     if !Path::new(&path).exists() {
         return Ok(format!("File already deleted or does not exist: {}", path));
@@ -2097,11 +2115,11 @@ async fn delete_file(path: String) -> Result<String, String> {
     
     match fs::remove_file(&path) {
         Ok(_) => {
-            println!("âœ… File deleted: {}", path);
+            println!("✅ File deleted: {}", path);
             Ok(format!("File deleted: {}", path))
         }
         Err(e) => {
-            eprintln!("âŒ Failed to delete file {}: {}", path, e);
+            eprintln!("❌ Failed to delete file {}: {}", path, e);
             Err(format!("Failed to delete file: {}", e))
         }
     }
@@ -2114,7 +2132,7 @@ async fn delete_file(path: String) -> Result<String, String> {
 // Tauri command for Claude API calls
 #[tauri::command]
 async fn call_claude_api(request: ClaudeRequest) -> Result<String, String> {
-    println!("ðŸ¤– Calling Claude API via Tauri backend...");
+    println!("🤖 Calling Claude API via Tauri backend...");
     println!("Model: {}, Message length: {}", request.model, request.message.len());
     
     let client = reqwest::Client::new();
@@ -2134,7 +2152,7 @@ async fn call_claude_api(request: ClaudeRequest) -> Result<String, String> {
     ];
     request_body.insert("messages", serde_json::Value::Array(messages));
     
-    println!("ðŸ“¤ Sending request to Claude API...");
+    println!("📤 Sending request to Claude API...");
     
     // Make the API call
     let response = client
@@ -2147,41 +2165,41 @@ async fn call_claude_api(request: ClaudeRequest) -> Result<String, String> {
         .send()
         .await
         .map_err(|e| {
-            println!("âŒ Network error: {}", e);
+            println!("❌ Network error: {}", e);
             format!("Network error: {}", e)
         })?;
     
     let status = response.status();
-    println!("ðŸ“¥ Response status: {}", status);
+    println!("📥 Response status: {}", status);
     
     if !status.is_success() {
         let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
-        println!("âŒ API Error: {} - {}", status, error_text);
+        println!("❌ API Error: {} - {}", status, error_text);
         return Err(format!("Claude API Error: {} - {}", status, error_text));
     }
     
     // Parse response
     let response_text = response.text().await.map_err(|e| {
-        println!("âŒ Failed to read response: {}", e);
+        println!("❌ Failed to read response: {}", e);
         format!("Failed to read response: {}", e)
     })?;
     
-    println!("ðŸ“„ Raw response length: {}", response_text.len());
+    println!("📄 Raw response length: {}", response_text.len());
     
     // Parse JSON
     let claude_response: ClaudeResponse = serde_json::from_str(&response_text)
         .map_err(|e| {
-            println!("âŒ JSON parse error: {}", e);
+            println!("❌ JSON parse error: {}", e);
             println!("Response text: {}", response_text);
             format!("Failed to parse response: {}", e)
         })?;
     
     // Extract text from response
     if let Some(content) = claude_response.content.first() {
-        println!("âœ… Claude API call successful - Response length: {}", content.text.len());
+        println!("✅ Claude API call successful - Response length: {}", content.text.len());
         Ok(content.text.clone())
     } else {
-        println!("âŒ No content in Claude response");
+        println!("❌ No content in Claude response");
         Err("No content in Claude response".to_string())
     }
 }
@@ -2200,7 +2218,7 @@ async fn call_claude_vision_api(
     prompt: String,
     max_tokens: u32,
 ) -> Result<String, String> {
-    println!("ðŸ“¸ Calling Claude Vision API via Tauri backend...");
+    println!("📸 Calling Claude Vision API via Tauri backend...");
     println!("Model: {}, Image size: {} bytes, Prompt length: {}", 
              model, image_base64.len(), prompt.len());
     
@@ -2231,7 +2249,7 @@ async fn call_claude_vision_api(
         ]
     });
     
-    println!("ðŸ“¤ Sending vision request to Claude API...");
+    println!("📤 Sending vision request to Claude API...");
     
     // Make the API call
     let response = client
@@ -2243,40 +2261,40 @@ async fn call_claude_vision_api(
         .send()
         .await
         .map_err(|e| {
-            println!("âŒ Network error: {}", e);
+            println!("❌ Network error: {}", e);
             format!("Network error: {}", e)
         })?;
     
     let status = response.status();
-    println!("ðŸ“¥ Vision response status: {}", status);
+    println!("📥 Vision response status: {}", status);
     
     if !status.is_success() {
         let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
-        println!("âŒ Vision API Error: {} - {}", status, error_text);
+        println!("❌ Vision API Error: {} - {}", status, error_text);
         return Err(format!("Claude Vision API Error: {} - {}", status, error_text));
     }
     
     // Parse response
     let response_text = response.text().await.map_err(|e| {
-        println!("âŒ Failed to read vision response: {}", e);
+        println!("❌ Failed to read vision response: {}", e);
         format!("Failed to read response: {}", e)
     })?;
     
-    println!("ðŸ“„ Vision response length: {}", response_text.len());
+    println!("📄 Vision response length: {}", response_text.len());
     
     // Parse JSON
     let claude_response: ClaudeResponse = serde_json::from_str(&response_text)
         .map_err(|e| {
-            println!("âŒ JSON parse error: {}", e);
+            println!("❌ JSON parse error: {}", e);
             format!("Failed to parse vision response: {}", e)
         })?;
     
     // Extract text from response
     if let Some(content) = claude_response.content.first() {
-        println!("âœ… Claude Vision API call successful - Response length: {}", content.text.len());
+        println!("✅ Claude Vision API call successful - Response length: {}", content.text.len());
         Ok(content.text.clone())
     } else {
-        println!("âŒ No content in Claude vision response");
+        println!("❌ No content in Claude vision response");
         Err("No content in Claude vision response".to_string())
     }
 }
@@ -2284,9 +2302,9 @@ async fn call_claude_vision_api(
 // Generic AI API command (for other providers via Tauri)
 #[tauri::command]
 async fn call_ai_api(request: GenericAiRequest) -> Result<String, String> {
-    println!("Ã°Å¸Â¤â€“ Calling {} API via Tauri backend...", request.provider);
+    println!("🤖 Calling {} API via Tauri backend...", request.provider);
     
-    // Resolve base_url when empty Ã¢â‚¬â€ inline autocomplete sends base_url: ''
+    // Resolve base_url when empty — inline autocomplete sends base_url: ''
     let resolved_base_url = if request.base_url.is_empty() || request.base_url == "PROXY" {
         match request.provider.as_str() {
             "groq" => "https://api.groq.com/openai/v1".to_string(),
@@ -2301,7 +2319,7 @@ async fn call_ai_api(request: GenericAiRequest) -> Result<String, String> {
         request.base_url.clone()
     };
     
-    println!("Ã°Å¸â€â€” Resolved base_url: {}", resolved_base_url);
+    println!("🔗 Resolved base_url: {}", resolved_base_url);
     
     match request.provider.as_str() {
         "claude" => {
@@ -2337,7 +2355,7 @@ async fn call_openai_compatible_api(
     max_tokens: u32,
     temperature: f64
 ) -> Result<String, String> {
-    println!("Ã°Å¸â€â€” Calling OpenAI-compatible API: {}", base_url);
+    println!("🔗 Calling OpenAI-compatible API: {}", base_url);
     
     let client = reqwest::Client::new();
     
@@ -2385,7 +2403,7 @@ async fn call_openai_compatible_api(
     }
     
     let url = format!("{}/chat/completions", base_url);
-    println!("Ã°Å¸â€œÂ¤ Sending request to: {} (inline: {})", url, is_inline_completion);
+    println!("📤 Sending request to: {} (inline: {})", url, is_inline_completion);
     
     // Shorter timeout for inline completions (5s vs 120s)
     let timeout_duration = if is_inline_completion {
@@ -2411,7 +2429,7 @@ async fn call_openai_compatible_api(
         })?;
     
     let status = response.status();
-    println!("Ã°Å¸â€œÂ¥ Response status: {}", status);
+    println!("📥 Response status: {}", status);
     
     if !status.is_success() {
         let error_text = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
@@ -2423,10 +2441,10 @@ async fn call_openai_compatible_api(
     
     // Extract content from OpenAI-compatible response
     if let Some(content) = response_json["choices"][0]["message"]["content"].as_str() {
-        println!("Ã¢Å“â€¦ API call successful - Response length: {}", content.len());
+        println!("✅ API call successful - Response length: {}", content.len());
         Ok(content.to_string())
     } else {
-        println!("Ã¢ÂÅ’ Unexpected response format: {:?}", response_json);
+        println!("❌ Unexpected response format: {:?}", response_json);
         Err("No content in API response".to_string())
     }
 }
@@ -2434,7 +2452,7 @@ async fn call_openai_compatible_api(
 // Test command to verify Tauri API functionality
 #[tauri::command]
 async fn test_tauri_api() -> Result<String, String> {
-    println!("ðŸ§ª Testing Tauri API functionality...");
+    println!("🧪 Testing Tauri API functionality...");
     Ok("Tauri API is working correctly!".to_string())
 }
 
@@ -2613,7 +2631,7 @@ async fn get_system_info() -> Result<serde_json::Value, String> {
 // ============================================================================
 #[tauri::command]
 fn read_directory_recursive(path: String, max_depth: Option<i32>) -> Result<serde_json::Value, String> {
-    println!("ðŸ“‚ Reading directory: {} (max depth: {:?})", path, max_depth);
+    println!("📂 Reading directory: {} (max depth: {:?})", path, max_depth);
     let start = std::time::Instant::now();
     
     // âš¡ OPTIMIZED: Default max_depth 3 instead of 10
@@ -2721,7 +2739,7 @@ fn read_directory_recursive(path: String, max_depth: Option<i32>) -> Result<serd
         
         // Log summary
         if skipped_count > 0 || no_recurse_count > 0 {
-            println!("ðŸ“ {} - skipped {} heavy folders, {} shown but not expanded", 
+            println!("📁 {} - skipped {} heavy folders, {} shown but not expanded", 
                      dir_path, skipped_count, no_recurse_count);
         }
         
@@ -2765,27 +2783,10 @@ fn read_file_content(path: String) -> Result<String, String> {
         .map_err(|e| format!("Failed to read file '{}': {}", path, e))
 }
 
-// Custom command to write file content
-#[tauri::command]
-fn write_file_content(path: String, content: String) -> Result<(), String> {
-    println!("Writing file content: {}", path);
-    
-    // Ensure parent directory exists
-    if let Some(parent) = std::path::Path::new(&path).parent() {
-        if !parent.exists() {
-            fs::create_dir_all(parent)
-                .map_err(|e| format!("Failed to create parent directory: {}", e))?;
-        }
-    }
-    
-    fs::write(&path, content)
-        .map_err(|e| format!("Failed to write file '{}': {}", path, e))
-}
-
 // âš¡ OPTIMIZED: Read simple directory listing - skips heavy folders but shows .git
 #[tauri::command]
 fn read_directory_simple(path: String) -> Result<Vec<String>, String> {
-    println!("ðŸ“‚ Reading directory (simple): {}", path);
+    println!("📂 Reading directory (simple): {}", path);
     
     let entries = fs::read_dir(&path)
         .map_err(|e| format!("Failed to read directory '{}': {}", path, e))?;
@@ -2813,7 +2814,7 @@ fn read_directory_simple(path: String) -> Result<Vec<String>, String> {
 // âš¡ OPTIMIZED: Read detailed directory contents - shows .git but skips heavy folders
 #[tauri::command]
 fn read_directory_detailed(path: String) -> Result<Vec<serde_json::Value>, String> {
-    println!("ðŸ“‚ Reading directory (detailed): {}", path);
+    println!("📂 Reading directory (detailed): {}", path);
     
     // âš¡ Skip ONLY truly heavy folders, NOT .git/.svn
     fn should_skip(name: &str, is_dir: bool) -> bool {
@@ -2888,12 +2889,6 @@ fn read_directory_contents(path: String) -> Result<Vec<serde_json::Value>, Strin
 // Custom command to check if file exists
 #[tauri::command]
 fn file_exists(path: String) -> Result<bool, String> {
-    Ok(std::path::Path::new(&path).exists())
-}
-
-// Custom command to check if path exists
-#[tauri::command]
-fn path_exists(path: String) -> Result<bool, String> {
     Ok(std::path::Path::new(&path).exists())
 }
 
@@ -3154,14 +3149,14 @@ async fn execute_project_script(
     project_path: String,
     template: String
 ) -> Result<String, String> {
-    println!("â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
-    println!("ðŸš€ Executing Project Creation Script");
-    println!("â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
+    println!("═══════════════════════════════════════════════════════");
+    println!("🚀 Executing Project Creation Script");
+    println!("═══════════════════════════════════════════════════════");
     println!("Script: {}", script_path);
     println!("Project: {}", project_name);
     println!("Path: {}", project_path);
     println!("Template: {}", template);
-    println!("â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•");
+    println!("═══════════════════════════════════════════════════════");
     
     // Execute batch script with cmd.exe
     let output = create_hidden_command("cmd")
@@ -3172,12 +3167,12 @@ async fn execute_project_script(
     
     if output.status.success() {
         let stdout = String::from_utf8_lossy(&output.stdout);
-        println!("âœ… Script executed successfully");
+        println!("✅ Script executed successfully");
         println!("Output:\n{}", stdout);
         Ok(stdout.to_string())
     } else {
         let stderr = String::from_utf8_lossy(&output.stderr);
-        println!("âŒ Script failed");
+        println!("❌ Script failed");
         println!("Error:\n{}", stderr);
         Err(format!("Script failed: {}", stderr))
     }
@@ -3185,7 +3180,7 @@ async fn execute_project_script(
 
 #[tauri::command]
 async fn open_folder(path: String) -> Result<(), String> {
-    println!("ðŸ“‚ Opening folder: {}", path);
+    println!("📂 Opening folder: {}", path);
     
     #[cfg(target_os = "windows")]
     {
@@ -3229,7 +3224,7 @@ async fn get_resource_path(app: tauri::AppHandle, resource: String) -> Result<St
 }
 
 // ============================================================================
-// ðŸ” AI FILE EXPLORER COMMANDS
+// 🔍 AI FILE EXPLORER COMMANDS
 // Allows AI to search and read project files
 // ============================================================================
 
@@ -3497,8 +3492,8 @@ async fn ai_generate_tree_text(path: String, max_depth: usize) -> Result<String,
             let name = entry.file_name().to_string_lossy().to_string();
             let is_dir = entry.file_type().map(|t| t.is_dir()).unwrap_or(false);
             
-            let connector = if is_last { "â””â”€â”€ " } else { "â”œâ”€â”€ " };
-            let child_prefix = if is_last { "    " } else { "â”‚   " };
+            let connector = if is_last { "└── " } else { "├── " };
+            let child_prefix = if is_last { "    " } else { "│   " };
             
             if is_dir {
                 tree.push_str(&format!("{}{}{}/\n", prefix, connector, name));
@@ -3562,6 +3557,47 @@ async fn create_files_batch(base_dir: String, files: Vec<BatchFileEntry>) -> Res
     }
     
     Ok(created)
+}
+
+
+// ================================
+// BUILD MODE FILE SYSTEM HELPERS
+// ================================
+
+#[tauri::command]
+async fn create_directory(path: String) -> Result<(), String> {
+    std::fs::create_dir_all(&path)
+        .map_err(|e| format!("create_directory failed for '{}': {}", path, e))
+}
+
+#[tauri::command]
+async fn path_exists(path: String) -> Result<bool, String> {
+    Ok(std::path::Path::new(&path).exists())
+}
+
+
+#[tauri::command]
+async fn write_file_content(path: String, content: String) -> Result<(), String> {
+    let file_path = std::path::Path::new(&path);
+    if let Some(parent) = file_path.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create parent dir: {}", e))?;
+    }
+    std::fs::write(&path, content.as_bytes())
+        .map_err(|e| format!("write_file_content failed for '{}': {}", path, e))
+}
+#[tauri::command]
+async fn run_shell_command(program: String, args: Vec<String>, cwd: String) -> Result<serde_json::Value, String> {
+    let output = std::process::Command::new(&program)
+        .args(&args)
+        .current_dir(&cwd)
+        .output()
+        .map_err(|e| format!("Failed to spawn {}: {}", program, e))?;
+    Ok(serde_json::json!({
+        "exit_code": output.status.code(),
+        "stdout": String::from_utf8_lossy(&output.stdout).to_string(),
+        "stderr": String::from_utf8_lossy(&output.stderr).to_string()
+    }))
 }
 
 fn main() {

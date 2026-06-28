@@ -26,6 +26,7 @@ export interface AttachedFile {
 let attachedFiles: AttachedFile[] = [];
 let contextFiles: AttachedFile[] = [];
 let previewContainer: HTMLElement | null = null;
+let previewExpanded = false; // collapse state for the attach (pending) bar when many files
 let contextBar: HTMLElement | null = null;
 let isInitialized = false;
 
@@ -152,6 +153,9 @@ export function getFileContextSummary(): string {
 // ============================================================================
 
 export function initChatFileDrop(): void {
+  setTimeout(injectAddPathButton, 3500); // 🔗 add the 'Add path' button AFTER toolbar restructure settles
+  hideModeToggles(); // hide Auto Mode (sparkle) + AI Search (star) toggles
+  installFloatingTooltips(); // tooltips for all toolbar buttons (escapes overflow clip)
   if (isInitialized) return;
   
   const check = () => {
@@ -271,69 +275,148 @@ function renderContextBar(): void {
   contextBar.classList.add('has-files');
 }
 
+// Language accent color for a file extension (used by the expanded VS Code-style list)
+function langColor(ext: string): string {
+  const e = (ext || '').toLowerCase();
+  const map: Record<string, string> = {
+    ts: '#519aba', tsx: '#519aba', js: '#cbcb41', jsx: '#cbcb41', mjs: '#cbcb41',
+    json: '#cbcb41', py: '#3572A5', rs: '#dea584', go: '#00ADD8', java: '#b07219',
+    cpp: '#f34b7d', c: '#555555', cs: '#178600', rb: '#701516', php: '#4F5D95',
+    swift: '#F05138', kt: '#A97BFF', html: '#e34c26', css: '#563d7c', scss: '#c6538c',
+    vue: '#41b883', sh: '#89e051', bat: '#C1F12E', ps1: '#012456', yaml: '#cb171e',
+    yml: '#cb171e', sql: '#e38c00', md: '#083fa1', toml: '#9c4221',
+    pdf: '#ff453a', doc: '#2b579a', docx: '#2b579a', xls: '#217346', xlsx: '#217346',
+    png: '#a074c4', jpg: '#a074c4', jpeg: '#a074c4', gif: '#a074c4', svg: '#ffb13b',
+  };
+  return map[e] || '#7d8590';
+}
+
+// Show just the parent folder of a path (trimmed), not the full absolute path.
+function shortenPath(fullPath: string | undefined, name: string): string {
+  if (!fullPath) return '';
+  let p = fullPath.replace(/\\/g, '/');
+  const idx = p.lastIndexOf('/' + name);
+  if (idx >= 0) p = p.slice(0, idx);
+  const parts = p.split('/').filter(Boolean);
+  if (parts.length === 0) return '';
+  const tail = parts.slice(-2).join('/'); // last 2 folders
+  return tail + '/';
+}
+
 function renderPreviewContainer(): void {
   if (!previewContainer) return;
   previewContainer.innerHTML = '';
-  
+
   if (attachedFiles.length === 0) {
     previewContainer.classList.remove('has-files');
+    previewContainer.classList.remove('pnd-collapsed');
     return;
   }
-  
-  // Label
+
+  // Collapse when there are many files so the bar stays one line and never
+  // pushes the input box down. >=3 files collapses by default.
+  const COLLAPSE_THRESHOLD = 3;
+  const manyFiles = attachedFiles.length >= COLLAPSE_THRESHOLD;
+  const collapsed = manyFiles && !previewExpanded;
+
+  // --- Header / summary row (clickable to expand when many files) ---
   const label = document.createElement('div');
   label.className = 'pnd-label';
-  label.innerHTML = `<span class="pnd-icon">📎</span><span>Attach</span>`;
+  if (manyFiles) {
+    label.classList.add('pnd-label-toggle');
+    const caret = previewExpanded ? '\u25BE' : '\u25B8'; // down / right
+    const totalBytes = attachedFiles.reduce((sum, f) => sum + (f.size || f.content?.length || 0), 0);
+    const sizeStr = totalBytes > 0 ? formatFileSize(totalBytes) : "";
+    label.innerHTML =
+      `<span class="pnd-icon">\uD83D\uDCCE</span>` +
+      `<span>${attachedFiles.length} files</span>` +
+      (sizeStr ? `<span class="pnd-size">\u00B7 ${sizeStr}</span>` : "") +
+      `<span class="pnd-caret">${caret}</span>`;
+    label.title = previewExpanded ? 'Click to collapse' : 'Click to expand';
+    label.style.cursor = 'pointer';
+    label.addEventListener('click', () => {
+      previewExpanded = !previewExpanded;
+      renderPreviewContainer();
+    });
+  } else {
+    label.innerHTML = `<span class="pnd-icon">\uD83D\uDCCE</span><span>Attach</span>`;
+  }
   previewContainer.appendChild(label);
-  
-  // Chips
+
+  // "Clear all" button (only useful when many files)
+  if (manyFiles) {
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'pnd-clearall';
+    clearBtn.textContent = 'Clear all';
+    clearBtn.title = 'Remove all attached files';
+    clearBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      clearAllFiles();
+    });
+    previewContainer.appendChild(clearBtn);
+  }
+
+  // When collapsed, stop here — just the summary row, no chips.
+  if (collapsed) {
+    previewContainer.classList.add('has-files');
+    previewContainer.classList.add('pnd-collapsed');
+    return;
+  }
+  previewContainer.classList.remove('pnd-collapsed');
+
+  // --- Expanded list (VS Code "Open Editors" style) ---
   const chips = document.createElement('div');
-  chips.className = 'pnd-chips';
-  
+  chips.className = 'pnd-list';
+  if (manyFiles) chips.classList.add('pnd-list-scroll'); // height-capped + scroll
+
   for (const file of attachedFiles) {
-    const chip = document.createElement('div');
-    chip.className = `pnd-chip pnd-${file.category}`;
-    chip.dataset.id = file.id;
-    chip.dataset.filename = file.name;
-    chip.dataset.filepath = file.path || '';
-    chip.title = `Click to add "${file.name}" to input\nRight-click for more options`;
-    chip.style.cursor = 'pointer';
-    
+    const row = document.createElement('div');
+    row.className = `pnd-row pnd-${file.category}`;
+    row.dataset.id = file.id;
+    row.dataset.filename = file.name;
+    row.dataset.filepath = file.path || '';
+    row.title = `Click to add "${file.name}" to input\nRight-click for more options`;
+
+    const color = langColor(file.extension);
+    const icon = (ICONS[(file.extension || '').toLowerCase()] || getFileIcon(file.category, file.extension));
+    const folder = shortenPath(file.path, file.name);
+    const sizeStr = formatFileSize(file.size || file.content?.length || 0);
+
     if (file.category === 'image' && file.preview) {
-      chip.innerHTML = `
-        <img class="pnd-thumb" src="${file.preview}">
-        <span class="pnd-name">${truncate(file.name, 12)}</span>
-        <button class="pnd-remove">×</button>
-      `;
+      row.innerHTML =
+        `<img class="pnd-row-thumb" src="${file.preview}">` +
+        `<span class="pnd-row-name">${file.name}</span>` +
+        `<span class="pnd-row-folder">${folder}</span>` +
+        `<span class="pnd-row-size">${sizeStr}</span>` +
+        `<button class="pnd-row-x" title="Remove">\u00D7</button>`;
     } else {
-      chip.innerHTML = `
-        <span class="pnd-ext">.${file.extension}</span>
-        <span class="pnd-name">${truncate(file.name, 12)}</span>
-        <button class="pnd-remove">×</button>
-      `;
+      row.innerHTML =
+        `<span class="pnd-row-ico" style="color:${color}">${icon}</span>` +
+        `<span class="pnd-row-name">${file.name}</span>` +
+        `<span class="pnd-row-folder">${folder}</span>` +
+        `<span class="pnd-row-size">${sizeStr}</span>` +
+        `<button class="pnd-row-x" title="Remove">\u00D7</button>`;
     }
-    
-    // Click on chip to insert filename into input
-    chip.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).classList.contains('pnd-remove')) return;
+
+    row.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).classList.contains('pnd-row-x')) return;
       insertFilenameToInput(file.name);
     });
-    
-    // Right-click context menu
-    chip.addEventListener('contextmenu', (e) => {
+
+    row.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       e.stopPropagation();
       showFileContextMenu(e, file, 'attached');
     });
-    
-    chip.querySelector('.pnd-remove')?.addEventListener('click', (e) => {
+
+    row.querySelector('.pnd-row-x')?.addEventListener('click', (e) => {
       e.stopPropagation();
       removeFile(file.id);
     });
-    
-    chips.appendChild(chip);
+
+    chips.appendChild(row);
   }
-  
+
   previewContainer.appendChild(chips);
   previewContainer.classList.add('has-files');
 }
@@ -368,6 +451,120 @@ function clearContextFiles(): void {
 
 let isOverInputArea = false;
 let isDragging = false;
+let isOverFilesPanel = false; // FILES/explorer panel as a second attach drop zone
+
+// ============================================================================
+// 📥 COPY DROPPED FILE INTO THE PROJECT (FILES panel drop target)
+// ============================================================================
+
+function baseName(p: string): string {
+  return p.split(/[/\\]/).pop() || p;
+}
+function dirName(p: string): string {
+  const parts = p.split(/[/\\]/);
+  parts.pop();
+  return parts.join('/');
+}
+function joinDir(dir: string, name: string): string {
+  const sep = dir.includes('\\') ? '\\' : '/';
+  return dir.replace(/[\\/]+$/, '') + sep + name;
+}
+
+// Resolve the target folder for a drop: the folder dropped onto if one is under
+// the cursor, otherwise the project root.
+function resolveDropTargetFolder(): string | null {
+  // Prefer a folder row that's currently hovered/highlighted in the tree.
+  const hovered = document.querySelector(
+    '.file-tree-item.folder.drop-hover, .tree-item.folder.drop-hover, .file-item.folder.drag-over'
+  ) as HTMLElement | null;
+  const hoveredPath = hovered?.dataset?.path || hovered?.getAttribute?.('data-path');
+  if (hoveredPath) return hoveredPath;
+
+  // Else fall back to the open project root.
+  return (window as any).currentProjectPath || null;
+}
+
+async function copyOneFile(srcPath: string, destFolder: string): Promise<boolean> {
+  const name = baseName(srcPath);
+  const dest = joinDir(destFolder, name);
+  const wf = (window as any).fileSystem;
+  const fs = (window as any).__TAURI__?.fs;
+
+  // Don't copy onto itself.
+  if (dest.replace(/\\/g, '/').toLowerCase() === srcPath.replace(/\\/g, '/').toLowerCase()) {
+    showNotification(`${name} is already in this folder`, 'info');
+    return false;
+  }
+
+  // --- Overwrite check (use window.fileSystem.readFile: success => file exists) ---
+  let destExists = false;
+  try {
+    if (wf?.readFile) {
+      const existing = await wf.readFile(dest);
+      destExists = (existing !== null && existing !== undefined);
+    } else if (fs?.exists) {
+      destExists = await fs.exists(dest);
+    }
+  } catch (_) { destExists = false; }
+  if (destExists) {
+    const ok = window.confirm(`"${name}" already exists in this folder.\n\nOverwrite it?`);
+    if (!ok) { showNotification(`Skipped ${name}`, 'info'); return false; }
+  }
+
+  // --- PRIMARY: window.fileSystem.readFile + createFile (uses the app's own Rust
+  // commands which have write permission — the Tauri fs plugin is NOT allowlisted). ---
+  try {
+    if (wf?.readFile && wf?.createFile) {
+      const content = await wf.readFile(srcPath);
+      await wf.createFile(dest, content);
+      console.log('📥 [CopyIntoProject] copied via window.fileSystem:', dest);
+      return true;
+    }
+  } catch (e) {
+    console.warn('📥 [CopyIntoProject] window.fileSystem copy failed, trying Tauri fs:', e);
+  }
+
+  // --- FALLBACK: Tauri fs plugin (only works if capabilities allow it). ---
+  try {
+    if (fs?.copyFile) { await fs.copyFile(srcPath, dest); return true; }
+  } catch (e) {
+    console.warn('📥 [CopyIntoProject] fs.copyFile not permitted:', e);
+  }
+  try {
+    if (fs?.readFile && fs?.writeFile) {
+      const bytes = await fs.readFile(srcPath);
+      await fs.writeFile(dest, bytes);
+      return true;
+    }
+  } catch (e) {
+    console.error('📥 [CopyIntoProject] all copy methods failed for', name, e);
+  }
+  return false;
+}
+
+async function copyFilesIntoProject(paths: string[]): Promise<void> {
+  const destFolder = resolveDropTargetFolder();
+  if (!destFolder) {
+    showNotification('Open a project first to drop files into it', 'error');
+    return;
+  }
+
+  let copied = 0;
+  for (const p of paths) {
+    const ok = await copyOneFile(p, destFolder);
+    if (ok) copied++;
+  }
+
+  if (copied > 0) {
+    showNotification(`\U0001F4E5 Copied ${copied} file(s) into the project`, 'success');
+    // Refresh the file tree so the new file(s) appear.
+    try {
+      document.dispatchEvent(new CustomEvent('file-tree-refresh'));
+      document.dispatchEvent(new CustomEvent('refresh-file-tree'));
+      (window as any).refreshFileTree?.();
+    } catch (_) {}
+  }
+}
 
 async function setupTauriDragDrop(): Promise<void> {
   console.log('🔧 Setting up Tauri drag drop...');
@@ -393,6 +590,7 @@ async function setupTauriDragDrop(): Promise<void> {
       const pos = e.payload?.position || e.payload;
       if (pos && typeof pos.x === 'number' && typeof pos.y === 'number') {
         checkInputAreaPosition(pos.x, pos.y);
+        checkFilesPanelPosition(pos.x, pos.y);
       }
     });
     
@@ -401,7 +599,9 @@ async function setupTauriDragDrop(): Promise<void> {
       console.log('📤 Tauri: drag-leave');
       isDragging = false;
       isOverInputArea = false;
+      isOverFilesPanel = false;
       hideDropZone();
+      hideFilesPanelDropZone();
     });
     
     // Tauri drag-drop: process if over input area
@@ -409,18 +609,25 @@ async function setupTauriDragDrop(): Promise<void> {
       console.log('📦 Tauri: drag-drop, isOverInputArea:', isOverInputArea);
       isDragging = false;
       
-      if (isOverInputArea) {
-        const paths = e.payload?.paths || e.payload;
-        console.log('📁 Processing paths:', paths);
+      const paths = e.payload?.paths || e.payload;
+      if (isOverFilesPanel) {
+        // FILES panel -> COPY the file into the project on disk (shows in tree)
+        console.log('📁 Dropped on FILES panel -> copy into project:', paths);
+        if (Array.isArray(paths)) await copyFilesIntoProject(paths);
+      } else if (isOverInputArea) {
+        // Chat input -> attach as AI context
+        console.log('📁 Dropped on input area -> attach as context:', paths);
         if (Array.isArray(paths)) {
           for (const p of paths) await addFileFromPath(p);
         }
       } else {
-        console.log('⚠️ Drop ignored - not over input area');
+        console.log('⚠️ Drop ignored - not over a drop zone');
       }
       
       isOverInputArea = false;
+      isOverFilesPanel = false;
       hideDropZone();
+      hideFilesPanelDropZone();
     });
     
     console.log('✅ Tauri drag events registered');
@@ -449,6 +656,44 @@ function checkInputAreaPosition(x: number, y: number): void {
     console.log('❌ Left input area');
     hideDropZone();
   }
+}
+
+// FILES / explorer panel as a second attach drop zone.
+function checkFilesPanelPosition(x: number, y: number): void {
+  const panel = document.querySelector('.explorer-panel');
+  if (!panel) { isOverFilesPanel = false; return; }
+
+  const rect = panel.getBoundingClientRect();
+  const wasOver = isOverFilesPanel;
+  isOverFilesPanel = (x >= rect.left && x <= rect.right &&
+                      y >= rect.top && y <= rect.bottom);
+
+  if (isOverFilesPanel && !wasOver) {
+    console.log('\u2705 Entered FILES panel at', x, y);
+    showFilesPanelDropZone();
+  } else if (!isOverFilesPanel && wasOver) {
+    console.log('\u274C Left FILES panel');
+    hideFilesPanelDropZone();
+  }
+}
+
+function showFilesPanelDropZone(): void {
+  const panel = document.querySelector('.explorer-panel') as HTMLElement | null;
+  if (!panel) return;
+  panel.classList.add('x02-files-drop-active');
+  if (!document.getElementById('x02-files-drop-style')) {
+    const s = document.createElement('style');
+    s.id = 'x02-files-drop-style';
+    s.textContent =
+      '.explorer-panel.x02-files-drop-active { ' +
+      'outline: 2px dashed rgba(10,132,255,0.7) !important; outline-offset: -4px; ' +
+      'background: rgba(10,132,255,0.06) !important; }';
+    document.head.appendChild(s);
+  }
+}
+
+function hideFilesPanelDropZone(): void {
+  document.querySelector('.explorer-panel')?.classList.remove('x02-files-drop-active');
 }
 
 function setupBrowserDragDetection(): void {
@@ -537,6 +782,19 @@ async function addFileFromPath(path: string): Promise<void> {
           size = content.length;
         }
       } catch {}
+    } else if (cat === 'pdf' || cat === 'document') {
+      // 📄 Read raw bytes via Tauri and extract text from PDF / DOCX / XLSX
+      try {
+        const fs = (window as any).__TAURI__?.fs;
+        if (fs?.readFile) {
+          const bytes: Uint8Array = await fs.readFile(path);
+          const ab = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+          content = await extractDocBytes(ab, ext);
+          size = bytes.byteLength;
+          if (content) console.log(`📄 [DocExtract] ${name}: extracted ${content.length} chars (Tauri)`);
+          else console.warn(`📄 [DocExtract] ${name}: no text extracted (Tauri)`);
+        }
+      } catch (e) { console.warn('📄 [DocExtract] Tauri read failed for', name, e); }
     }
     
     const file: AttachedFile = {
@@ -563,6 +821,11 @@ export async function addFileFromBrowser(file: File): Promise<void> {
       content = preview;
     } else if (cat === 'code' || cat === 'text') {
       content = await readText(file);
+    } else if (cat === 'pdf' || cat === 'document') {
+      // 📄 Extract real text from PDF / DOCX / XLSX so the AI sees content, not just a filename
+      content = await extractDocFromFile(file, ext);
+      if (content) console.log(`📄 [DocExtract] ${file.name}: extracted ${content.length} chars`);
+      else console.warn(`📄 [DocExtract] ${file.name}: no text extracted (will attach name only)`);
     }
     
     const f: AttachedFile = {
@@ -1095,6 +1358,304 @@ export function openFilePicker(): void {
 }
 
 // ============================================================================
+// 🔗 ADD FILE BY PATH (typed path -> attach as context)
+// ============================================================================
+
+// Join a base dir and a relative path with the right separator.
+function joinPath(base: string, rel: string): string {
+  const sep = base.includes('\\') ? '\\' : '/';
+  return base.replace(/[\\/]+$/, '') + sep + rel.replace(/^[\\/]+/, '');
+}
+
+function isAbsolutePath(p: string): boolean {
+  return /^[a-zA-Z]:[\\/]/.test(p) || p.startsWith('/') || p.startsWith('\\\\');
+}
+
+// Resolve, validate, and attach a file by path. Relative paths resolve against
+// the open project (window.currentProjectPath). Gives toast feedback.
+export async function addFileByPath(rawPath: string): Promise<boolean> {
+  const input = (rawPath || '').trim().replace(/^["']|["']$/g, '');
+  if (!input) { showNotification('No path entered', 'error'); return false; }
+
+  const projectRoot = (window as any).currentProjectPath || '';
+  let resolved = input;
+  if (!isAbsolutePath(input)) {
+    if (!projectRoot) {
+      showNotification('Open a project first, or use a full path', 'error');
+      return false;
+    }
+    resolved = joinPath(projectRoot, input);
+  }
+
+  // Verify the file exists (Tauri fs). If we can't check, attempt anyway.
+  try {
+    const fs = (window as any).__TAURI__?.fs;
+    if (fs?.exists) {
+      const ok = await fs.exists(resolved);
+      if (!ok) {
+        showNotification('File not found: ' + resolved, 'error');
+        return false;
+      }
+    }
+  } catch (e) {
+    console.warn('🔗 [AddPath] exists() check failed, attempting read anyway:', e);
+  }
+
+  // Guard against duplicates already attached.
+  const dupe = attachedFiles.some(f => (f.path || '') === resolved);
+  if (dupe) { showNotification('Already attached', 'info'); return true; }
+
+  const before = attachedFiles.length;
+  await addFileFromPath(resolved);
+  const added = attachedFiles.length > before;
+
+  if (added) {
+    const name = resolved.split(/[/\\]/).pop() || resolved;
+    showNotification('📎 Added ' + name, 'success');
+  } else {
+    showNotification('Could not read that file', 'error');
+  }
+  return added;
+}
+
+// Styled mini-dialog to type a path (nicer than window.prompt).
+export function openPathDialog(): void {
+  document.getElementById('x02-addpath-overlay')?.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'x02-addpath-overlay';
+  overlay.style.cssText =
+    'position:fixed;inset:0;z-index:1000002;display:flex;align-items:center;' +
+    'justify-content:center;background:rgba(0,0,0,0.45);';
+
+  const projectRoot = (window as any).currentProjectPath || '';
+  const hint = projectRoot
+    ? 'Relative to project, or a full path'
+    : 'Enter a full path (no project open)';
+
+  const box = document.createElement('div');
+  box.style.cssText =
+    'background:#1e1e1e;border:1px solid rgba(10,132,255,0.3);border-radius:10px;' +
+    'padding:16px;width:min(560px,90vw);box-shadow:0 10px 40px rgba(0,0,0,0.5);' +
+    'font-family:var(--font-sans,-apple-system,sans-serif);';
+  box.innerHTML =
+    '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;color:#d4d4d4;font-size:14px;font-weight:500;">' +
+    '<span>🔗</span><span>Add file by path</span></div>' +
+    '<input id="x02-addpath-input" type="text" placeholder="e.g. src/menuSystem.ts" ' +
+    'style="width:100%;box-sizing:border-box;padding:9px 11px;background:#2a2a2a;border:1px solid rgba(255,255,255,0.15);' +
+    'border-radius:6px;color:#fff;font-family:var(--font-mono,monospace);font-size:13px;outline:none;" />' +
+    '<div style="color:#7d8590;font-size:11px;margin:6px 2px 12px;">' + hint + '</div>' +
+    '<div style="display:flex;gap:8px;justify-content:flex-end;">' +
+    '<button id="x02-addpath-cancel" style="padding:6px 14px;background:transparent;border:1px solid rgba(255,255,255,0.15);' +
+    'color:#aaa;border-radius:6px;font-size:12px;cursor:pointer;">Cancel</button>' +
+    '<button id="x02-addpath-ok" style="padding:6px 16px;background:#0a84ff;border:none;color:#fff;' +
+    'border-radius:6px;font-size:12px;cursor:pointer;font-weight:500;">Add</button>' +
+    '</div>';
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  const inputEl = document.getElementById('x02-addpath-input') as HTMLInputElement;
+  const close = () => overlay.remove();
+  const submit = async () => {
+    const val = inputEl?.value || '';
+    close();
+    if (val.trim()) await addFileByPath(val);
+  };
+
+  setTimeout(() => inputEl?.focus(), 30);
+  document.getElementById('x02-addpath-cancel')?.addEventListener('click', close);
+  document.getElementById('x02-addpath-ok')?.addEventListener('click', submit);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  inputEl?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); submit(); }
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+  });
+}
+
+// Hide the Auto Mode (sparkle) + AI Search (star) toggles. They stay force-ON
+// under the hood; this only removes them visually. Runs a few times then stops
+// (no permanent loop) plus a short-lived observer that disconnects after settle.
+// Floating tooltip for all toolbar buttons. A single fixed-position div appended
+// to <body> so it escapes any toolbar overflow clipping (the CSS ::after bubble
+// gets clipped). Label resolves: data-tooltip -> title -> id/class map.
+function installFloatingTooltips(): void {
+  if ((window as any).__x02FloatTip) return;
+
+  const tip = document.createElement('div');
+  tip.id = 'x02-float-tip';
+  tip.style.cssText =
+    'position:fixed;z-index:1000003;pointer-events:none;opacity:0;' +
+    'background:#1e1e1e;color:#e6e6e6;border:1px solid rgba(255,255,255,0.12);' +
+    'padding:4px 8px;border-radius:6px;font-size:11px;line-height:1.3;' +
+    'font-family:var(--font-sans,-apple-system,sans-serif);white-space:nowrap;' +
+    'box-shadow:0 4px 14px rgba(0,0,0,0.4);transition:opacity 0.08s;transform:translate(-50%,-100%);';
+  document.body.appendChild(tip);
+
+  // Silence the OLD CSS ::after tooltip bubbles so we don't get double tooltips.
+  // Our floating div is a real element (not ::after), so it is unaffected.
+  if (!document.getElementById('x02-suppress-css-tips')) {
+    const s = document.createElement('style');
+    s.id = 'x02-suppress-css-tips';
+    s.textContent =
+      '.tool-button[data-tooltip]::after, .modern-send-btn[data-tooltip]::after, ' +
+      '#analyze-code-btn[data-tooltip]::after, [data-tooltip]::after, ' +
+      '.tool-button[data-tooltip]::before, .modern-send-btn[data-tooltip]::before, ' +
+      '[data-tooltip]::before ' +
+      '{ content: none !important; display: none !important; opacity: 0 !important; }';
+    document.head.appendChild(s);
+  }
+
+  // Fallback labels for buttons that lack data-tooltip/title.
+  const LABELS: Record<string, string> = {
+    'terminal-ctx-btn': 'Terminal',
+    'analyze-code-btn': 'Analyze',
+    'debug-code-btn': 'Debug',
+    'camera-toggle-btn': 'Camera',
+    'assistant-upload': 'Attach file',
+    'x02-addpath-btn': 'Add file by path',
+    'fix-errors-btn': 'Fix Errors',
+    'quick-actions-btn': 'Quick Actions',
+    'send-btn': 'Send (Enter)',
+    'run-button': 'Run',
+  };
+
+  const labelFor = (el: HTMLElement): string => {
+    const dt = el.getAttribute('data-tooltip');
+    if (dt && dt.trim()) return dt.trim();
+    const ti = el.getAttribute('title');
+    if (ti && ti.trim()) return ti.trim();
+    if (el.id && LABELS[el.id]) return LABELS[el.id];
+    for (const cls of Array.from(el.classList)) {
+      if (LABELS[cls]) return LABELS[cls];
+    }
+    return '';
+  };
+
+  const SEL = '.tool-button, .modern-send-btn, [data-tooltip], #x02-addpath-btn, .toolbar-button, .run-button';
+
+  const show = (el: HTMLElement) => {
+    const label = labelFor(el);
+    if (!label) return;
+    // Suppress the native title so the OS tooltip doesn't double up.
+    if (el.hasAttribute('title')) {
+      el.setAttribute('data-x02-title', el.getAttribute('title') || '');
+      el.removeAttribute('title');
+    }
+    tip.textContent = label;
+    const r = el.getBoundingClientRect();
+    tip.style.left = (r.left + r.width / 2) + 'px';
+    tip.style.top = (r.top - 6) + 'px';
+    tip.style.opacity = '1';
+  };
+  const hide = () => {
+    tip.style.opacity = '0';
+    // Restore any stashed native title.
+    document.querySelectorAll('[data-x02-title]').forEach((el) => {
+      const t = el.getAttribute('data-x02-title') || '';
+      el.setAttribute('title', t);
+      el.removeAttribute('data-x02-title');
+    });
+  };
+
+  document.addEventListener('mouseover', (e) => {
+    const t = (e.target as HTMLElement)?.closest?.(SEL) as HTMLElement | null;
+    if (t) show(t);
+  });
+  document.addEventListener('mouseout', (e) => {
+    const t = (e.target as HTMLElement)?.closest?.(SEL);
+    if (t) hide();
+  });
+  document.addEventListener('mousedown', hide);
+  document.addEventListener('scroll', hide, true);
+  window.addEventListener('blur', hide);
+
+  (window as any).__x02FloatTip = tip;
+  console.log('\U0001F4AC [Tooltips] floating tooltip installed');
+}
+
+function hideModeToggles(): void {
+  const SELECTORS = ['#autonomous-mode-toggle', '#ai-search-btn', '.autonomous-mode-toggle', '.btn-ai-search', '.toolbar-group.mode-group'];
+  const hideOnce = () => {
+    let hid = 0;
+    for (const sel of SELECTORS) {
+      document.querySelectorAll(sel).forEach((el) => {
+        const e = el as HTMLElement;
+        if (e.style.display !== 'none') {
+          e.style.setProperty('display', 'none', 'important');
+          hid++;
+        }
+      });
+    }
+    return hid;
+  };
+
+  // Inject a stylesheet too (belt-and-braces; survives DOM churn).
+  if (!document.getElementById('x02-hide-toggles-style')) {
+    const st = document.createElement('style');
+    st.id = 'x02-hide-toggles-style';
+    st.textContent =
+      // Hide the toggle buttons themselves...
+      '#autonomous-mode-toggle, #ai-search-btn, .autonomous-mode-toggle, .btn-ai-search ' +
+      '{ display: none !important; }' +
+      // ...and collapse the now-empty mode-group wrapper box they lived in.
+      '.toolbar-group.mode-group, .modern-bottom-toolbar .mode-group ' +
+      '{ display: none !important; }';
+    document.head.appendChild(st);
+  }
+
+  hideOnce();
+  // A handful of delayed passes to catch the toolbar restructure re-adding them.
+  [300, 800, 1500, 3000, 5000].forEach((d) => setTimeout(hideOnce, d));
+
+  // Short-lived observer: hide on changes, then disconnect after 8s so we don't
+  // keep poking the toolbar (which previously re-woke these very toggles).
+  try {
+    const toolbar = document.querySelector('.modern-bottom-toolbar') || document.body;
+    if (!(window as any).__x02HideTogglesObs) {
+      const obs = new MutationObserver(() => hideOnce());
+      obs.observe(toolbar, { childList: true, subtree: true });
+      (window as any).__x02HideTogglesObs = obs;
+      setTimeout(() => { try { obs.disconnect(); (window as any).__x02HideTogglesObs = null; } catch (_) {} }, 8000);
+    }
+  } catch (_) {}
+}
+
+// Inject a standalone "Add path" button next to the attach button in the toolbar.
+function injectAddPathButton(): void {
+  if (document.getElementById('x02-addpath-btn')) return;
+  // Sit next to the attach/upload button if we can find it, else the tools row.
+  const anchor =
+    document.querySelector('#assistant-upload') ||
+    document.querySelector('.modern-bottom-toolbar') ||
+    document.querySelector('.input-tools');
+  if (!anchor) { setTimeout(injectAddPathButton, 800); return; }
+
+  const btn = document.createElement('button');
+  btn.id = 'x02-addpath-btn';
+  btn.className = 'tool-button';
+  btn.type = 'button';
+  btn.setAttribute('data-tooltip', 'Add file by path');
+  btn.title = 'Add file by path';
+  btn.innerHTML =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>' +
+    '<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>' +
+    '</svg>';
+  btn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); openPathDialog(); });
+
+  // Insert right after the attach button when possible.
+  if (anchor.id === 'assistant-upload' && anchor.parentNode) {
+    anchor.parentNode.insertBefore(btn, anchor.nextSibling);
+  } else {
+    anchor.appendChild(btn);
+  }
+
+  console.log('🔗 [AddPath] button injected');
+}
+
+// ============================================================================
 // HELPERS
 // ============================================================================
 
@@ -1137,6 +1698,115 @@ function updateBadge(): void {
     badge.style.display = 'flex';
   } else if (badge) {
     badge.style.display = 'none';
+  }
+}
+
+// ============================================================================
+// 📄 DOCUMENT CONTENT EXTRACTION (PDF / DOCX / XLSX)
+// Lazy-loads libraries only when a matching file is attached, so startup
+// stays light. All paths are best-effort: on failure we return null and the
+// file is still attached (just without extracted text).
+// ============================================================================
+
+const DOC_MAX_CHARS = 50000;
+
+// Extract text from a PDF using the IDE's already-loaded pdf.js / pdfHandler,
+// falling back to a fresh pdfjs-dist import if needed.
+async function extractPdfText(data: ArrayBuffer): Promise<string | null> {
+  try {
+    const w = window as any;
+    // 1) Reuse an existing helper if the IDE exposes one
+    if (typeof w.extractPdfTextFromBuffer === 'function') {
+      const t = await w.extractPdfTextFromBuffer(data);
+      if (t && typeof t === 'string') return t;
+    }
+    // 2) Use a pdfjs instance already on window, else import pdfjs-dist
+    let pdfjs = w.pdfjsLib || w.pdfjs;
+    if (!pdfjs) {
+      try { pdfjs = await import('pdfjs-dist'); } catch (_) { pdfjs = null; }
+    }
+    if (!pdfjs || typeof pdfjs.getDocument !== 'function') return null;
+    const loadingTask = pdfjs.getDocument({ data: new Uint8Array(data) });
+    const pdf = await loadingTask.promise;
+    let out = '';
+    const maxPages = Math.min(pdf.numPages || 0, 200);
+    for (let i = 1; i <= maxPages; i++) {
+      const page = await pdf.getPage(i);
+      const tc = await page.getTextContent();
+      const pageText = (tc.items || []).map((it: any) => it.str || '').join(' ');
+      out += pageText + '\n\n';
+      if (out.length > DOC_MAX_CHARS) break;
+    }
+    return out.trim() || null;
+  } catch (e) {
+    console.warn('📄 [DocExtract] PDF extraction failed:', e);
+    return null;
+  }
+}
+
+// Extract text from a .docx using mammoth (lazy-loaded).
+async function extractDocxText(data: ArrayBuffer): Promise<string | null> {
+  try {
+    const mammoth: any = await import('mammoth');
+    const fn = mammoth.extractRawText || mammoth.default?.extractRawText;
+    if (typeof fn !== 'function') return null;
+    const result = await fn({ arrayBuffer: data });
+    const text = result?.value || '';
+    return text.trim() || null;
+  } catch (e) {
+    console.warn('📄 [DocExtract] DOCX extraction failed:', e);
+    return null;
+  }
+}
+
+// Extract text from a .xlsx / .xls using SheetJS (lazy-loaded). Each sheet is
+// rendered as CSV under a heading so the AI sees structure.
+async function extractXlsxText(data: ArrayBuffer): Promise<string | null> {
+  try {
+    const XLSX: any = await import('xlsx');
+    const wb = XLSX.read(new Uint8Array(data), { type: 'array' });
+    let out = '';
+    for (const name of wb.SheetNames || []) {
+      const sheet = wb.Sheets[name];
+      const csv = XLSX.utils.sheet_to_csv(sheet);
+      out += `# Sheet: ${name}\n${csv}\n\n`;
+      if (out.length > DOC_MAX_CHARS) break;
+    }
+    return out.trim() || null;
+  } catch (e) {
+    console.warn('📄 [DocExtract] XLSX extraction failed:', e);
+    return null;
+  }
+}
+
+// Route an ArrayBuffer to the right extractor by extension.
+// Returns extracted text, or null if unsupported / failed.
+async function extractDocBytes(data: ArrayBuffer, ext: string): Promise<string | null> {
+  const e = (ext || '').toLowerCase();
+  if (e === 'pdf') return extractPdfText(data);
+  if (e === 'docx' || e === 'doc') return extractDocxText(data);
+  if (e === 'xlsx' || e === 'xls') return extractXlsxText(data);
+  return null;
+}
+
+// Read a browser File as ArrayBuffer.
+function readArrayBuffer(f: File): Promise<ArrayBuffer> {
+  return new Promise((res, rej) => {
+    const x = new FileReader();
+    x.onload = () => res(x.result as ArrayBuffer);
+    x.onerror = rej;
+    x.readAsArrayBuffer(f);
+  });
+}
+
+// Extract document text from a browser File (picker / drag from browser).
+async function extractDocFromFile(file: File, ext: string): Promise<string | null> {
+  try {
+    const buf = await readArrayBuffer(file);
+    return await extractDocBytes(buf, ext);
+  } catch (e) {
+    console.warn('📄 [DocExtract] read failed for', file.name, e);
+    return null;
   }
 }
 
@@ -1283,6 +1953,69 @@ function injectStyles(): void {
     .pnd-icon { font-size: 11px; }
     
     .pnd-chips { display: flex; gap: 5px; flex-wrap: wrap; flex: 1; }
+
+    /* VS Code "Open Editors" style expanded list */
+    .pnd-list { display: flex; flex-direction: column; gap: 1px; flex: 1 1 100%; width: 100%; margin-top: 4px; }
+    .pnd-list-scroll { max-height: 132px; overflow-y: auto; } /* ~5 rows then scroll */
+    .pnd-list-scroll::-webkit-scrollbar { width: 6px; }
+    .pnd-list-scroll::-webkit-scrollbar-thumb { background: rgba(10,132,255,0.35); border-radius: 3px; }
+    .pnd-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 4px 8px; border-radius: 4px;
+      font-family: var(--font-mono, 'JetBrains Mono', monospace);
+      font-size: 12px; color: rgba(255,255,255,0.82);
+      cursor: pointer; transition: background 0.1s;
+    }
+    .pnd-row:hover { background: rgba(255,255,255,0.06); }
+    .pnd-row-ico { font-size: 13px; line-height: 1; flex-shrink: 0; width: 16px; text-align: center; }
+    .pnd-row-thumb { width: 16px; height: 16px; object-fit: cover; border-radius: 3px; flex-shrink: 0; }
+    .pnd-row-name { color: #d4d4d4; white-space: nowrap; }
+    .pnd-row-folder { color: #6a6a6a; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .pnd-row-size { color: #6a6a6a; font-size: 11px; margin-left: auto; flex-shrink: 0; white-space: nowrap; }
+    .pnd-row-x {
+      background: transparent; border: none; color: #6a6a6a;
+      font-size: 14px; line-height: 1; cursor: pointer; padding: 0 2px;
+      flex-shrink: 0; opacity: 0; transition: opacity 0.1s, color 0.1s;
+    }
+    .pnd-row:hover .pnd-row-x { opacity: 1; }
+    .pnd-row-x:hover { color: #ff6b6b; }
+
+    /* Collapsible attach bar: scrollable expanded chips + summary toggle */
+    .pnd-chips-scroll {
+      max-height: 96px;        /* ~3 rows, then scroll instead of growing */
+      overflow-y: auto;
+      align-content: flex-start;
+    }
+    .pnd-chips-scroll::-webkit-scrollbar { width: 6px; }
+    .pnd-chips-scroll::-webkit-scrollbar-thumb {
+      background: rgba(10,132,255,0.35); border-radius: 3px;
+    }
+    .attached-files-preview.pnd-collapsed { align-items: center; }
+    .pnd-label-toggle {
+      border-right: none;
+      padding-right: 4px;
+      user-select: none;
+      transition: color 0.12s;
+    }
+    .pnd-label-toggle:hover { color: rgba(10,132,255,1); }
+    .pnd-caret { font-size: 9px; opacity: 0.8; margin-left: 2px; }
+    .pnd-size { font-size: 10px; opacity: 0.65; margin-left: 4px; }
+    .pnd-clearall {
+      font-size: 10px;
+      color: rgba(255,255,255,0.55);
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 4px;
+      padding: 2px 7px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.12s;
+    }
+    .pnd-clearall:hover {
+      color: #ff6b6b;
+      border-color: rgba(255,107,107,0.5);
+      background: rgba(255,107,107,0.08);
+    }
     
     .pnd-chip {
       display: flex;
@@ -1660,6 +2393,8 @@ function exposeAPI(): void {
     clearFiles: clearAllFiles,
     removeFile,
     openPicker: openFilePicker,
+    addPath: addFileByPath,
+    openPathDialog,
     addFile: addFileFromBrowser,
     attachedCount: () => attachedFiles.length,
     markAsRead: markFilesAsRead,

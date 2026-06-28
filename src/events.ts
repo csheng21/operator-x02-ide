@@ -5,6 +5,11 @@ import { setupInputEventListeners } from './eventHandlers/inputEvents';
 import { setupModalEventListeners } from './eventHandlers/modalEvents';
 import { setupFileUploadEventListeners } from './eventHandlers/fileEvents';
 
+// Re-export the shared DOM-readiness helper. The real implementation lives in
+// eventHandlers/domReady.ts (a dependency-free module) so the handler files can
+// import it without creating an import cycle with this file.
+export { waitForElement } from './eventHandlers/domReady';
+
 // Set up all event listeners
 export function setupEventListeners(): void {
   console.log('Setting up event listeners...');

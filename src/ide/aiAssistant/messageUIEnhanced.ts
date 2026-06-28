@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // messageUIEnhanced.ts - Enhanced AI Chat Message Display System
 // Version: 2.0 - Complete overhaul for Operator X02 Code IDE
 // Features:
@@ -745,7 +745,7 @@ function applySyntaxHighlighting(code: string, language: string): string {
   
   // 6. Numbers
   highlighted = highlighted.replace(
-    /\b(\d+\.?\d*)\b/g,
+    /(?<!&#)(?<!&#x)\b(\d+\.?\d*)\b/g,
     '<span class="number">$1</span>'
   );
   
@@ -1197,7 +1197,7 @@ export function enhanceExistingCodeBlocks(): void {
     block.classList.add('enhanced');
     
     const pre = block.parentElement;
-    if (!pre || pre.closest('.enh-code-block') || pre.closest('.muf-block')) return;
+    if (!pre || pre.closest('.enh-code-block') || pre.closest('.muf-block') || pre.closest('.ucp-block')) return;
     
     const code = block.textContent || '';
     if (!code.trim()) return;

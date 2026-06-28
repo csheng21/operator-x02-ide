@@ -372,6 +372,28 @@ export function showLoadSuccessNotification(projectName: string): void {
 
 if (typeof window !== 'undefined') {
   (window as any).loadProjectIntoExplorer = loadProjectIntoExplorer;
+  // x02CreateAndOpenProject: scaffold a new project then open it in the explorer.
+  // Called by the agent loop on @@X02_NEW_PROJECT. Creates under a fixed projects folder.
+  (window as any).x02CreateAndOpenProject = async function (projectType, projectName) {
+    try {
+      const safeName = String(projectName || 'new-project').trim().replace(/[^a-zA-Z0-9_-]/g, '-') || 'new-project';
+      const type = String(projectType || 'react').trim().toLowerCase() || 'react';
+      const projectPath = 'C:\\Users\\hi\\Desktop\\projects';
+      const mod = await import('./projectCreator');
+      await mod.createProjectFiles({
+        projectName: safeName,
+        projectPath: projectPath,
+        projectType: type,
+        installDependencies: false,
+        createReadme: true
+      });
+      const projectRoot = projectPath + '\\' + safeName;
+      try { await loadProjectIntoExplorer(projectRoot); } catch (e) { /* explorer open best-effort */ }
+      return { ok: true, path: projectRoot, name: safeName, type: type };
+    } catch (err) {
+      return { ok: false, error: String(err && err.message ? err.message : err) };
+    }
+  };
   (window as any).refreshExplorer = refreshExplorer;
   (window as any).updateExplorerDirectly = updateExplorerDirectly;
   (window as any).showLoadSuccessNotification = showLoadSuccessNotification;

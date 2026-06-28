@@ -1,4 +1,4 @@
-﻿// src/ide/ideScriptBridge.ts
+// src/ide/ideScriptBridge.ts
 // ============================================================================
 // ?? IDE SCRIPT BRIDGE v2 � Connects AI to Rust IDE Script Commands
 // ============================================================================
@@ -26,22 +26,27 @@
 
 import { invoke } from '@tauri-apps/api/core';
 import { recordFileChange } from './changeSummaryPanel';
-
+import { guardWriteContent } from './codeIntegrityGuard';
 // ============================================================================
 // PATH RESOLUTION � Converts relative paths to absolute using project path
 // ============================================================================
 
 function resolveFilePath(filePath: string): string {
-  // [PathFix v2] Use currentProjectPath for relative paths
-  const _cp: string = (window as any).currentProjectPath || '';
+  // [PathFix v3] resolve relative paths against the active project from any POPULATED source
   const _isAbsolute = filePath.startsWith('/') || /^[A-Za-z]:[\\/]/.test(filePath);
   if (_isAbsolute) return filePath;
+  const _cp: string =
+    (window as any).currentProjectPath ||
+    (window as any).__currentProjectPath ||
+    '';
   if (_cp) {
     const _base = _cp.replace(/[/\\]+$/, '');
     return _base + '/' + filePath;
   }
-  console.warn('[IDE Script] No project open - path is relative:', filePath);
-  return filePath;
+  // No project path resolved: refuse rather than write relative (which lands in the IDE's
+  // own src-tauri dir, triggers an HMR reload, and pollutes the IDE).
+  console.error('[IDE Script] BLOCKED relative write - no project path resolved:', filePath);
+  throw new Error('IDE Script: no active project path; refusing to write "' + filePath + '".');
 }
 
 // ============================================================================
@@ -310,12 +315,26 @@ export async function ideRename(
 export async function ideReadFile(
   filePath: string, lineStart?: number, lineEnd?: number
 ): Promise<IdeReadFileResult> {
-  return await invoke('ide_read_file', {
-    projectPath: (window as any).currentProjectPath || '',
-    filePath,
-    lineStart: lineStart || null,
-    lineEnd: lineEnd || null,
-  });
+  const _cp = (window as any).currentProjectPath || '';
+  const _isAbs = filePath.startsWith('/') || /^[A-Za-z]:[\\/]/.test(filePath);
+  const _hasSrc = /(^|[\\/])src[\\/]/.test(filePath);
+  const _attempts: string[] = [filePath];
+  if (!_isAbs && !_hasSrc) {
+    _attempts.push('src/' + filePath.replace(/^[.][/\\]/, ''));
+  }
+  let _lastErr: any = null;
+  for (const _fp of _attempts) {
+    try {
+      const _res: any = await invoke('ide_read_file', {
+        projectPath: _cp,
+        filePath: _fp,
+        lineStart: lineStart || null,
+        lineEnd: lineEnd || null,
+      });
+      return _res;
+    } catch (e) { _lastErr = e; }
+  }
+  throw _lastErr;
 }
 
 // ============================================================================
@@ -378,14 +397,28 @@ export function parseIdeScriptCalls(aiResponse: string): IdeScriptCall[] {
  * Resolves relative paths and refreshes file explorer for FS-changing ops.
  */
 export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
-      // BYPASS_MUTEX_READ - fast path for readFile
+      // BYPASS_MUTEX_READ - fast path for readFile (path-resolved + src/ fallback)
       if ((call.command === "readFile" || call.command === 'ide_read_file') && call.args) {
         try {
-          const fp = call.args.file_path || call.args.filePath || call.args.path || '';
+          const rawFp = call.args.file_path || call.args.filePath || call.args.path || '';
           const fs = (window as any).fileSystem;
-          if (fp && fs && typeof fs.readFile === 'function') {
-            const txt = await fs.readFile(fp);
-            return { success: true, content: txt, source: 'bypass' };
+          if (rawFp && fs && typeof fs.readFile === 'function') {
+            const resolved = resolveFilePath(rawFp);
+            const candidates: string[] = [resolved];
+            const isAbs = rawFp.startsWith('/') || /^[A-Za-z]:[\\/]/.test(rawFp);
+            if (!isAbs && !/(^|[\\/])src[\\/]/.test(rawFp)) {
+              const cp = ((window as any).currentProjectPath || '').replace(/[/\\]+$/, '');
+              if (cp) candidates.push(cp + '/src/' + rawFp.replace(/^[.][/\\]/, ''));
+            }
+            let lastErr: any = null;
+            for (const cand of candidates) {
+              try {
+                const txt = await fs.readFile(cand);
+                call.args.file_path = cand;
+                return { success: true, content: txt, source: 'bypass', resolved_path: cand };
+              } catch (e) { lastErr = e; }
+            }
+            return { success: false, error: 'File not found: ' + rawFp + ' (tried: ' + candidates.join(', ') + ')', source: 'bypass' };
           }
         } catch (_e) {}
       }
@@ -517,6 +550,9 @@ export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
           _createOldContent = _readBefore.content || '';
         } catch { /* new file � no old content */ }
 
+        if (typeof call.args.content === 'string') {
+          call.args.content = guardWriteContent(call.args.content, call.args.file_path).clean;
+        }
         result = await ideCreateFile(
           call.args.file_path, call.args.content,
           call.args.overwrite
@@ -535,7 +571,7 @@ export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
         }
 
         // Open the new file in editor
-        if (result.success && result.created_new) {
+        if (result.success && result.created_new && !(window as any).__ideScriptBatchActive) {
           try {
             if ((window as any).openFileInTab) {
               (window as any).openFileInTab(call.args.file_path);
@@ -620,8 +656,9 @@ export async function executeIdeScript(call: IdeScriptCall): Promise<any> {
         throw new Error(`Unknown IDE script command: ${call.command}`);
     }
 
-    // Refresh file explorer for file system changes
-    if (needsExplorerRefresh) {
+    // Refresh file explorer for file system changes — but NOT during a batch
+    // scaffold (we refresh once at the end to avoid a per-file refresh storm).
+    if (needsExplorerRefresh && !(window as any).__ideScriptBatchActive) {
       setTimeout(() => refreshFileExplorer(), 200);
     }
 
@@ -670,7 +707,17 @@ export async function processAiScriptResponse(aiResponse: string): Promise<{
   }
 
   const results: { command: string; result: any; error?: string }[] = [];
+  // Track a newly-scaffolded project root (a package.json written into a NEW folder)
+  // so we can switch the active project to it after the batch — otherwise Run/preview
+  // keep targeting the previously-open project and show the wrong app.
+  let _scaffoldedProjectDir = '';
+  // Fallback for static apps (no package.json): a NEW folder that gets an index.html.
+  let _scaffoldedHtmlDir = '';
   
+  // Suppress per-file explorer refresh + tab-open during the batch; we do ONE
+  // refresh at the end. Avoids the per-file refresh/save storm that made
+  // multi-file scaffolds take minutes.
+  (window as any).__ideScriptBatchActive = true;
   for (const call of calls) {
     try {
       // Update progress dialog per command
@@ -684,6 +731,20 @@ export async function processAiScriptResponse(aiResponse: string): Promise<{
       }
       const result = await executeIdeScript(call);
       results.push({ command: call.command, result });
+      try {
+        if (!_scaffoldedProjectDir && call.command === 'ide_create_file') {
+          const _fp = String((call.args && call.args.file_path) || '').replace(/\\/g, '/');
+          if (/\/package\.json$/i.test(_fp)) {
+            _scaffoldedProjectDir = _fp.replace(/\/package\.json$/i, '');
+          }
+        }
+        if (!_scaffoldedHtmlDir && call.command === 'ide_create_file') {
+          const _fp2 = String((call.args && call.args.file_path) || '').replace(/\\/g, '/');
+          if (/\/index\.html$/i.test(_fp2)) {
+            _scaffoldedHtmlDir = _fp2.replace(/\/index\.html$/i, '');
+          }
+        }
+      } catch (_capErr) { /* non-fatal */ }
       if (_addLog) { _addLog(call.command + ' completed', 'success'); }
     } catch (error: any) {
       results.push({ command: call.command, result: null, error: error?.message || 'Failed' });
@@ -705,6 +766,36 @@ export async function processAiScriptResponse(aiResponse: string): Promise<{
       _addLog(errCount + ' command(s) failed', 'error');
     }
     setTimeout(() => { if (_closeDialog) _closeDialog(); }, 2500);
+  }
+
+  // Batch finished: stop suppressing per-file work.
+  (window as any).__ideScriptBatchActive = false;
+
+  // If a new project was scaffolded into a folder other than the open one, make IT the
+  // active project so Run / preview / install target the real generated app.
+  let _didSwitch = false;
+  try {
+    const _target = _scaffoldedProjectDir || _scaffoldedHtmlDir;
+    if (_target) {
+      const _cur = String((window as any).currentProjectPath || (window as any).__currentProjectPath || '')
+        .replace(/\\/g, '/').replace(/\/+$/, '');
+      const _new = _target.replace(/\/+$/, '');
+      if (_new && _new.toLowerCase() !== _cur.toLowerCase()) {
+        console.log('[IDE Script] New project scaffolded \u2014 switching active project to', _new);
+        (window as any).currentProjectPath = _new;
+        (window as any).__currentProjectPath = _new;
+        (window as any).currentFolderPath = _new;
+        try { localStorage.setItem('ide_last_project_path', _new); } catch (_lsErr) { /* ignore */ }
+        try { document.dispatchEvent(new CustomEvent('project-opened', { detail: { path: _new } })); } catch (_evErr) { /* ignore */ }
+        try { if ((window as any).refreshFileTree) (window as any).refreshFileTree(); } catch (_rfErr) { /* ignore */ }
+        _didSwitch = true;
+      }
+    }
+  } catch (_swErr) { console.warn('[IDE Script] active-project switch after scaffold failed:', _swErr); }
+
+  // One explorer refresh for the whole batch (the switch already refreshes if it ran).
+  if (!_didSwitch) {
+    try { refreshFileExplorer(); } catch (_rfErr2) { /* ignore */ }
   }
 
   // Remove the script blocks from the display text

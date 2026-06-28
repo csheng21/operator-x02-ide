@@ -147,8 +147,8 @@ async function loadModuleFromPath(path: string): Promise<any> {
     }
     
     // Try with relative path
+    const relativePath = path.startsWith('/') ? `.${path}` : `./${path}`;
     try {
-      const relativePath = path.startsWith('/') ? `.${path}` : `./${path}`;
       return await import(/* @vite-ignore */ relativePath);
     } catch (relativeError) {
       console.log(`Relative path import failed for ${relativePath}`);
@@ -178,7 +178,8 @@ async function loadModuleFromPath(path: string): Promise<any> {
     }
     
     // Create a consistent ID 
-    const fileName = path.split('/').pop().split('.')[0];
+    const lastSegment = path.split('/').filter(Boolean).pop() ?? 'unknown';
+    const fileName = lastSegment.split('.')[0] || 'unknown';
     const mockId = `mock.${fileName}`;
     
     // Check if this mock plugin is already loaded

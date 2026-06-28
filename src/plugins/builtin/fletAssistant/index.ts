@@ -39,9 +39,68 @@ export const activate = async (api: PluginApi): Promise<void> => {
   // Register components panel
   api.ui.registerView('fletComponentsView', () => createComponentsPanel(api));
   
-  // Add toolbar button for Fix Flet Colors
-  try {
-    // Try multiple possible container elements
+  // ==========================================================================
+  // Fix Flet Colors toolbar button — ONLY for Flet projects
+  // ==========================================================================
+  // Previously this button mounted unconditionally (falling through to
+  // document.body / the header) on every project. Now it is shown only when
+  // the current workspace looks like a Flet project, and it is added/removed
+  // as the user switches projects.
+
+  const BTN_CLASS = 'flet-colors-fix-btn';
+
+  // Resolve the current project path using the IDE's conventions.
+  const getProjectPath = (): string =>
+    (window as any).currentProjectPath ||
+    (window as any).currentFolderPath ||
+    (window as any).__currentProjectPath ||
+    localStorage.getItem('ide_last_project_path') || '';
+
+  // Detect a Flet project: flet listed in requirements.txt, or a pyproject/
+  // main.py that imports flet. Cheap reads via the IDE filesystem bridge.
+  const isFletProject = async (): Promise<boolean> => {
+    const projectPath = getProjectPath();
+    if (!projectPath) return false;
+    const fs = (window as any).fileSystem;
+    if (!fs?.readFile) return false;
+
+    // Probe existence silently with path_exists BEFORE readFile. readFile logs
+    // a red error for missing files, so reading non-existent probe targets
+    // spammed the console on every non-Flet project. Only read files that exist.
+    let invoke: any = null;
+    try { ({ invoke } = await import('@tauri-apps/api/core')); } catch { /* web mode */ }
+
+    const exists = async (rel: string): Promise<boolean> => {
+      if (!invoke) return false;
+      try { return await invoke('path_exists', { path: `${projectPath}/${rel}` }); }
+      catch { return false; }
+    };
+
+    const readIfExists = async (rel: string): Promise<string> => {
+      if (!(await exists(rel))) return '';
+      try { return (await fs.readFile(`${projectPath}/${rel}`)) || ''; }
+      catch { return ''; }
+    };
+
+    const req = (await readIfExists('requirements.txt')).toLowerCase();
+    if (/(^|\s|=|>|<)flet\b/.test(req)) return true;
+
+    const pyproject = (await readIfExists('pyproject.toml')).toLowerCase();
+    if (pyproject.includes('flet')) return true;
+
+    const mainPy = await readIfExists('main.py');
+    if (/\bimport\s+flet\b|\bfrom\s+flet\b/.test(mainPy)) return true;
+
+    return false;
+  };
+
+  const removeColorButton = (): void => {
+    document.querySelectorAll(`.${BTN_CLASS}`).forEach(el => el.parentNode?.removeChild(el));
+  };
+
+  const addColorButton = (): void => {
+    if (document.querySelector(`.${BTN_CLASS}`)) return; // already present
+
     const possibleToolbarContainers = [
       document.querySelector('.toolbar'),
       document.querySelector('.menu-bar'),
@@ -51,53 +110,55 @@ export const activate = async (api: PluginApi): Promise<void> => {
       document.querySelector('.top-controls'),
       document.body
     ];
-
-    // Find the first valid container
     const toolbar = possibleToolbarContainers.find(el => el !== null);
-    console.log('Found toolbar container:', toolbar);
-
-    if (toolbar) {
-      const colorFixButton = document.createElement('button');
-      colorFixButton.textContent = 'Fix Flet Colors';
-      colorFixButton.className = 'toolbar-button flet-colors-fix-btn';
-      colorFixButton.style.padding = '5px 10px';
-      colorFixButton.style.backgroundColor = '#2962ff';
-      colorFixButton.style.color = 'white';
-      colorFixButton.style.border = 'none';
-      colorFixButton.style.borderRadius = '4px';
-      colorFixButton.style.cursor = 'pointer';
-      colorFixButton.style.margin = '0 5px';
-
-      // Add hover effects
-      colorFixButton.addEventListener('mouseover', () => {
-        colorFixButton.style.backgroundColor = '#1565c0';
-      });
-      colorFixButton.addEventListener('mouseout', () => {
-        colorFixButton.style.backgroundColor = '#2962ff';
-      });
-
-      // Connect button to the command
-      colorFixButton.addEventListener('click', () => {
-        api.ui.executeCommand('fletAssistant.fixColors');
-      });
-
-      // Add to toolbar
-      toolbar.appendChild(colorFixButton);
-      console.log('Fix Flet Colors button added to toolbar');
-    } else {
-      console.error('Could not find a suitable toolbar container');
+    if (!toolbar) {
+      console.warn('[FletAssistant] No toolbar container for color-fix button');
+      return;
     }
-  } catch (error) {
-    console.error('Error adding toolbar button:', error);
+
+    const colorFixButton = document.createElement('button');
+    colorFixButton.textContent = 'Fix Flet Colors';
+    colorFixButton.className = `toolbar-button ${BTN_CLASS}`;
+    colorFixButton.style.padding = '5px 10px';
+    colorFixButton.style.backgroundColor = '#2962ff';
+    colorFixButton.style.color = 'white';
+    colorFixButton.style.border = 'none';
+    colorFixButton.style.borderRadius = '4px';
+    colorFixButton.style.cursor = 'pointer';
+    colorFixButton.style.margin = '0 5px';
+    colorFixButton.addEventListener('mouseover', () => { colorFixButton.style.backgroundColor = '#1565c0'; });
+    colorFixButton.addEventListener('mouseout',  () => { colorFixButton.style.backgroundColor = '#2962ff'; });
+    colorFixButton.addEventListener('click',     () => { api.ui.executeCommand('fletAssistant.fixColors'); });
+
+    toolbar.appendChild(colorFixButton);
+    console.log('[FletAssistant] Fix Flet Colors button added (Flet project detected)');
+  };
+
+  // Show/hide the button based on the current project.
+  const refreshColorButton = async (): Promise<void> => {
+    try {
+      if (await isFletProject()) addColorButton();
+      else removeColorButton();
+    } catch (error) {
+      console.error('[FletAssistant] Error refreshing color button:', error);
+    }
+  };
+
+  // Initial check + re-check whenever a project is opened/switched.
+  void refreshColorButton();
+  const onProjectOpened = () => { void refreshColorButton(); };
+  document.addEventListener('project-opened', onProjectOpened);
+  (window as any).__fletAssistantOnProjectOpened = onProjectOpened; // for cleanup
+
+  // Welcome notification only when relevant (i.e. a Flet project).
+  if (await isFletProject()) {
+    api.ui.showNotification({
+      title: 'Flet Assistant',
+      message: 'Flet Assistant is active. Right-click in the editor for Flet options.',
+      type: 'info',
+      duration: 5000
+    });
   }
-  
-  // Show welcome notification
-  api.ui.showNotification({
-    title: 'Flet Assistant',
-    message: 'Flet Assistant plugin is now active. Right-click in the editor for Flet options.',
-    type: 'info',
-    duration: 5000
-  });
 };
 
 // Plugin deactivation function
@@ -105,11 +166,17 @@ export const deactivate = async (): Promise<void> => {
   console.log('Flet Assistant plugin deactivated');
   
   try {
-    // Clean up toolbar button
-    const colorFixButton = document.querySelector('.flet-colors-fix-btn');
-    if (colorFixButton) {
-      colorFixButton.parentNode?.removeChild(colorFixButton);
-      console.log('Fix Flet Colors button removed');
+    // Clean up toolbar button(s)
+    document.querySelectorAll('.flet-colors-fix-btn').forEach(btn => {
+      btn.parentNode?.removeChild(btn);
+    });
+    console.log('Fix Flet Colors button removed');
+
+    // Remove the project-opened listener registered in activate()
+    const onProjectOpened = (window as any).__fletAssistantOnProjectOpened;
+    if (onProjectOpened) {
+      document.removeEventListener('project-opened', onProjectOpened);
+      delete (window as any).__fletAssistantOnProjectOpened;
     }
   } catch (error) {
     console.error('Error removing toolbar button:', error);

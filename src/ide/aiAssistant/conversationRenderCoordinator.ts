@@ -173,6 +173,20 @@ export async function coordinatedRender(): Promise<boolean> {
 
     console.log(`✅ [RenderCoord] Rendered ${recentMessages.length} messages (${deferredData.length} deferred)`);
 
+    // ================================================================
+    // RESTORE GUARD: register restored code blocks as already-processed
+    // so the auto-apply pipeline does NOT re-apply them on IDE restart.
+    // Runs after the DOM has settled (next frame). Blocks streamed live
+    // after this point are unaffected and still auto-apply.
+    // ================================================================
+    requestAnimationFrame(() => {
+      try {
+        (window as any).markExistingBlocksAsProcessed?.();
+      } catch (e) {
+        console.warn('[RenderCoord] markExistingBlocksAsProcessed failed:', e);
+      }
+    });
+
     // Notify other modules
     document.dispatchEvent(new CustomEvent('conversation-loaded', {
       detail: { conversationId: current.id }
@@ -335,6 +349,14 @@ async function renderDeferredBatch(
   }
 
   setConversationLoading(false);
+
+  // RESTORE GUARD: lazy-loaded older messages are also restored content —
+  // register their code blocks so they don't trigger auto-apply.
+  try {
+    (window as any).markExistingBlocksAsProcessed?.();
+  } catch (e) {
+    console.warn('[RenderCoord] markExistingBlocksAsProcessed (deferred) failed:', e);
+  }
 
   console.log(`✅ [RenderCoord] Rendered ${rendered.length} deferred. ${deferred.length} still deferred.`);
   return rendered;

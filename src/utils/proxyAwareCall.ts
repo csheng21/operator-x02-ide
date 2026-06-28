@@ -1,4 +1,5 @@
-﻿// src/utils/proxyAwareCall.ts
+import { getLanguageDirective } from '../ide/languageSelector';
+// src/utils/proxyAwareCall.ts
 // Operator X02 — Universal proxy-aware AI call
 // Use this instead of direct invoke/fetch with hardcoded keys
 // When apiKey is 'PROXY', routes through Supabase Edge Function
@@ -12,6 +13,28 @@ import { callAIViaProxy } from './proxyClient';
  *
  * Drop-in replacement for invoke('call_ai_api', {...})
  */
+// x02-tools-directive: read-only project-inspection tools advertised to the
+// model on the smartAICall proxy path (mirrors getTerminalToolsPrompt() in
+// apiProviderManager.ts; inlined here to avoid a circular import).
+function getX02ToolsDirective(): string {
+  return [
+    '',
+    '',
+    '=== PROJECT INSPECTION TOOLS (read-only) ===',
+    'When you need information about the project that is NOT already in the context above, you can inspect it yourself. Write exactly ONE line, on its own line, then STOP and wait:',
+    '  @@X02_FS: <folder path>          (directory structure; omit the path for the project root)',
+    '  @@X02_RUN: <read-only command>   (e.g. Select-String to search file contents, Get-Content to read a file, git status)',
+    '  @@X02_NEW_PROJECT: <type> <name>  type is one of: react, vue, nextjs, nodejs (pick the one that matches the request; default react). When the user asks to BUILD, CREATE, or MAKE an app or project, this is your FIRST action: it scaffolds and opens a runnable project, then you build into its files. Do NOT run @@X02_FS first for a build request. The directory tree you can see is the IDE OWN source code, not the user project, and is never relevant to building something new.',
+    '  BUILD-REQUEST RULE: a request to build or create or make an app means use @@X02_NEW_PROJECT immediately. Use @@X02_FS ONLY when the user asks about EXISTING code in a project they explicitly opened.',
+    'The result returns as the next message beginning with [X02 TOOL RESULT]. Then answer using it.',
+    'Rules:',
+    '- Do NOT guess about file contents or which files match a pattern. If you cannot determine it from the context already provided, you MUST use a tool instead of guessing or saying "typically".',
+    '- Commands are READ-ONLY; writes, deletes, installs, and network commands are blocked.',
+    '- Prefer @@X02_FS for structure; use @@X02_RUN to search inside files.',
+    '- If the provided context already answers the question, just answer - do not call a tool needlessly.',
+    ''
+  ].join('\n');
+}
 export async function smartAICall(params: {
   provider?: string;
   apiKey?: string;
@@ -25,6 +48,26 @@ export async function smartAICall(params: {
   temperature?: number;
   systemPrompt?: string;
 }): Promise<string> {
+  // x02-lang-directive: prepend the chosen response language to every call.
+  try {
+    const __dir = getLanguageDirective();
+    if (__dir) {
+      params = { ...params };
+      if (params.systemPrompt) params.systemPrompt = params.systemPrompt + __dir;
+      else params.systemPrompt = __dir;
+    }
+  } catch (e) { /* language selector not ready; ignore */ }
+
+  // x02-tools-directive: advertise the read-only inspection tools on EVERY
+  // smartAICall proxy turn, so the agent loop is reachable on this pipeline too.
+  try {
+    const __tools = getX02ToolsDirective();
+    if (__tools) {
+      params = { ...params };
+      params.systemPrompt = (params.systemPrompt || '') + __tools;
+    }
+  } catch (e) { /* ignore */ }
+
   const provider = params.provider || 'operator_x02';
   const apiKey = params.apiKey || 'PROXY';
   const model = params.model || 'x02-coder';

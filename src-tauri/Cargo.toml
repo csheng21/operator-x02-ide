@@ -36,6 +36,14 @@ tauri-plugin-opener        = "2.0"
 tauri-plugin-deep-link     = "2.0"
 tauri-plugin-single-instance = "2"
 
+
+# PTY terminal dependencies (added for v1.5.7)
+portable-pty = "0.8"
+parking_lot  = "0.12"
+uuid         = { version = "1", features = ["v4"] }
+regex        = "1"
+once_cell    = "1"
+
 [features]
 default          = ["custom-protocol"]
 custom-protocol  = ["tauri/custom-protocol"]

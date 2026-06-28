@@ -11,6 +11,7 @@ import {
 
 import { saveApiSettings } from '../state';
 import { getDomElement } from './domUtils';
+import { waitForElement } from './domReady';
 
 // Set up modal event listeners
 export function setupModalEventListeners(): void {
@@ -32,7 +33,7 @@ export function setupModalEventListeners(): void {
 }
 
 // Set up settings button handler
-function setupSettingsButtonHandler(): void {
+async function setupSettingsButtonHandler(): Promise<void> {
   const settingsModalElement = getDomElement('settings-modal');
   
   const handler = () => {
@@ -58,12 +59,15 @@ function setupSettingsButtonHandler(): void {
   }
   
   // Fall back to direct DOM query
-  const settingsBtn = getDomElement('settings-btn');
+  let settingsBtn = getDomElement('settings-btn');
+  if (!settingsBtn) {
+    settingsBtn = await waitForElement('#settings-btn');
+  }
   if (settingsBtn) {
     settingsBtn.addEventListener('click', handler);
     console.log('Settings button handler set up (using DOM reference)');
   } else {
-    console.error('Settings button not found');
+    console.warn('Settings button not found after waiting');
   }
 }
 
@@ -130,7 +134,7 @@ function setupOutsideClickHandler(): void {
 }
 
 // Set up save API key button handler
-function setupSaveApiKeyHandler(): void {
+async function setupSaveApiKeyHandler(): Promise<void> {
   const apiKeyInputElement = getDomElement('api-key-input');
   const apiBaseUrlInputElement = getDomElement('api-base-url-input');
   const settingsModalElement = getDomElement('settings-modal');
@@ -174,11 +178,14 @@ function setupSaveApiKeyHandler(): void {
   }
   
   // Fall back to direct DOM query
-  const saveApiKeyBtn = getDomElement('save-api-key-btn');
+  let saveApiKeyBtn = getDomElement('save-api-key-btn');
+  if (!saveApiKeyBtn) {
+    saveApiKeyBtn = await waitForElement('#save-api-key-btn');
+  }
   if (saveApiKeyBtn) {
     saveApiKeyBtn.addEventListener('click', handler);
     console.log('Save API key button handler set up (using DOM reference)');
   } else {
-    console.error('Save API key button not found');
+    console.warn('Save API key button not found after waiting');
   }
 }

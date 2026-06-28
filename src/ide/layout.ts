@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ====================================================================================================
  * FILE: src/ide/layout.ts - Complete Enhanced Layout with Terminal Integration & News System
  * ====================================================================================================
@@ -540,7 +540,7 @@ function createFallbackTerminal(): HTMLElement {
         <div class="terminal-input-line" style="flex-shrink: 0; display: flex; align-items: center; padding: 8px; background: #161b22; border-top: 1px solid #30363d; gap: 8px;">
           <span class="terminal-prompt" style="color: #7ee787; font-weight: 600; font-size: 13px;">$</span>
           <input type="text" class="terminal-input" id="integrated-terminal-input" placeholder="Type command..." style="flex: 1; background: #0d1117; border: 1px solid #30363d; border-radius: 4px; color: #c9d1d9; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px; outline: none; padding: 6px 8px;">
-          <button class="terminal-execute-btn" title="Execute Command" style="background: #238636; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500;">▶ Run</button>
+          <button class="terminal-execute-btn" title="Execute Command" style="background: #238636; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500;">â–¶ Run</button>
         </div>
       </div>
     `;
@@ -706,7 +706,7 @@ function applyEnhancedStyling(): void {
       flex-direction: column !important;
       width: 400px !important;
       min-width: 300px !important;
-      max-width: 600px !important;
+      max-width: 700px !important;
       background: var(--panel-bg, #252526) !important;
       border-right: 1px solid var(--border-color, #3c3c3c) !important;
       position: relative !important;
@@ -1652,8 +1652,8 @@ function applyEnhancedStyling(): void {
     .assistant-panel {
       display: flex !important;
       flex-direction: column !important;
-      width: 450px !important;
-      min-width: 400px !important;
+      width: 700px !important;
+      min-width: 700px !important;
       max-width: 800px !important;
       background: var(--panel-bg, #252526) !important;
       border-left: 1px solid var(--border-color, #3c3c3c) !important;
@@ -1882,7 +1882,7 @@ function setupExplorerPanelStructure(): void {
       <span class="panel-title">EXPLORER</span>
       <div class="panel-actions">
         <button class="panel-hide-btn" id="hide-explorer-btn" title="Hide Explorer Panel">
-          ◀
+          â—€
         </button>
       </div>
     </div>
@@ -1944,7 +1944,7 @@ function setupExplorerPanelStructure(): void {
           <div class="terminal-input-line" style="flex-shrink: 0; display: flex; align-items: center; padding: 8px; background: #161b22; border-top: 1px solid #30363d; gap: 8px;">
             <span class="terminal-prompt" style="color: #7ee787; font-weight: 600; font-size: 13px;">$</span>
             <input type="text" class="terminal-input" id="integrated-terminal-input" placeholder="Type command..." style="flex: 1; background: #0d1117; border: 1px solid #30363d; border-radius: 4px; color: #c9d1d9; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px; outline: none; padding: 6px 8px;">
-            <button class="terminal-execute-btn" title="Execute Command" style="background: #238636; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500;">▶ Run</button>
+            <button class="terminal-execute-btn" title="Execute Command" style="background: #238636; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 500;">â–¶ Run</button>
           </div>
         </div>
       </div>
@@ -2214,7 +2214,7 @@ export function toggleExplorerPanel(): boolean {
     // Update hide button
     const hideBtn = document.getElementById('hide-explorer-btn');
     if (hideBtn) {
-      hideBtn.innerHTML = '◀';
+      hideBtn.innerHTML = 'â—€';
       hideBtn.title = 'Hide Explorer Panel';
     }
     
@@ -2261,7 +2261,7 @@ function createShowExplorerButton(): void {
   // Create show button with enhanced styling
   const showBtn = document.createElement('button');
   showBtn.id = 'show-explorer-btn';
-  showBtn.innerHTML = '▶';
+  showBtn.innerHTML = 'â–¶';
   showBtn.title = 'Show Explorer Panel';
   
   // Add enhanced hover effects
@@ -2856,7 +2856,7 @@ function executeCommand(command: string): { output: string; success: boolean; ex
       default:
         // Check if it's a known command with no implementation
         if (COMMAND_REGISTRY[cmd]) {
-          output = `<span style="color: #ff9800;">⚠</span> Command '${cmd}' is recognized but not yet implemented in this simulation.`;
+          output = `<span style="color: #ff9800;">âš </span> Command '${cmd}' is recognized but not yet implemented in this simulation.`;
           success = false;
         } else {
           // Forward to real PowerShell via Tauri invoke
@@ -3263,7 +3263,7 @@ function setupTerminalActions(): void {
     }
   });
   
-  console.log('⚡ Enhanced terminal actions setup complete with execution support');
+  console.log('âš¡ Enhanced terminal actions setup complete with execution support');
 }
 
 // Terminal action functions
@@ -3513,7 +3513,7 @@ function showTerminalHelp(): void {
           Quick Start
         </h3>
         <div style="background: #0d1117; border-radius: 8px; padding: 12px 16px; color: #8b949e; font-size: 13px; line-height: 1.6;">
-          Type commands in the input field and press <kbd style="background: #30363d; padding: 2px 6px; border-radius: 4px; color: #c9d1d9;">Enter</kbd> or click <span style="color: #7ee787;">▶ Run</span> to execute.
+          Type commands in the input field and press <kbd style="background: #30363d; padding: 2px 6px; border-radius: 4px; color: #c9d1d9;">Enter</kbd> or click <span style="color: #7ee787;">â–¶ Run</span> to execute.
         </div>
       </div>
       
@@ -3598,6 +3598,28 @@ function showTerminalHelp(): void {
         </div>
       </div>
       
+      <!-- PowerShell (Shell button) -->
+      <div style="margin-bottom: 24px;">
+        <h3 style="color: #22c55e; font-size: 14px; font-weight: 600; margin: 0 0 12px 0;">&gt;_ PowerShell (Shell button)</h3>
+        <div style="display: grid; gap: 8px;">
+          <div style="display: flex; background: #0d1117; border-radius: 6px; padding: 10px 14px;">
+            <code style="color: #ff7b72; min-width: 240px; font-family: 'JetBrains Mono', monospace; word-break: break-all;">gci -Recurse | measure</code>
+            <span style="color: #8b949e; font-size: 13px;">Count all files in current folder (recursive)</span>
+          </div>
+          <div style="display: flex; background: #0d1117; border-radius: 6px; padding: 10px 14px;">
+            <code style="color: #ff7b72; min-width: 240px; font-family: 'JetBrains Mono', monospace; word-break: break-all;">sls -Path *.ts -Pattern "TODO" -Recurse</code>
+            <span style="color: #8b949e; font-size: 13px;">Find all TODO comments in TypeScript files</span>
+          </div>
+          <div style="display: flex; background: #0d1117; border-radius: 6px; padding: 10px 14px;">
+            <code style="color: #ff7b72; min-width: 240px; font-family: 'JetBrains Mono', monospace; word-break: break-all;">gci -Recurse | sort LastWriteTime -Desc | select -First 10</code>
+            <span style="color: #8b949e; font-size: 13px;">10 most recently modified files</span>
+          </div>
+          <div style="display: flex; background: #0d1117; border-radius: 6px; padding: 10px 14px;">
+            <code style="color: #ff7b72; min-width: 240px; font-family: 'JetBrains Mono', monospace; word-break: break-all;">gci -Recurse | sort Length -Desc | select -First 10 Name,Length</code>
+            <span style="color: #8b949e; font-size: 13px;">10 biggest files in project</span>
+          </div>
+        </div>
+      </div>
       <!-- Terminal Controls -->
       <div style="margin-bottom: 24px;">
         <h3 style="color: #58a6ff; font-size: 14px; font-weight: 600; margin: 0 0 12px 0;">⌨️ Terminal Controls</h3>
@@ -3623,7 +3645,7 @@ function showTerminalHelp(): void {
       
       <!-- Keyboard Shortcuts -->
       <div style="margin-bottom: 16px;">
-        <h3 style="color: #f0883e; font-size: 14px; font-weight: 600; margin: 0 0 12px 0;">⚡ Keyboard Shortcuts</h3>
+        <h3 style="color: #f0883e; font-size: 14px; font-weight: 600; margin: 0 0 12px 0;">âš¡ Keyboard Shortcuts</h3>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
           <div style="display: flex; align-items: center; gap: 12px; background: #0d1117; border-radius: 6px; padding: 10px 14px;">
             <kbd style="background: #30363d; padding: 4px 8px; border-radius: 4px; color: #c9d1d9; font-size: 12px; font-family: monospace;">↑ / ↓</kbd>
@@ -3651,7 +3673,7 @@ function showTerminalHelp(): void {
           <div><span style="color: #58a6ff;">?</span> - Show this help panel</div>
           <div><span style="color: #58a6ff;">🗑</span> - Clear terminal output</div>
           <div><span style="color: #58a6ff;">⧉</span> - Split terminal (coming soon)</div>
-          <div><span style="color: #58a6ff;">□</span> - Maximize/Restore terminal</div>
+          <div><span style="color: #58a6ff;">â–¡</span> - Maximize/Restore terminal</div>
           <div><span style="color: #f85149;">✕</span> - Close terminal</div>
         </div>
       </div>
@@ -3940,7 +3962,7 @@ function setupResizable() {
     resizer.className = 'resizer-h';
     assistantPanel.appendChild(resizer);
     
-    setupHorizontalResize(assistantPanel, resizer, 'width', 400, 800);
+    setupHorizontalResize(assistantPanel, resizer, 'width', 600, 1000);
   }
   
   console.log('📐 Panel resizing functionality enabled');
@@ -4003,7 +4025,7 @@ function initStatusBar() {
   leftSection.style.cssText = 'display: flex; align-items: center; height: 100%;';
   
   // Add left items
-  // âœ… Status bar items removed (branch, language, cursor, encoding, spaces, theme, version)
+  // ✅ Status bar items removed (branch, language, cursor, encoding, spaces, theme, version)
   leftSection.innerHTML = ``;
   
   // Create right section (news + user) - will be populated by initializeNewsSystem
@@ -4996,7 +5018,7 @@ export type { NewsItem } from './newsSystem';
 // Performance monitoring
 const initTime = performance.now();
 console.log(`🚀 Enhanced Layout System v3.6.0 loaded with News System Integration`);
-console.log(`⚡ Initialization completed in ${Math.round(performance.now() - initTime)}ms`);
+console.log(`âš¡ Initialization completed in ${Math.round(performance.now() - initTime)}ms`);
 console.log(`📊 Features: Terminal Execution | News System | Complete Panel Hide | Enhanced Commands | Copy Support | Auto-completion | Command History | Developer Tips`);
 console.log(`🔧 Ready for production use with ${Object.keys(COMMAND_REGISTRY).length} supported commands and ${DEVELOPER_TIPS.length} practical tips`);
 console.log(`💡 Tips available: Click 💡 button in terminal header or type 'tips' command`);

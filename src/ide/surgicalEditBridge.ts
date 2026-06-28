@@ -631,6 +631,23 @@ function getBackupDir(): string {
 // SYNC: Read file from disk back into Monaco editor
 // ============================================================================
 
+function se_normPath(p: string): string {
+  if (!p) return '';
+  let s = p;
+  try { s = decodeURIComponent(p); } catch (_) { s = p; }
+  s = s.replace(/\\/g, '/');
+  if (s.charAt(0) === '/' && s.charAt(2) === ':') s = s.slice(1);
+  return s.toLowerCase();
+}
+function se_getModelsForPath(filePath: string): any[] {
+  const w = window as any;
+  const target = se_normPath(filePath);
+  const models = w.monaco && w.monaco.editor && w.monaco.editor.getModels ? w.monaco.editor.getModels() : [];
+  return models.filter((m: any) => {
+    const mp = se_normPath((m && m.uri && (m.uri.path || m.uri.fsPath)) || '');
+    return mp && mp === target;
+  });
+}
 async function syncEditorFromDisk(
   invoke: (cmd: string, args?: any) => Promise<any>,
   filePath: string
@@ -662,9 +679,20 @@ async function syncEditorFromDisk(
       }
     }
 
-    // Update Monaco editor model
+    // Update the SPECIFIC model(s) matching filePath -- multi-file desync fix.
+    // Previously this synced editors[0] (the active editor), so during a
+    // multi-file apply the target model stayed stale and a later save wrote the
+    // stub back over good disk content (the 37-byte App.jsx bug). Match by path.
+    const __se_targetModels = se_getModelsForPath(filePath);
+    for (const __tm of __se_targetModels) {
+      try { __tm.applyEdits([{ range: __tm.getFullModelRange(), text: diskContent }]); }
+      catch (e) { console.warn('[SurgicalBridge] applyEdits failed', e); }
+    }
+    if (__se_targetModels.length > 0) {
+      console.log('[SurgicalBridge] Editor synced from disk (matched ' + __se_targetModels.length + ' model(s) for ' + filePath + ')');
+    }
     const em = getEditorAndModel();
-    if (em) {
+    if (em && __se_targetModels.length === 0) {
       em.editor.executeEdits('surgical-sync', [{
         range: em.model.getFullModelRange(),
         text: diskContent,

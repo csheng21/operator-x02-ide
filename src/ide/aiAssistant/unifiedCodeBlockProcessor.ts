@@ -598,6 +598,7 @@ function processCodeBlocks(): void {
   }
   
   preElements.forEach((pre) => {
+    if (pre.closest('.enh-code-block') || pre.closest('.muf-block')) return; // skip blocks owned by enh renderer
     pre.setAttribute('data-ucp-done', 'true');
     
     const codeEl = pre.querySelector('code');
