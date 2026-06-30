@@ -1,3 +1,4 @@
+import './ide/newsSystem/newsDialog'; // startup news popup
 import { showStartupDialog } from './startupDialog';
 // ============================================================================
 // INTEGRATED VERSION (Using AssistantUI) - January 24, 2026
