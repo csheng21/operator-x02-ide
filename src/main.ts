@@ -1,3 +1,4 @@
+import './ide/htmlRunOpen'; // one-click Play button for HTML projects
 import './ide/newsSystem/newsDialog'; // startup news popup
 import { showStartupDialog } from './startupDialog';
 // ============================================================================
