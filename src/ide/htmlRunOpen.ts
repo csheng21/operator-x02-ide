@@ -258,6 +258,8 @@ async function playCurrentHtml(): Promise<void> {
   if (!proj || proj === '.') { alert('Open a project folder first, then press Play.'); return }
 
   starting = true
+  // Save modified tabs before previewing so Play shows current code, not stale disk files.
+  try { await (window as any).tabManager?.saveAllTabs?.(); } catch (e) { console.warn('[htmlRunOpen] saveAllTabs before play failed:', e); }
   const btn = getButton()
   if (btn) setButtonLoading(btn, true)
   const startedAt = Date.now()
