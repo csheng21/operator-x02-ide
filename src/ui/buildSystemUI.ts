@@ -4170,6 +4170,7 @@ function setupRunButtonHandler(): void {
       e.stopPropagation();
       // Save all open tabs before running
       console.log('[BuildSystem] Saving all tabs before run...');
+      const __isWelcomePlaceholder = (s) => !!s && s.indexOf('AI-Powered Code IDE') !== -1 && s.indexOf('8 AI Roles (Architect') !== -1 && s.indexOf('operatorx02.com') !== -1;
       try {
         const tabManager = (window as any).tabManager;
         const editor = (window as any).monaco?.editor?.getEditors()?.[0];
@@ -4180,6 +4181,7 @@ function setupRunButtonHandler(): void {
               try {
                 const { saveFile } = await import('../fileSystem');
                 const content = tab.content || editor.getModel()?.getValue() || '';
+                if (__isWelcomePlaceholder(content)) { console.warn('[SaveGuard] Skipped welcome placeholder for', tab.path); continue; }
                 await saveFile(content, tab.path);
                 tabManager.markTabAsSaved?.(tab.id);
                 console.log('[BuildSystem] Saved:', tab.path);
@@ -4193,7 +4195,7 @@ function setupRunButtonHandler(): void {
           const activeTab = tabManager?.getActiveTab?.();
           if (activeTab?.path && activeTab.path !== 'Untitled') {
             const { saveFile } = await import('../fileSystem');
-            await saveFile(editor.getValue(), activeTab.path);
+            { const __c = editor.getValue(); if (__isWelcomePlaceholder(__c)) { console.warn('[SaveGuard] Skipped welcome placeholder for', activeTab.path); } else { await saveFile(__c, activeTab.path); } }
             console.log('[BuildSystem] Saved active file:', activeTab.path);
           }
         }

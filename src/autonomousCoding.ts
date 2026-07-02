@@ -1859,6 +1859,14 @@ async function triggerFileSave(overrideContent?: string): Promise<void> {
       return;
     }
     
+        // PHANTOM-PATH GUARD: never write to a non-file buffer path like "/1"
+    // (untitled/welcome model). Real Windows paths look like "C:/...". If this
+    // isn't a real absolute file path, abort instead of erroring on disk.
+    if (!/^[A-Za-z]:\//.test(filePath) && !filePath.startsWith('//')) {
+      console.warn('[AutoApply] Refusing to save to non-file path:', filePath);
+      showAutoApplyToast('Could not save: open the target file first.', 'error');
+      return;
+    }
     console.log(`?? [AutoApply] Saving: ${filePath} (${content.length} chars)`);
     
     let saved = false;
@@ -2516,10 +2524,38 @@ function extractTargetFileName(block: HTMLElement, code: string): string | null 
       }
     }
     
+        // PATH-LABEL FIX: catch folder-path labels like "src/App.jsx" that the
+    // basename-only patterns miss (a slash is not a word boundary above). Push
+    // the BASENAME so downstream findFileInProject (basename match) resolves it.
+    try {
+      const __pathPattern = /(?:^|[\s`"'(\[])((?:[\w.-]+\/)+[\w.-]+\.(?:tsx?|jsx?|py|rs|css|scss|cs|java|html|json|c|h|cpp|hpp|cc|cxx|ino))(?:$|[\s`"')\],:;])/gi;
+      let __pm;
+      while ((__pm = __pathPattern.exec(messageText)) !== null) {
+        const __base = (__pm[1].split('/').pop() || '');
+        if (__base && !isTechnologyNameNotFile(__base) && !allMentions.map(f => f.toLowerCase()).includes(__base.toLowerCase())) {
+          allMentions.push(__base);
+        }
+      }
+    } catch (_e) {}
     console.log(`?? [FileDetect] All file mentions: ${allMentions.join(', ') || '(none)'}`);
     
     // Map block index to file mention
     if (allMentions.length > 0 && blockIndex >= 0) {
+      // LANG-MATCH FIX: pair a block to a mention by CONTENT TYPE so a CSS
+      // block can never land in a .jsx/.js/.ts file (and vice-versa). The raw
+      // DOM block index is unreliable because processed+raw copies double it,
+      // which made CSS overwrite App.jsx.
+      const __lmHead = (code || block.textContent || '').slice(0, 600);
+      const __lmLooksJs = /\b(import\s|export\s|function\s|const\s|let\s|var\s|=>|useState|useEffect|return\s*\(|class\s+\w)/.test(__lmHead) || /<[A-Za-z][^>]*>/.test(__lmHead);
+      const __lmLooksCss = !__lmLooksJs && /\{/.test(code || '') && /[a-zA-Z-]+\s*:\s*[^;{}]+;/.test(code || '');
+      const __lmFind = (exts: string[]) => allMentions.find(m => exts.some(e => m.toLowerCase().endsWith(e)));
+      if (__lmLooksCss) {
+        const __cssHit = __lmFind(['.css', '.scss', '.sass', '.less']);
+        if (__cssHit) { console.log(`[FileDetect] Lang-match: CSS block -> "${__cssHit}"`); return __cssHit; }
+      } else if (__lmLooksJs) {
+        const __jsHit = __lmFind(['.jsx', '.tsx', '.js', '.ts']);
+        if (__jsHit) { console.log(`[FileDetect] Lang-match: JS block -> "${__jsHit}"`); return __jsHit; }
+      }
       // ? FIX: Even if there are more blocks than mentions, try to map
       // Use modulo or direct index if within bounds
       if (blockIndex < allMentions.length) {

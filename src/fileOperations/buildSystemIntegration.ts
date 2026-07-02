@@ -3299,6 +3299,24 @@ export async function buildProject(buildSystem?: BuildSystem): Promise<BuildResu
 }
 
 export async function runProject(buildSystem?: BuildSystem): Promise<BuildResult> {
+  // ---- RUN-LOCK: prevent concurrent runs racing for the dev-server port ----
+  // The existing isProcessRunning() guard only trips after npm install + server
+  // launch. A fast second click (or a re-render) slips through that window and
+  // starts a second `npm run dev` on the same port. This synchronous flag closes
+  // the gap: if a run is already in flight, ignore the new call.
+  if ((window as any).__x02RunInProgress) {
+    console.log('[BuildSystem] RUN-LOCK: a run is already in progress - ignoring duplicate Run.');
+    return { success: false, output: '', error: 'Run already in progress', duration: 0, exitCode: 0 };
+  }
+  (window as any).__x02RunInProgress = true;
+  try {
+    return await __runProjectInner(buildSystem);
+  } finally {
+    (window as any).__x02RunInProgress = false;
+  }
+}
+
+async function __runProjectInner(buildSystem?: BuildSystem): Promise<BuildResult> {
   const projectPath = getCurrentProjectPath();
   
   if (!buildSystem) {
@@ -3673,20 +3691,44 @@ async function stopDevServer(): Promise<void> {
 // server (e.g. a previous project still on 5173) cannot keep the port. Scoped to the single
 // port, time-boxed, and never throws \u2014 if it fails the new server may just pick another port.
 async function freePort(port: number, workingDir: string): Promise<void> {
-  try {
-    const cmd =
-      'powershell -NoProfile -Command "' +
-      `Get-NetTCPConnection -LocalPort ${port} -State Listen -ErrorAction SilentlyContinue | ` +
-      'Select-Object -ExpandProperty OwningProcess -Unique | ' +
-      'ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }"';
-    await Promise.race([
-      invoke('execute_build_command', { command: cmd, workingDir: workingDir || '.', streamOutput: false }),
-      new Promise<void>((r) => setTimeout(r, 4000)),  // never block startup more than ~4s
-    ]);
-    console.log(`[BuildSystem] Freed port ${port} (cleared any stale listener) before starting dev server`);
-  } catch (e) {
-    console.warn('[BuildSystem] freePort best-effort failed:', e);
+  const wd = workingDir || '.';
+  // Force-kill the whole process TREE that owns the port (Stop-Process alone can leave
+  // children; taskkill /F /T clears them), then VERIFY the port is actually free and retry.
+  // The old version raced the kill against a 4s timeout and logged success unconditionally,
+  // so a slow kill left the stale server alive and the new dev server silently picked
+  // another port (making the preview show the previous project's app).
+  const killCmd =
+    'powershell -NoProfile -Command "' +
+    `$ids = @(Get-NetTCPConnection -LocalPort ${port} -State Listen -ErrorAction SilentlyContinue | ` +
+    'Select-Object -ExpandProperty OwningProcess -Unique); ' +
+    'foreach ($id in $ids) { taskkill /F /T /PID $id 2>$null }"';
+  const checkCmd =
+    'powershell -NoProfile -Command "' +
+    `(Get-NetTCPConnection -LocalPort ${port} -State Listen -ErrorAction SilentlyContinue | Measure-Object).Count"`;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await Promise.race([
+        invoke('execute_build_command', { command: killCmd, workingDir: wd, streamOutput: false }),
+        new Promise<void>((r) => setTimeout(r, 8000)),
+      ]);
+    } catch (e) {
+      console.warn('[BuildSystem] freePort kill attempt failed:', e);
+    }
+    try {
+      const res: any = await Promise.race([
+        invoke('execute_build_command', { command: checkCmd, workingDir: wd, streamOutput: false }),
+        new Promise<any>((r) => setTimeout(() => r({ stdout: '' }), 4000)),
+      ]);
+      const count = parseInt(String((res && res.stdout) || '').trim(), 10);
+      if (count === 0) {
+        console.log(`[BuildSystem] Port ${port} confirmed free (attempt ${attempt})`);
+        return;
+      }
+    } catch (e) { /* verification failed - fall through to retry */ }
+    console.warn(`[BuildSystem] Port ${port} still busy after attempt ${attempt}, retrying...`);
+    await new Promise<void>((r) => setTimeout(r, 500));
   }
+  console.warn(`[BuildSystem] Could not confirm port ${port} is free after 3 attempts; the new dev server may pick a different port.`);
 }
 
 export async function buildAndRun(): Promise<void> {

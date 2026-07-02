@@ -1,4 +1,4 @@
-﻿// src/editor/editorManager.ts
+// src/editor/editorManager.ts
 // ============================================================================
 // Monaco Editor Manager with AI Code Writing Features
 // INCLUDES FIX: Hover "Loading..." hang for CSS/SCSS/JSON files
@@ -241,7 +241,7 @@ async function createEditor(): Promise<void> {
     console.log('Creating Monaco editor instance');
     // Create editor with dark theme
     monacoEditor = monaco.editor.create(editorContainer, {
-      value: welcomeContent,
+      value: ((): string => { try { const f: any = (window as any).fileSystem; const lp = f && typeof f.getLastPath === 'function' ? f.getLastPath('project') : null; return lp ? '' : welcomeContent; } catch (e) { return welcomeContent; } })(),
       language: 'typescript',
       theme: 'vs-dark',
       automaticLayout: true,
@@ -256,7 +256,7 @@ async function createEditor(): Promise<void> {
       tabSize: 2,
       lineNumbers: 'on',
       wordWrap: 'on',
-      readOnly: true  // Make welcome screen read-only
+      readOnly: ((): boolean => { try { const f: any = (window as any).fileSystem; const lp = f && typeof f.getLastPath === 'function' ? f.getLastPath('project') : null; return lp ? false : true; } catch (e) { return true; } })()  // welcome read-only only on fresh start
     });
 
     // ---- Inline Autocomplete (Ghost Text) ----
@@ -1078,6 +1078,11 @@ export async function saveCurrentFile(): Promise<void> {
   }
 
   const content = monacoEditor.getValue();
+  const __isWelcomePlaceholder = (s) => !!s && s.indexOf('AI-Powered Code IDE') !== -1 && s.indexOf('8 AI Roles (Architect') !== -1 && s.indexOf('operatorx02.com') !== -1;
+  if (__isWelcomePlaceholder(content)) {
+    console.warn('ðŸ›¡ï¸ [SaveGuard] Refusing to write welcome placeholder over', currentFilePath);
+    return;
+  }
   console.log('💾 Saving file:', currentFilePath);
   
   let saved = false;
