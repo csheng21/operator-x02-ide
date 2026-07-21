@@ -503,7 +503,7 @@ Respond with ONLY a JSON object in this EXACT format:
     console.log('🌐 Calling AI API...');
     
     try {
-      const response = await callGenericAPI(prompt, config, this.abortController?.signal);
+      const response = await callGenericAPI(prompt, config);
       
       console.log('Raw AI response:', response.substring(0, 200));
       
@@ -539,7 +539,7 @@ Respond with ONLY a JSON object in this EXACT format:
     } catch (parseError) {
       console.error('Failed to parse JSON, using fallback:', parseError);
       
-      const response = await callGenericAPI(`Modify this code: ${instruction}\n\n${code}\n\nReturn ONLY the modified code, no explanations.`, config, this.abortController?.signal);
+      const response = await callGenericAPI(`Modify this code: ${instruction}\n\n${code}\n\nReturn ONLY the modified code, no explanations.`, config);
       
       let cleaned = response.trim();
       cleaned = cleaned.replace(/```[\w]*\n?/g, '');
@@ -822,6 +822,23 @@ Could not complete AI edit.
     this.keyboardHandler = this.handleDiffKeyboard.bind(this);
     document.addEventListener('keydown', this.keyboardHandler);
     
+    // [DiffUX] AI Analysis header toggles collapse. Content is fully shown
+    // by default (nothing removed) - clicking the header trades analysis
+    // height for diff height. Buttons inside the header do not toggle.
+    try {
+      const anPanel = document.getElementById('ai-explanation-panel');
+      const anHead = anPanel ? (anPanel.querySelector('.explanation-header') as HTMLElement) : null;
+      if (anPanel && anHead) {
+        anHead.style.cursor = 'pointer';
+        anHead.title = 'Click to collapse / expand the AI analysis';
+        anHead.addEventListener('click', (ev) => {
+          const t = ev.target as HTMLElement;
+          if (t && t.closest('button')) { return; }
+          anPanel.classList.toggle('x02-an-collapsed');
+        });
+      }
+    } catch (_) {}
+
     const acceptBtn = document.getElementById('ai-diff-accept');
     const rejectBtn = document.getElementById('ai-diff-reject');
     const closeBtn = document.getElementById('ai-diff-close');
@@ -893,7 +910,9 @@ Could not complete AI edit.
       
       this.diffEditor = monaco.editor.createDiffEditor(diffEditorElement, {
         enableSplitViewResizing: false,
-        renderSideBySide: true,
+        // [DiffUX] Unified (inline) diff: real target line numbers, native
+        // diff colors, no empty left pane when the change is mostly additions.
+        renderSideBySide: false,
         readOnly: true,
         automaticLayout: true,
         theme: 'vs-dark',
@@ -910,6 +929,17 @@ Could not complete AI edit.
         original: originalModel,
         modified: modifiedModel
       });
+      
+      // [TwoCol] Clamp both columns to the diff's natural height so a
+      // 4-line change yields a compact dialog while big rewrites cap at
+      // ~60vh and scroll. automaticLayout keeps Monaco in sync.
+      try {
+        const tcLines = Math.max(proposal.original.split('\n').length, codeToShow.split('\n').length);
+        const tcPx = Math.min(Math.max(tcLines * 19 + 60, 460), Math.round(window.innerHeight * 0.68)); // [DlgSize]
+        diffEditorElement.style.height = tcPx + 'px';
+        const tcPanel2 = document.getElementById('ai-explanation-panel');
+        if (tcPanel2 && tcPanel2.closest('.x02-cols')) { (tcPanel2 as HTMLElement).style.maxHeight = tcPx + 'px'; }
+      } catch (_) {}
       
       console.log('✅ Diff editor created');
       this.setupMISRAToggleButton(proposal); 
@@ -972,7 +1002,8 @@ Could not complete AI edit.
                   <svg class="location-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M3 6L8 2L13 6V13H3V6Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
-                  Lines ${proposal.startLine}-${proposal.endLine}
+                  ${(() => { try { const p = (this.originalEditor && this.originalEditor.getModel && this.originalEditor.getModel().uri) ? this.originalEditor.getModel().uri.path : ''; const f = p ? p.split(/[\\/]/).pop() : ''; return f ? f + ' · ' : ''; } catch (_) { return ''; } })()}Lines ${proposal.startLine}-${proposal.endLine}
+                  ${proposal.explanation ? ' · <span class="x02-hd-stats"><span class="x02-add">+' + (proposal.explanation.stats.linesAdded + proposal.explanation.stats.linesModified) + '</span> <span class="x02-del">−' + (proposal.explanation.stats.linesRemoved + proposal.explanation.stats.linesModified) + '</span></span>' : ''}
                 </span>
               </div>
             </div>
@@ -988,6 +1019,7 @@ Could not complete AI edit.
             </svg>
             <span class="instruction-text">${this.escapeHtml(proposal.description)}</span>
           </div>
+          ${(() => { const o = proposal.original.split('\n').length; const m = proposal.modified.split('\n').length; return (o > 0 && m >= o * 3 && m - o >= 12) ? '<div class="x02-scope-warn">⚠ Replaces ' + o + ' lines with ' + m + ' (' + (m / o).toFixed(1) + '×) — larger than your selection. Review the full diff.</div>' : ''; })()}
         </div>
         
         ${hasExplanation ? `
@@ -1008,7 +1040,7 @@ Could not complete AI edit.
     <span>Show MISRA Rule Comments</span>
   </button>
   ` : `
-  <button class="get-detailed-analysis-btn" type="button">
+  <button class="get-detailed-analysis-btn" type="button" title="Generate the full Professional Code Analysis report (narrative, clause-cited). Opens in a separate window.">
     <svg viewBox="0 0 16 16" fill="currentColor">
       <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
       <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
@@ -1016,6 +1048,10 @@ Could not complete AI edit.
     <span>Get Detailed Professional Analysis</span>
   </button>
   `}
+  <button class="get-detailed-analysis-btn get-eng-assessment-btn" type="button" style="margin-left:8px" title="Generate the Engineering Assessment Report (findings, ISO checklist, engineering decision). Opens in a separate window.">
+    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0l6 2v5c0 4-2.7 7.3-6 9-3.3-1.7-6-5-6-9V2l6-2z"/></svg>
+    <span>Engineering Assessment</span>
+  </button>
 </div>
           
           <div class="explanation-content">
@@ -1194,11 +1230,11 @@ Could not complete AI edit.
  * Setup detailed explanation button (skip for MISRA)
  */
 private setupDetailedExplanationButton(container: HTMLElement, proposal: EditProposal): void {
-  // Skip for MISRA contexts
-  if (proposal.misraContext) {
-    console.log('⏭️ Skipping detailed analysis button for MISRA context');
-    return;
-  }
+  // [MisraTwoCol] MISRA proposals now run the shared setup (report hint,
+  // two-column restructure, Engineering Assessment wiring). The legacy
+  // Professional Analysis handler is still skipped automatically: for MISRA
+  // there is no plain .get-detailed-analysis-btn, so detailedBtn is null and
+  // the function returns at the `if (!detailedBtn)` guard before that setup.
   
   console.log('🔧 Setting up explanation button...');
   
@@ -1209,7 +1245,108 @@ private setupDetailedExplanationButton(container: HTMLElement, proposal: EditPro
     return;
   }
   
-  const detailedBtn = explanationPanel.querySelector('.get-detailed-analysis-btn') as HTMLButtonElement;
+  // [ReportHint] :not() so the Engineering Assessment button (which reuses
+  // the styling class) can never receive the legacy handler - in MISRA
+  // proposals it would otherwise be the first .get-detailed-analysis-btn.
+  const detailedBtn = explanationPanel.querySelector('.get-detailed-analysis-btn:not(.get-eng-assessment-btn)') as HTMLButtonElement;
+
+  // [DualReport] Opt-in Engineering Assessment button (separate generation).
+  // [ReportHint] Make it obvious that the header buttons generate reports.
+  try {
+    const hd = explanationPanel.querySelector('.explanation-header') as HTMLElement;
+    if (hd && !explanationPanel.querySelector('.x02-report-hint')) {
+      const x02HintLead = proposal.misraContext
+        ? '\ud83d\udca1 <b>Show MISRA Rule Comments</b> annotates the code inline with each rule; <b>Engineering Assessment</b> generates findings, an ISO checklist and a release decision.'
+        : '\ud83d\udca1 Click a report button above to generate a full document \u2014 <b>Professional Analysis</b> (narrative) or <b>Engineering Assessment</b> (findings, checklist, decision).';
+      hd.insertAdjacentHTML('afterend',
+        '<div class="x02-report-hint" style="padding:4px 24px 8px;font-size:11.5px;color:#8b949e;font-style:italic">' +
+        x02HintLead + ' The report opens in a separate window.</div>');
+    }
+  } catch (_) {}
+
+  // [TwoCol] Side-by-side layout: analysis becomes the left column, the
+  // diff owns the right at full height. Done at runtime (safer than
+  // rewriting the template): wrap the two siblings in a grid, then move
+  // the report buttons + hint into a stacked REPORTS box at the bottom of
+  // the left column. Guarded: if the DOM shape ever differs, the dialog
+  // silently stays in the classic stacked layout.
+  try {
+    const tcPanel = document.getElementById('ai-explanation-panel');
+    const tcDiff = document.getElementById('ai-diff-editor');
+    if (tcPanel && tcDiff && tcPanel.parentElement && tcPanel.parentElement === tcDiff.parentElement) {
+      const tcWrap = document.createElement('div');
+      tcWrap.className = 'x02-cols';
+      tcPanel.parentElement.insertBefore(tcWrap, tcPanel);
+      tcWrap.appendChild(tcPanel);
+      tcWrap.appendChild(tcDiff);
+      const repBox = document.createElement('div');
+      repBox.className = 'x02-reports';
+      repBox.innerHTML = '<div class="x02-reports-label">\ud83d\udcc4 REPORTS</div>';
+      const tcMisraBtn = tcPanel.querySelector('.toggle-misra-rules-btn'); // [MisraTwoCol]
+      if (tcMisraBtn) { repBox.appendChild(tcMisraBtn); }
+      tcPanel.querySelectorAll('.get-detailed-analysis-btn').forEach((b) => repBox.appendChild(b));
+      const tcHint = tcPanel.querySelector('.x02-report-hint');
+      if (tcHint) { repBox.appendChild(tcHint); }
+      tcPanel.appendChild(repBox);
+    }
+  } catch (_) {}
+
+  // [MisraTwoCol] Tag each change with its MISRA rule number + category.
+  // Category comes from the CURATED table below, never model recall; the model
+  // only supplies the change text. Guarded + idempotent.
+  if (proposal.misraContext) {
+    try {
+      const MISRA_RULE_TABLE: Record<string, 'Mandatory' | 'Required' | 'Advisory'> = {
+        // TODO(Heng): verify/extend from your MISRA C:2012 copy. 2012 base categories below.
+        '8.2': 'Required', '8.4': 'Required', '10.1': 'Required'
+      };
+      const catClass = (c: string) => c === 'Mandatory' ? 'x02-cat-man' : (c === 'Advisory' ? 'x02-cat-adv' : 'x02-cat-req');
+      explanationPanel.querySelectorAll('.changes-list .change-item').forEach((li) => {
+        const el = li as HTMLElement;
+        const span = el.querySelector('span');
+        if (!span || el.dataset.x02Ruled) { return; }
+        const mm = span.textContent ? span.textContent.match(/Rule\s+(\d+\.\d+)/) : null;
+        if (!mm) { return; }
+        const rid = mm[1];
+        const known = Object.prototype.hasOwnProperty.call(MISRA_RULE_TABLE, rid);
+        const cat = known ? MISRA_RULE_TABLE[rid] : 'Required';
+        span.insertAdjacentHTML('beforebegin',
+          '<span class="x02-rid">Rule ' + rid + '</span>' +
+          '<span class="x02-cat ' + catClass(cat) + '">' + cat + '</span>' +
+          (known ? '' : '<span class="x02-cat-unknown" title="Not in curated rule table \u2014 verify">?</span>'));
+        el.dataset.x02Ruled = '1';
+      });
+    } catch (e) { console.warn('[MisraTwoCol] rule decoration skipped:', e); }
+  }
+
+  const engBtn = explanationPanel.querySelector('.get-eng-assessment-btn') as HTMLButtonElement;
+  if (engBtn) {
+    engBtn.addEventListener('click', async () => {
+      const span = engBtn.querySelector('span');
+      const prev = span ? span.textContent : '';
+      engBtn.disabled = true;
+      if (span) { span.textContent = 'Generating Assessment...'; }
+      try {
+        const { runEngineeringAssessment } = await import('./x02AssessmentReport');
+        await runEngineeringAssessment({
+          original: proposal.original,
+          modified: proposal.modified,
+          fileName: this.getCurrentFileName(),
+          startLine: proposal.startLine,
+          endLine: proposal.endLine,
+          description: proposal.description || ''
+        });
+      } catch (e) {
+        console.error('[DualReport] assessment failed:', e);
+        if (span) { span.textContent = 'Failed - see console'; }
+        setTimeout(() => { if (span && prev) { span.textContent = prev; } }, 2500);
+        engBtn.disabled = false;
+        return;
+      }
+      if (span && prev) { span.textContent = prev; }
+      engBtn.disabled = false;
+    });
+  }
   
   if (!detailedBtn) {
     console.log('⚠️ Button not found in DOM');
@@ -1258,6 +1395,8 @@ ${proposal.explanation!.changes.map((change, i) => `${i + 1}. ${change}`).join('
     }
     
     try {
+      // [DualReport] Default = Professional Analysis (user preference);
+      // the Engineering Assessment is the opt-in second button below.
       const { ChangesExplanationUI } = await import('./aiChangesExplanation');
       const { HTMLViewerGenerator } = await import('./htmlViewerGenerator');
       
@@ -1275,7 +1414,29 @@ ${proposal.explanation!.changes.map((change, i) => `${i + 1}. ${change}`).join('
       const explanation = await explanationUI.generator.generateDetailedExplanation();
       
       console.log('✅ Analysis generated, opening HTML viewer...');
-      HTMLViewerGenerator.openInNewWindow(explanation, 'Professional Code Analysis');
+      // [ProSkin] v2: generateDetailedExplanation returns MARKDOWN and
+      // openInNewWindow wraps it in the branded template. The skin now
+      // converts the markdown itself (mirror of the viewer's converter),
+      // restructures into the engineering grid, and displays via
+      // HTMLViewerGenerator.showInModal directly - bypassing the template.
+      // Unrecognized structure or any error -> classic path, unchanged.
+      let skinShown = false;
+      try {
+        const { restyleProfessionalAnalysisMarkdown } = await import('./x02ProReportSkin');
+        const skinned = restyleProfessionalAnalysisMarkdown(explanation);
+        if (skinned) {
+          console.log('[ProSkin] engineering-grid restyle applied');
+          HTMLViewerGenerator.showInModal(skinned, 'Professional Code Analysis');
+          skinShown = true;
+        } else {
+          console.log('[ProSkin] structure not recognized - classic layout kept');
+        }
+      } catch (skinErr) {
+        console.warn('[ProSkin] restyle skipped:', skinErr);
+      }
+      if (!skinShown) {
+        HTMLViewerGenerator.openInNewWindow(explanation, 'Professional Code Analysis');
+      }
       
     } catch (error) {
       console.error('❌ Failed to generate explanation:', error);
@@ -2052,7 +2213,7 @@ void processData(int* data, size_t length);
       throw new Error('API not configured');
     }
 
-    const response = await callGenericAPI(fixPrompt, config, this.abortController?.signal);
+    const response = await callGenericAPI(fixPrompt, config);
 
     if (!this.isProcessing) {
       this.updateEditMessageStatus('cancelled');
@@ -3056,7 +3217,7 @@ IMPORTANT: Return ONLY a valid JSON object in this EXACT format (no markdown, no
 }`;
 
     const config = getCurrentApiConfigurationForced();
-    const response = await callGenericAPI(fixPrompt, config, this.abortController?.signal);
+    const response = await callGenericAPI(fixPrompt, config);
     
     this.hideLoadingOverlay();
     
@@ -3801,40 +3962,17 @@ AI code analysis was stopped by user.`;
       }
       
       try {
-        editor.addAction({
-          id: 'ai-edit-selection',
-          label: '✨ Edit with AI...',
-          contextMenuGroupId: 'modification',
-          contextMenuOrder: 1.5,
-          run: () => this.showEditPrompt()
-        });
+        // [MenuDedupe] Context-menu registration lives ONLY in
+        // initializeAIDirectEditor now. The duplicate block that was here
+        // re-registered the same action ids a second time.
         
-        editor.addAction({
-          id: 'ai-refactor',
-          label: '🔄 AI Refactor',
-          keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyR],
-          contextMenuGroupId: 'modification',
-          contextMenuOrder: 1.6,
-          run: () => this.editSelection('Refactor and improve this code for better readability and performance')
-        });
+
         
-        editor.addAction({
-          id: 'ai-add-comments',
-          label: '💬 AI Add Comments',
-          contextMenuGroupId: 'modification',
-          contextMenuOrder: 1.7,
-          run: () => this.editSelection('Add clear, helpful comments explaining this code')
-        });
+
         
-        editor.addAction({
-          id: 'ai-add-error-handling',
-          label: '🛡️ AI Add Error Handling',
-          contextMenuGroupId: 'modification',
-          contextMenuOrder: 1.8,
-          run: () => this.editSelection('Add comprehensive error handling')
-        });
+
         
-        console.log('✅ Editor commands added to context menu');
+        console.log('[MenuDedupe] context menu registration delegated to initializeAIDirectEditor');
       } catch (error) {
         console.error('Failed to add editor commands:', error);
       }
@@ -3931,9 +4069,12 @@ AI code analysis was stopped by user.`;
         background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
         border: 1px solid rgba(156, 39, 176, 0.3);
         border-radius: 12px;
-        width: 92%;
-        height: 85%;
-        max-width: 1400px;
+        width: 94%;
+        /* [TwoCol] size to content; [DlgSize] larger floor + wider cap */
+        height: auto;
+        max-height: 90vh;
+        min-height: 560px;
+        max-width: 1680px;
         display: flex;
         flex-direction: column;
         box-shadow: 0 0 0 1px rgba(156, 39, 176, 0.1), 0 20px 60px rgba(0, 0, 0, 0.8);
@@ -4488,6 +4629,115 @@ AI code analysis was stopped by user.`;
          EXPLANATION PANEL
          ============================================================================ */
       
+      /* [DiffUX] collapse state + header stats + scope warning */
+      .x02-an-collapsed .explanation-content { display: none; }
+      .x02-an-collapsed { padding-bottom: 10px; }
+      .x02-hd-stats { font-family: Consolas, monospace; font-size: 12px; margin-left: 10px; }
+      .x02-hd-stats .x02-add { color: #3fb950; font-weight: 700; }
+      .x02-hd-stats .x02-del { color: #f85149; font-weight: 700; }
+      .x02-scope-warn { display: flex; align-items: center; gap: 10px; padding: 7px 24px;
+        font-size: 12.5px; color: #d29922; background: rgba(210,153,34,.09);
+        border-bottom: 1px solid rgba(210,153,34,.35); }
+
+      /* [TwoCol] side-by-side layout + GitHub Dark Readable theme
+         (his chosen theme 2): surfaces #0d1117/#161b22/#1c2129, borders
+         #30363d, text #c9d1d9, purple = structure only, blue = interactive,
+         solid-green primary/Accept (confirm semantics), red = destructive. */
+      .x02-cols {
+        display: grid;
+        grid-template-columns: 540px 1fr; /* [DlgSize][DlgWide] wider analysis column */
+        flex: 1;
+        min-height: 0;
+        align-items: stretch;
+      }
+      .x02-cols .ai-explanation-panel {
+        max-height: none;
+        margin: 0;
+        border-radius: 0;
+        border: none;
+        border-right: 1px solid #30363d;
+        overflow-y: auto;
+        background: #161b22 !important;
+      }
+      .x02-cols .ai-diff-editor {
+        min-height: 220px;
+        background: #0d1117 !important;
+      }
+      .x02-cols .explanation-header { flex-wrap: wrap; gap: 8px; }
+      .x02-reports {
+        border-top: 1px solid #21262d;
+        margin-top: 14px;
+        padding-top: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .x02-reports-label {
+        font-size: 10.5px;
+        letter-spacing: 0.09em;
+        color: #a371f7;
+        font-weight: 700;
+      }
+      .x02-reports .get-detailed-analysis-btn {
+        width: 100%;
+        justify-content: center;
+        margin-left: 0 !important;
+        background: #238636 !important;
+        border: 1px solid #2ea043 !important;
+        color: #ffffff !important;
+      }
+      .x02-reports .get-detailed-analysis-btn:hover { background: #2ea043 !important; }
+      .x02-reports .get-eng-assessment-btn {
+        background: transparent !important;
+        border: 1px solid #30363d !important;
+        color: #d2a8ff !important;
+      }
+      .x02-reports .get-eng-assessment-btn:hover { border-color: #58a6ff !important; color: #58a6ff !important; }
+      .x02-reports .x02-report-hint { padding: 2px 0 0 !important; color: #8b949e !important; }
+      /* readable text + GitHub-dark skin over the legacy chrome */
+      .x02-cols .section-content,
+      .x02-cols .changes-list li {
+        color: #c9d1d9 !important;
+        font-size: 13px;
+        line-height: 1.65;
+      }
+      .x02-cols .section-label { color: #a371f7 !important; }
+      .x02-rid { font-family: ui-monospace, Consolas, monospace; font-size: 11px; font-weight: 700; color: #a371f7; margin-right: 6px; white-space: nowrap; }
+      .x02-cat { font-family: ui-monospace, Consolas, monospace; font-size: 9.5px; font-weight: 700; text-transform: uppercase; padding: 1px 6px; border-radius: 20px; margin-right: 6px; }
+      .x02-cat-req { color: #d29922; background: rgba(210,153,34,.14); border: 1px solid rgba(210,153,34,.4); }
+      .x02-cat-man { color: #f85149; background: rgba(248,81,73,.13); border: 1px solid rgba(248,81,73,.4); }
+      .x02-cat-adv { color: #58a6ff; background: rgba(88,166,255,.13); border: 1px solid rgba(88,166,255,.4); }
+      .x02-cat-unknown { color: #f85149; font-weight: 700; margin-right: 6px; }
+      .x02-reports .toggle-misra-rules-btn { width: 100%; justify-content: center; margin: 0 !important; }
+      .ai-diff-content {
+        background: #161b22 !important;
+        border: 1px solid #30363d !important;
+      }
+      .ai-diff-header {
+        background: #1c2129 !important;
+        border-bottom: 1px solid #30363d !important;
+      }
+      .ai-diff-modal .ai-btn-primary {
+        background: #238636 !important;
+        border: 1px solid #2ea043 !important;
+        color: #ffffff !important;
+      }
+      .ai-diff-modal .ai-btn-primary:hover { background: #2ea043 !important; }
+      .ai-diff-modal .ai-btn-secondary {
+        background: #1c2129 !important;
+        border: 1px solid #30363d !important;
+        color: #c9d1d9 !important;
+      }
+      .ai-diff-modal .ai-btn-secondary:hover { border-color: #f85149 !important; color: #f85149 !important; }
+      @media (max-width: 1100px) {
+        .x02-cols { grid-template-columns: 1fr; }
+        .x02-cols .ai-explanation-panel {
+          border-right: none;
+          border-bottom: 1px solid #30363d;
+          max-height: 240px;
+        }
+      }
+
       .ai-explanation-panel {
         background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
         border-bottom: 1px solid rgba(156, 39, 176, 0.2);
@@ -5625,49 +5875,66 @@ export function initializeAIDirectEditor(editor: any): void {
   try {
     editor.addAction({
       id: 'ai-edit-selection',
-      label: '✨ Edit with AI...',
+      label: '✨ Edit with AI... (Recommended)',
       keybindings: [
         monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyI
       ],
-      contextMenuGroupId: 'modification',
-      contextMenuOrder: 1.5,
+      // [RecoTop] Monaco sorts menu groups lexicographically; 'a_recommended'
+      // lands after 9_cutcopypaste and before 'ai', so this entry sits
+      // directly above AI: Review This Code.
+      contextMenuGroupId: 'a_recommended',
+      contextMenuOrder: 1,
       run: () => aiDirectEditor.showEditPrompt()
     });
     
-    editor.addAction({
-      id: 'ai-refactor',
-      label: '🔄 AI Refactor',
-      keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyR],
-      contextMenuGroupId: 'modification',
-      contextMenuOrder: 1.6,
-      run: () => aiDirectEditor.editSelection('Refactor and improve this code for better readability and performance')
-    });
+
     
-    editor.addAction({
-      id: 'ai-add-comments',
-      label: '💬 AI Add Comments',
-      contextMenuGroupId: 'modification',
-      contextMenuOrder: 1.7,
-      run: () => aiDirectEditor.editSelection('Add clear, helpful comments explaining this code')
-    });
+
     
-    editor.addAction({
-      id: 'ai-add-error-handling',
-      label: '🛡️ AI Add Error Handling',
-      contextMenuGroupId: 'modification',
-      contextMenuOrder: 1.8,
-      run: () => aiDirectEditor.editSelection('Add comprehensive error handling')
-    });
+
     
     editor.addAction({
       id: 'ai-add-iso26262-compliance',
       label: '🛡️ Add ISO 26262 Compliance',
       keybindings: [monaco.KeyMod.CtrlCmd | monaco.KeyMod.Alt | monaco.KeyCode.KeyE],
       contextMenuGroupId: 'modification',
-      contextMenuOrder: 1.9,
+      contextMenuOrder: 1.6,
       run: () => aiDirectEditor.editSelection('Add error handling with ASIL-D compliance per ISO 26262:2018')
     });
     
+    // [RecommendedRed] v2: Monaco addAction labels are plain text, so the
+    // red "Recommended" badge is painted after render. v2 also searches
+    // OPEN SHADOW ROOTS - standalone Monaco renders context menus inside a
+    // shadow-root host, which document.querySelectorAll cannot pierce (why
+    // v1 never painted). Repaints at 0/50/200ms after each mutation.
+    // MutationObserver, never setInterval (X02 perf manager culls intervals).
+    try {
+      const collectLabels = (): HTMLElement[] => {
+        const out: HTMLElement[] = [];
+        document.querySelectorAll('.monaco-menu .action-label').forEach((n) => out.push(n as HTMLElement));
+        document.querySelectorAll('.shadow-root-host').forEach((h) => {
+          const sr = (h as HTMLElement).shadowRoot;
+          if (sr) { sr.querySelectorAll('.monaco-menu .action-label').forEach((n) => out.push(n as HTMLElement)); }
+        });
+        return out;
+      };
+      const paintRecommended = () => {
+        collectLabels().forEach((h) => {
+          const t = h.textContent || '';
+          if (t.indexOf('(Recommended)') !== -1 && !h.querySelector('.x02-reco')) {
+            h.innerHTML = t.replace('(Recommended)',
+              '(<span class="x02-reco" style="color:#f85149;font-weight:600">Recommended</span>)');
+          }
+        });
+      };
+      const recoMo = new MutationObserver(() => {
+        paintRecommended();
+        setTimeout(paintRecommended, 50);
+        setTimeout(paintRecommended, 200);
+      });
+      recoMo.observe(document.body, { childList: true, subtree: true });
+    } catch (_) {}
+
     console.log('✅ AI Direct Editor context menu actions registered');
   } catch (error) {
     console.error('Failed to register context menu actions:', error);
