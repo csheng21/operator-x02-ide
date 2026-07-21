@@ -54,3 +54,22 @@ src-tauri/src/index.html
 src-tauri/src/package.js
 src-tauri/src/package.json
 src-tauri/src/postcss.config.js
+
+# --- Vite build cache ---
+.vite/
+
+# --- Ambiguous build/terminal files (review before publishing) ---
+buildFixLoop.ts
+buildFileWriter.ts
+src/ide/buildFixLoop.ts
+src/ide/terminal/ptyTerminal.ts
+
+# Private core module backups - NEVER commit
+*.private_backup
+*.bak
+*.bak_dedup*
+*.snapshot-*
+
+*.bak.*
+patch_*.ps1
+OPERATOR_X02_GITHUB_*_SUMMARY.md
