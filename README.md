@@ -173,7 +173,8 @@ The dual-report system shipped in **v1.5.9.1b — Engineering Experience Update*
 Describe the tool you need. Operator X02 scaffolds the project, generates the code, installs the dependencies, compiles it with cargo and Tauri, and hands you a **double-clickable Windows installer** — locally, offline, without leaving the editor.
 
 <div align="center">
-<img src="docs/assets/x02-buildmode.svg" alt="Build Mode pipeline: describe your app → AI plan → generate → validate ×9 → cargo build → installer" width="100%"/>
+<img width="2400" height="460" alt="x02-buildmode" src="https://github.com/user-attachments/assets/19f18b98-88f1-4600-a61b-8dd6536220d4" />
+
 </div>
 
 [![Build Mode — Read the Full Release](https://img.shields.io/badge/%F0%9F%9A%80%20BUILD%20MODE-READ%20THE%20FULL%20RELEASE-1D6EFA?style=for-the-badge&labelColor=07090F)](https://operatorx02.com/release-v1.5.9.1a.html)
