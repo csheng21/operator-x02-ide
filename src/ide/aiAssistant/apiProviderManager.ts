@@ -5,6 +5,7 @@ import { getLanguageDirective } from '../languageSelector';
 import { getCurrentApiConfiguration, getProviderDisplayName, saveApiConfiguration, validateApiConfiguration } from '../../state';
 import { isTauriEnvironment, callClaudeViaTauri, callAiApiViaTauri } from "../../utils/tauriApiClient";
 import { buildIntelligentSystemPrompt } from '../../intelligentContextProvider';
+import { getX02FeatureKnowledge } from './x02FeatureKnowledge';
 const X02_BUILDER_CONTRACT = "\n\n=== OPERATOR X02 BUILDER CONTRACT ===\nYou produce working deliverables, not just explanations.\nFor any build/create/make-an-app request:\n1. PLAN briefly (2-3 sentences). Do NOT scan project files unless the task needs existing code.\n2. BUILD: output COMPLETE files as fenced code blocks. Begin each block with a path comment, e.g. // path: src/CanScope.jsx. Never partial snippets, never 'rest unchanged'.\n3. HAND OFF: after the files, give the exact steps to run them (create or open project, npm install X, npm run dev).\nIf no project is open, say so and tell the user to open or create one. NEVER scan the IDE's own directory. Be honest about uncertainty rather than guessing. Do the work now rather than offering to do it later.";
 import { getIdeScriptAwarePrompt } from '../ideScriptBridge';
 import { showCalibrationPanel } from '../../calibrationUI';
@@ -1272,7 +1273,7 @@ export async function callGenericAPI(message: string, config?: ApiConfiguration,
       // 1. System prompt
       proxyMessages.push({
         role: 'system',
-        content: buildIntelligentSystemPrompt() + getIdeScriptAwarePrompt() + getLanguageDirective() + getTerminalToolsPrompt() + X02_BUILDER_CONTRACT
+        content: buildIntelligentSystemPrompt() + getIdeScriptAwarePrompt() + getLanguageDirective() + getTerminalToolsPrompt() + X02_BUILDER_CONTRACT + getX02FeatureKnowledge()
       });
 
       // 2. Conversation history (for context like "yes", "2nd option", etc.)
@@ -1526,7 +1527,7 @@ export async function callGenericAPI(message: string, config?: ApiConfiguration,
       // 1. Main system prompt (always use the intelligent one)
       messagesArray.push({
         role: 'system',
-        content: buildIntelligentSystemPrompt() + getIdeScriptAwarePrompt() + getLanguageDirective() + getTerminalToolsPrompt() + X02_BUILDER_CONTRACT
+        content: buildIntelligentSystemPrompt() + getIdeScriptAwarePrompt() + getLanguageDirective() + getTerminalToolsPrompt() + X02_BUILDER_CONTRACT + getX02FeatureKnowledge()
       });
       
       // 2. ✅ NEW: Inject conversation history from messagesWithContext
