@@ -69,13 +69,23 @@ export async function callAIViaProxy(request: ProxyRequest): Promise<string> {
   });
 
   if (!response.ok) {
-    const err = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+    // [ProxyErrUnmask] surface the REAL error body instead of "[object Object]"
+    const rawBody = await response.text().catch(() => '');
+    let parsed: any = null;
+    try { parsed = rawBody ? JSON.parse(rawBody) : null; } catch { /* non-JSON body */ }
+    const detail =
+      (parsed && typeof parsed.error === 'string' && parsed.error) ||
+      (parsed && parsed.error && (parsed.error.message || parsed.error.msg)) ||
+      (parsed && typeof parsed.message === 'string' && parsed.message) ||
+      (parsed ? JSON.stringify(parsed) : rawBody) ||
+      `HTTP ${response.status}`;
+    console.error(`\u274c [Proxy] ${request.provider} ${response.status} ${response.statusText} \u2014 body:`, rawBody || '(empty)');
 
     if (response.status === 401) throw new Error('App authentication failed. Please update the app.');
     if (response.status === 429) throw new Error('Rate limit exceeded. Please wait a moment.');
-    if (response.status === 503) throw new Error(err.error || `${request.provider} is not available.`);
+    if (response.status === 503) throw new Error(String(detail) || `${request.provider} is not available.`);
 
-    throw new Error(err.error || `Proxy error: ${response.status}`);
+    throw new Error(`Proxy ${response.status}: ${String(detail)}`);
   }
 
   const data: ProxyResponse = await response.json();

@@ -642,6 +642,15 @@ setTimeout(() => {
   }
 
   // ── Show more messages ─────────────────────────────────────────────
+  // v9: keep the viewport pinned to the same distance-from-bottom while async
+  // layout (code-block enhancement, auto-collapse @150ms, image load) changes
+  // heights AFTER reveal — a single RAF restore fired too early and jumped up.
+  function pinScrollBottom(container: HTMLElement, scrollBottom: number): void {
+    const apply = () => { container.scrollTop = Math.max(0, container.scrollHeight - scrollBottom); };
+    requestAnimationFrame(apply);
+    [0, 60, 160, 320, 600].forEach((ms) => window.setTimeout(apply, ms));
+  }
+
   function showMore(): void {
     // v8: Don't reveal during background load — observer would re-capture them
     if (backgroundLoadMode) return;
@@ -694,10 +703,9 @@ setTimeout(() => {
       });
     });
 
-    // v5: Restore scroll position
-    requestAnimationFrame(() => {
-      container.scrollTop = container.scrollHeight - scrollBottom;
-    });
+    // v9: re-pin across async reflows (collapse @150ms, code-block enhance) —
+    // was a single RAF that fired before those height changes and jumped the view
+    pinScrollBottom(container as HTMLElement, scrollBottom);
 
     // Update or remove the load-more bar
     if (hiddenMessages.length === 0 && deferredElements.length === 0) {
@@ -756,10 +764,9 @@ setTimeout(() => {
       });
     });
 
-    // Restore scroll position
-    requestAnimationFrame(() => {
-      container.scrollTop = container.scrollHeight - scrollBottom;
-    });
+    // v9: re-pin across async reflows (collapse @150ms, code-block enhance) —
+    // was a single RAF that fired before those height changes and jumped the view
+    pinScrollBottom(container, scrollBottom);
 
     // Update or remove load-more bar
     if (deferredElements.length === 0 && hiddenMessages.length === 0) {

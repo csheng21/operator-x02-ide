@@ -96,7 +96,7 @@ const OPERATOR_X02_API_CONFIG: ApiConfiguration = {
   provider: 'operator_x02',
   apiKey: 'PROXY',
   apiBaseUrl: 'PROXY',
-  model: 'x02-coder',
+  model: 'x02-v4-pro',
   maxTokens: 4000,
   temperature: 0.7
 };
@@ -522,7 +522,7 @@ function ensureProviderConsistency(config: ApiConfiguration): ApiConfiguration {
     case 'operator_x02':
       cleanConfig.apiBaseUrl = 'PROXY';
       if (!cleanConfig.model.startsWith('x02')) {
-        cleanConfig.model = 'x02-coder';
+        cleanConfig.model = 'x02-v4-pro';
       }
       // Use saved key if available, otherwise use proxy
       if (!cleanConfig.apiKey || cleanConfig.apiKey === 'PROXY') {
@@ -632,7 +632,7 @@ const DEFAULT_PROVIDER_CONFIGS: Record<ApiProvider, Partial<ApiConfiguration>> =
   },
   operator_x02: {
     apiBaseUrl: 'PROXY',
-    model: 'x02-coder',
+    model: 'x02-v4-pro',
     maxTokens: 4000,
     temperature: 0.7,
     apiKey: 'PROXY'
@@ -1235,6 +1235,16 @@ function getTerminalToolsPrompt(): string {
 }
 
 export async function callGenericAPI(message: string, config?: ApiConfiguration, messagesWithContext?: Array<{role: string, content: any}>): Promise<string> {
+  // [EditorAbortArg] Defensive: legacy callers passed an AbortSignal (or other
+  // non-array) in the messagesWithContext slot; esbuild does not type-check,
+  // so it arrived at runtime and crashed the proxy path at the .slice() call.
+  // Ignore anything that is not a real messages array instead of crashing.
+  if (messagesWithContext !== undefined && !Array.isArray(messagesWithContext)) {
+    console.warn('[callGenericAPI] messagesWithContext is not an array (' +
+      Object.prototype.toString.call(messagesWithContext) +
+      ') - ignored. Fix the caller argument order.');
+    messagesWithContext = undefined;
+  }
   const apiConfig = config || getCurrentApiConfigurationForced();
   const cleanConfig = ensureProviderConsistency(apiConfig);
   const { provider, apiKey, apiBaseUrl, model, maxTokens, temperature } = cleanConfig;
@@ -2910,7 +2920,7 @@ function createQuickProviderDropdown(): void {
           const { invoke } = await import('@tauri-apps/api/core');
           
           const providerConfigs: Record<string, { baseUrl: string; model: string }> = {
-            'operator_x02': { baseUrl: 'PROXY', model: 'x02-coder' },
+            'operator_x02': { baseUrl: 'PROXY', model: 'x02-v4-pro' },
             'deepseek': { baseUrl: 'https://api.deepseek.com/v1', model: 'deepseek-chat' },
             'openai': { baseUrl: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
             'claude': { baseUrl: 'https://api.anthropic.com/v1', model: 'claude-sonnet-4-20250514' }
