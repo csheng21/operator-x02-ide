@@ -23,6 +23,11 @@ interface ContentSearchResult {
 // AI SEARCH ENGINE
 // ============================================================================
 
+// [AIReasons] per-search map of file -> the AI's one-line relevance reason
+const AI_REASONS: Map<string, string> = new Map();
+// [AIDebounce] stale-result guard: only the newest search may apply results
+let AI_SEARCH_SEQ = 0;
+
 class AISearchEngine {
   private cache: Map<string, string[]> = new Map();
 
@@ -62,11 +67,13 @@ Available Files:
 ${limitedFiles.map((f, i) => `${i + 1}. ${f}`).join('\n')}
 
 Instructions:
-- Return ONLY the file paths that match the search query
-- Return one file path per line
-- Do not add explanations or extra text
+- The query may be a natural-language INTENT rather than a keyword (e.g. "i want to change the UI" means: find the files the user would open and edit to change the user interface - components, styles, layout entry points)
+- Return ONLY entries for files that match the search query or fulfill the intent
+- Return one entry per line in the format: file path | short reason (max 8 words) why it is relevant
+- No other text before or after the list
 - Match based on file names, paths, and likely content
 - Prioritize files most relevant to the query
+- For intent queries, ALWAYS return the top 3-5 most relevant files even if the match is indirect
 
 Relevant files:`;
   }
@@ -85,9 +92,18 @@ Relevant files:`;
         .replace(/^>\s*/, '')
         .trim();
 
+      // [AIReasons] optional "path | reason" format from the prompt contract
+      let pathPart = cleaned;
+      let reasonPart = '';
+      const pipeIdx = cleaned.indexOf('|');
+      if (pipeIdx > 0) {
+        pathPart = cleaned.slice(0, pipeIdx).trim();
+        reasonPart = cleaned.slice(pipeIdx + 1).trim();
+      }
+
       const matchedFile = fileList.find(f => {
         const fLower = f.toLowerCase();
-        const cleanedLower = cleaned.toLowerCase();
+        const cleanedLower = pathPart.toLowerCase();
         return fLower.includes(cleanedLower) || 
                cleanedLower.includes(fLower) ||
                fLower.endsWith(cleanedLower) ||
@@ -96,6 +112,7 @@ Relevant files:`;
 
       if (matchedFile && !results.includes(matchedFile)) {
         results.push(matchedFile);
+        if (reasonPart) { AI_REASONS.set(matchedFile.replace(/\s*\[.*?\]/g, '').trim(), reasonPart); }
       }
     }
 
@@ -109,7 +126,11 @@ Relevant files:`;
   public isAIAvailable(): boolean {
     try {
       const config = getCurrentApiConfigurationForced();
-      return !!(config && config.apiKey && config.provider !== 'none');
+      // [ProxyAvail] the forced X02 default rides the proxy path and needs
+      // no apiKey - availability means a usable provider, not a key. Named
+      // providers still require their key.
+      return !!(config && config.provider && config.provider !== 'none' &&
+        (config.apiKey || config.provider === 'operator_x02' || String(config.apiKey) === 'PROXY'));
     } catch {
       return false;
     }
@@ -183,7 +204,7 @@ export class RobustExplorerFilter {
         searchContainer.style.boxShadow = '0 -2px 8px rgba(76, 175, 80, 0.3)';
       }
     } else if (this.contentSearchMode) {
-      searchInput.placeholder = 'AI enhanced search file content';
+      searchInput.placeholder = 'Search file content';
       if (searchIcon) {
         searchIcon.innerHTML = this.ICONS.search;
         searchIcon.style.color = '#4fc3f7';
@@ -1196,11 +1217,27 @@ private addProtectedStyles(): void {
 private setupControlListeners(): void {
   const searchInput = document.getElementById('explorer-search-input-persistent') as HTMLInputElement;
   let contentSearchTimeout: ReturnType<typeof setTimeout> | null = null;
+  let aiSearchTimeout: ReturnType<typeof setTimeout> | null = null;
   
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {
       this.searchFilter = (e.target as HTMLInputElement).value.toLowerCase();
-      
+
+      // [SearchClear] empty input = instant full reset: hide any results/
+      // loading panel, drop AI suggestions, restore the full tree.
+      const __clr = document.getElementById('x02-search-clear') as any;
+      if (__clr) {
+        __clr.style.display = this.searchFilter ? 'inline-flex' : 'none';
+        if (this.searchFilter && __clr.__x02Place) { __clr.__x02Place(); }
+      }
+      if (!this.searchFilter) {
+        this.aiSuggestedFiles.clear();
+        this.contentSearchResults.clear();
+        this.hideContentSearchResults();
+        this.applyFilters();
+        return;
+      }
+
       // ✅ Handle Content Search Mode
       if (this.contentSearchMode) {
         // Debounce content search (wait 300ms after typing stops)
@@ -1217,8 +1254,15 @@ private setupControlListeners(): void {
       }
       
       // Normal/AI search mode
+      // [AIDebounce] fire the AI only after typing pauses (700ms) - every
+      // keystroke past 2 chars used to launch a full AI round-trip, so the
+      // panel showed results for the fragment "i " while the user was still
+      // typing "i want change UI".
       if (this.aiSearchMode && this.searchFilter.length > 2) {
-        this.performAISearch(this.searchFilter);
+        if (aiSearchTimeout) clearTimeout(aiSearchTimeout);
+        aiSearchTimeout = setTimeout(() => {
+          this.performAISearch(this.searchFilter);
+        }, 700);
       } else {
         this.aiSuggestedFiles.clear();
         this.applyFilters();
@@ -1232,6 +1276,39 @@ private setupControlListeners(): void {
         this.performContentSearch(this.searchFilter);
       }
     });
+
+    // [SearchClear] v2: viewport-anchored overlay at the input's right edge.
+    // v1 assumed the Aa button was a flex sibling of the input - it is not,
+    // so the x wrapped to its own row. Positioning from the input's own
+    // bounding box is correct in ANY layout.
+    if (!document.getElementById('x02-search-clear')) {
+      const clr = document.createElement('span');
+      clr.id = 'x02-search-clear';
+      clr.textContent = '\u2715';
+      clr.title = 'Clear search';
+      clr.style.cssText = 'display:none;position:fixed;z-index:9500;align-items:center;justify-content:center;' +
+        'width:18px;height:18px;color:#888;cursor:pointer;font-size:11px;border-radius:3px;user-select:none;';
+      clr.addEventListener('mouseenter', () => { clr.style.color = '#c9d1d9'; clr.style.background = '#333'; });
+      clr.addEventListener('mouseleave', () => { clr.style.color = '#888'; clr.style.background = 'transparent'; });
+      clr.addEventListener('click', () => {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        searchInput.focus();
+      });
+      document.body.appendChild(clr);
+      searchInput.style.paddingRight = '26px';
+      const place = () => {
+        try {
+          const r = searchInput.getBoundingClientRect();
+          if (r.width === 0 || r.height === 0) { clr.style.display = 'none'; return; }
+          clr.style.left = (r.right - 24) + 'px';
+          clr.style.top = (r.top + (r.height - 18) / 2) + 'px';
+        } catch (_) {}
+      };
+      (clr as any).__x02Place = place;
+      window.addEventListener('resize', place);
+      searchInput.addEventListener('focus', place);
+    }
   }
 
   const aiSearchToggle = document.getElementById('ai-search-toggle');
@@ -1384,6 +1461,18 @@ private setupContentSearchToggle(): void {
       this.showNotification(this.contentSearchMode ? '📝 Content Search: ON' : '📄 Filename Search');
     });
   }
+
+  // [ContentAlwaysOn] user preference (2026-08-01): content search active by
+  // default on every launch. The toggle still works within the session.
+  if (contentToggle) {
+    this.contentSearchMode = true;
+    contentToggle.classList.add('active');
+    (contentToggle as HTMLElement).style.background = 'rgba(79, 195, 247, 0.15)';
+    (contentToggle as HTMLElement).style.borderColor = 'rgba(79, 195, 247, 0.5)';
+    (contentToggle as HTMLElement).style.color = '#4fc3f7';
+    this.updateSearchPlaceholder();
+    console.log('[RobustFilter] Content search defaulted ON');
+  }
 }
 
 private async performContentSearch(query: string): Promise<void> {
@@ -1396,6 +1485,7 @@ private async performContentSearch(query: string): Promise<void> {
   this.isSearching = true;
   this.startSearchWaveAnimation();
   this.showNotification('🔍 Searching file contents...');
+  this.showSearchLoadingPanel('scan', query);
   
   try {
     // Get project path
@@ -1437,20 +1527,37 @@ private async performContentSearch(query: string): Promise<void> {
       this.showNotification(`📝 Found ${results.length} files with matches`, 'success');
     } else {
       this.contentSearchResults.clear();
-      this.showContentSearchResults([], query);
-      this.showNotification('No matches found in file contents');
+      // [AIFallthrough] a natural-language intent query ("i want to change
+      // the UI") will never literally appear in file contents. Instead of a
+      // dead-end "No matches", hand the query to the AI file search when AI
+      // mode is on - it interprets the intent and surfaces relevant files.
+      // v2: the search box is AI-branded even in content-only mode, so gate
+      // on provider availability alone - and log the decision so this can
+      // never silently decline again.
+      const __aiAvail = this.aiEngine.isAIAvailable();
+      console.log('[AIFallthrough] zero literal matches - aiMode=' + this.aiSearchMode + ', aiAvailable=' + __aiAvail);
+      if (__aiAvail) {
+        this.hideContentSearchResults();
+        this.showNotification('No literal matches - asking AI to interpret your query...');
+        await this.performAISearch(query);
+      } else {
+        this.showContentSearchResults([], query);
+        this.showNotification('No matches found in file contents');
+      }
     }
     
   } catch (error) {
     console.error('[ContentSearch] Error:', error);
     this.stopSearchWaveAnimation();
     this.isSearching = false;
+    this.hideContentSearchResults();
     this.showNotification('❌ Content search failed', 'warning');
   }
 }
 
 private async performContentSearchFallback(query: string): Promise<ContentSearchResult[]> {
   const results: ContentSearchResult[] = [];
+  let __unreadable = 0;
   const allFiles = this.getAllFilePaths();
   const queryLower = query.toLowerCase();
   
@@ -1464,7 +1571,16 @@ private async performContentSearchFallback(query: string): Promise<ContentSearch
   
   for (const filePath of textFiles) {
     try {
-      const content = await invoke('read_file_content', { path: filePath }) as string;
+      // [FallbackReader] read_file_content is not registered in the live
+      // handler - use the proven window.fileSystem.readFile path (same one
+      // buildTerminalRunner uses) and keep the invoke as secondary.
+      let content = '';
+      const __fsR = (window as any).fileSystem;
+      if (__fsR && typeof __fsR.readFile === 'function') {
+        content = String(await __fsR.readFile(filePath));
+      } else {
+        content = await invoke('read_file_content', { path: filePath }) as string;
+      }
       const lines = content.split('\n');
       const matches: ContentSearchMatch[] = [];
       
@@ -1492,10 +1608,14 @@ private async performContentSearchFallback(query: string): Promise<ContentSearch
       
       if (results.length >= 50) break; // Max 50 files
     } catch (e) {
-      // Skip unreadable files
+      __unreadable++;
     }
   }
-  
+  console.log('[ContentSearch] fallback: ' + textFiles.length + ' files scanned, ' +
+    results.length + ' with matches, ' + __unreadable + ' unreadable');
+  if (__unreadable > 0 && __unreadable === textFiles.length) {
+    console.warn('[ContentSearch] fallback could not read ANY file - file read path broken');
+  }
   return results;
 }
 
@@ -1566,6 +1686,92 @@ private getProjectPath(): string | null {
   }
   
   return null;
+}
+
+// [SearchLoading] visible loading card in the results slot while a search
+// runs. Reuses the results-panel id so real results replace it; staged
+// messages advance via recursive setTimeout (never setInterval - X02Perf
+// culls intervals) and stop the moment the panel leaves the DOM.
+private showSearchLoadingPanel(stage: 'scan' | 'ai', query: string): void {
+  this.hideContentSearchResults();
+  const controlPanel = document.getElementById(this.controlPanelId);
+  if (!controlPanel) { return; }
+  if (!document.getElementById('x02-search-spin-style')) {
+    const st = document.createElement('style');
+    st.id = 'x02-search-spin-style';
+    st.textContent = '@keyframes x02srchspin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(st);
+  }
+  const panel = document.createElement('div');
+  panel.id = 'content-search-results-panel';
+  panel.style.cssText = 'background:#252526;border:1px solid #3c3c3c;border-radius:6px;margin-top:6px;font-size:12px;padding:14px 12px;display:flex;align-items:center;gap:10px;';
+  const ring = document.createElement('span');
+  ring.style.cssText = 'width:16px;height:16px;border-radius:50%;border:2px solid rgba(79,195,247,.25);border-top-color:#4fc3f7;animation:x02srchspin .8s linear infinite;flex:0 0 auto;';
+  const txt = document.createElement('div');
+  const title = document.createElement('div');
+  title.style.cssText = 'color:#c9d1d9;';
+  const qShort = query.length > 40 ? query.slice(0, 40) + '...' : query;
+  title.textContent = stage === 'ai' ? 'AI analyzing: "' + qShort + '"' : 'Scanning file contents for "' + qShort + '"';
+  const sub = document.createElement('div');
+  sub.style.cssText = 'color:#888;font-size:11px;margin-top:2px;';
+  txt.appendChild(title); txt.appendChild(sub);
+  panel.appendChild(ring); panel.appendChild(txt);
+  controlPanel.appendChild(panel);
+  const stages = stage === 'ai'
+    ? ['Interpreting your intent...', 'Matching against project files...', 'Ranking relevant files...', 'Almost there...']
+    : ['Reading project files...', 'Searching line by line...'];
+  let si = 0;
+  const step = () => {
+    if (!panel.isConnected) { return; }
+    sub.textContent = stages[Math.min(si, stages.length - 1)];
+    si++;
+    setTimeout(step, 1200);
+  };
+  step();
+}
+
+// [AIResults] explicit, clickable list of AI-selected files with reasons.
+// Filtering a (possibly collapsed) tree is invisible - results must SHOW.
+private showAISearchResults(files: string[], query: string): void {
+  this.hideContentSearchResults();
+  const controlPanel = document.getElementById(this.controlPanelId);
+  if (!controlPanel) { return; }
+  const panel = document.createElement('div');
+  panel.id = 'content-search-results-panel';
+  panel.style.cssText = 'background:#252526;border:1px solid #3c3c3c;border-radius:6px;margin-top:6px;max-height:400px;overflow-y:auto;font-size:12px;';
+  const head = document.createElement('div');
+  head.style.cssText = 'padding:8px 12px;border-bottom:1px solid #3c3c3c;color:#69f0ae;display:flex;align-items:center;gap:6px;';
+  head.innerHTML = '<span>&#10024;</span><span>AI: ' + files.length + ' relevant file' + (files.length === 1 ? '' : 's') + ' for "' + this.escapeHtml(query) + '"</span>'
+    + '<span id="x02-airesults-close" title="Close results" style="margin-left:auto;cursor:pointer;color:#888;padding:2px 6px;display:inline-flex;align-items:center;font-size:12px;line-height:1;border-radius:3px;">&#10005;</span>';
+  panel.appendChild(head);
+  const __closeBtn = head.querySelector('#x02-airesults-close') as HTMLElement | null;
+  if (__closeBtn) {
+    __closeBtn.addEventListener('click', () => {
+      this.hideContentSearchResults();
+      this.aiSuggestedFiles.clear();
+      this.applyFilters();
+    });
+  }
+  const __proj = (this.getProjectPath() || '').replace(/[\\/]+$/, '');
+  for (const f of files) {
+    const reason = AI_REASONS.get(f) || '';
+    const __disp = (__proj && f.toLowerCase().startsWith(__proj.toLowerCase()))
+      ? f.slice(__proj.length + 1) : f;
+    const row = document.createElement('div');
+    row.style.cssText = 'padding:8px 12px;border-bottom:1px solid #2d2d2d;cursor:pointer;';
+    row.addEventListener('mouseenter', () => { row.style.background = '#2a2d2e'; });
+    row.addEventListener('mouseleave', () => { row.style.background = 'transparent'; });
+    const name = f.split(/[\\/]/).pop() || f;
+    row.innerHTML = '<div style="color:#4fc3f7;font-weight:600;">' + this.escapeHtml(name) + '</div>'
+      + '<div style="color:#888;font-size:11px;" title="' + this.escapeHtml(f) + '">' + this.escapeHtml(__disp) + '</div>'
+      + (reason ? '<div style="color:#c9d1d9;font-size:11px;margin-top:2px;">' + this.escapeHtml(reason) + '</div>' : '');
+    row.addEventListener('click', () => {
+      console.log('[AIResults] open:', f);
+      if ((window as any).openFile) { (window as any).openFile(f); }
+    });
+    panel.appendChild(row);
+  }
+  controlPanel.appendChild(panel);
 }
 
 private showContentSearchResults(results: ContentSearchResult[], query: string): void {
@@ -2991,6 +3197,7 @@ private setupSmartFilters(): void {
 
 private async performAISearch(query: string): Promise<void> {
   console.log('[RobustFilter] AI search:', query);
+  const __seq = ++AI_SEARCH_SEQ;
   
   if (!this.aiEngine.isAIAvailable()) {
     this.showNotification('⚙️ Configure API first');
@@ -3002,6 +3209,7 @@ private async performAISearch(query: string): Promise<void> {
     } else {
       this.aiSuggestedFiles.clear();
       this.applyFilters();
+      this.hideContentSearchResults();
       this.showNotification('No matches');
     }
     return;
@@ -3012,6 +3220,7 @@ private async performAISearch(query: string): Promise<void> {
     
     this.startSearchWaveAnimation();
     this.showNotification(`🤖 ${providerInfo?.provider} analyzing...`);
+    this.showSearchLoadingPanel('ai', query);
     
     // Collect metadata if not already collected
     if (this.fileMetadata.size === 0) {
@@ -3038,7 +3247,11 @@ private async performAISearch(query: string): Promise<void> {
     
     // Use the AI engine's search method
     const results = await this.aiEngine.searchWithAI(query, enhancedFileList);
-    
+
+    if (__seq !== AI_SEARCH_SEQ) {
+      console.log('[AIDebounce] stale response for "' + query + '" discarded');
+      return;
+    }
     this.stopSearchWaveAnimation();
     
     if (results.length > 0) {
@@ -3050,16 +3263,19 @@ private async performAISearch(query: string): Promise<void> {
       
       this.aiSuggestedFiles = new Set(cleanResults);
       this.applyFilters();
+      this.showAISearchResults(cleanResults, query);
       this.showNotification(`✨ AI found ${cleanResults.length} files`, 'success');
     } else {
       this.aiSuggestedFiles.clear();
       this.applyFilters();
+      this.hideContentSearchResults();
       this.showNotification('No matches');
     }
 
   } catch (error) {
     console.error('[RobustFilter] AI failed:', error);
     this.stopSearchWaveAnimation();
+    this.hideContentSearchResults();
     this.showNotification('❌ AI failed, using fallback', 'warning');
     
     const patternResults = this.performPatternMatching(query);

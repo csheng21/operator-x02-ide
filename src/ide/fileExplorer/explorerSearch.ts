@@ -1,4 +1,4 @@
-﻿// ide/fileExplorer/explorerSearch.ts - Complete Search System with AI Integration
+// ide/fileExplorer/explorerSearch.ts - Complete Search System with AI Integration
 // Searches both file names and file contents with result preview
 
 import { isTauriAvailable, readFile, showNotification, getCurrentFolderRootPath } from '../../fileSystem';
@@ -94,7 +94,7 @@ class AIContentSearchEngine {
       });
 
       // Build prompt based on actual search results
-      const prompt = this.buildResultsAnalysisPrompt(query, context.searchResults || []);
+      const prompt = this.buildResultsAnalysisPrompt(query, context.searchResults || [], context.files || []);
       console.log('[AISmartSearch] Calling Operator X02 API...');
       
       const response = await this.callAPI(prompt, config);
@@ -124,7 +124,7 @@ class AIContentSearchEngine {
   }
 
   // New prompt that analyzes actual search results
-  private buildResultsAnalysisPrompt(query: string, results: SearchResultItem[]): string {
+  private buildResultsAnalysisPrompt(query: string, results: SearchResultItem[], files: string[] = []): string {
     // Separate filename matches from content matches
     const filenameMatches: string[] = [];
     const contentMatches: { file: string; preview: string }[] = [];
@@ -160,6 +160,27 @@ class AIContentSearchEngine {
 
     // Different prompt based on whether results were found
     if (results.length === 0) {
+      // [IntentFiles] with a real project list, demand concrete file picks -
+      // the old prompt could only give search advice ("try App.jsx") because
+      // it was never shown any files.
+      if (files.length > 0) {
+        const fileListText = files.slice(0, 200).map(f => '- ' + f).join('\n');
+        return `You are an intelligent code search assistant inside an IDE. The user typed: "${query}"
+This may be a natural-language INTENT (e.g. "i need change UI" means: find the files to open and edit for UI changes) rather than a code keyword. NO literal matches were found.
+
+QUERY ANALYSIS:
+${queryAnalysis}
+
+PROJECT FILES:
+${fileListText}
+
+RESPOND IN THIS EXACT FORMAT:
+EXPLANATION: [1-2 sentences: what the user is trying to do and where to start]
+FILE: [path ONLY from PROJECT FILES above] | [WHY this file is relevant] | [WHAT to change in it] | [HOW, briefly]
+FILE: [next path] | [why] | [what] | [how]
+(3-5 FILE lines total, most relevant first; every path must come from PROJECT FILES; keep each field under 12 words)
+SUGGESTIONS: [comma-separated 2-4 short code-like search terms likely to find literal matches]`;
+      }
       return `You are an intelligent code search assistant. The user searched for "${query}" but NO RESULTS were found.
 
 QUERY ANALYSIS:
@@ -250,6 +271,25 @@ Keep your response concise and helpful.`;
       
       if (trimmed.startsWith('EXPLANATION:')) {
         result.explanation = trimmed.replace('EXPLANATION:', '').trim();
+      } else if (trimmed.startsWith('FILE:') && !trimmed.startsWith('FILES:')) {
+        // [FileReasons] one pick per line: path | why | what | how
+        const __parts = trimmed.replace('FILE:', '').split('|').map(s => s.trim());
+        if (__parts[0]) {
+          const __list: any[] = (((result as any).suggestedFiles as any[]) || []);
+          if (__list.length < 6) {
+            __list.push({ path: __parts[0], why: __parts[1] || '', what: __parts[2] || '', how: __parts[3] || '' });
+          }
+          (result as any).suggestedFiles = __list;
+        }
+      } else if (trimmed.startsWith('FILES:')) {
+        // [FileReasons] legacy comma-list fallback - only if no FILE: lines seen
+        const filesStr = trimmed.replace('FILES:', '').trim();
+        if (!(((result as any).suggestedFiles as any[]) || []).length) {
+          (result as any).suggestedFiles = filesStr.split(',')
+            .map(f => f.trim())
+            .filter(f => f.length > 0)
+            .slice(0, 5);
+        }
       } else if (trimmed.startsWith('SUGGESTIONS:')) {
         const suggestions = trimmed.replace('SUGGESTIONS:', '').trim();
         result.relatedTerms = suggestions.split(',')
@@ -2781,9 +2821,12 @@ private addAnimationStyles(): void {
       });
     }
 
-    // Load saved preference
-    const savedAIMode = localStorage.getItem('contentAISearchEnabled');
-    if (savedAIMode === 'true' && this.aiEngine.isAIAvailable()) {
+    // [AIAlwaysOn] user preference (2026-08-01): AI-Enhanced Search active
+    // by default on EVERY launch (a fresh profile has no saved preference,
+    // so the old restore never fired and the whole AI layer slept). The
+    // programmatic click sets state, styling, placeholder and persistence
+    // through the one existing code path. Toggle still works in-session.
+    if (!this.aiSearchMode) {
       aiToggleBtn.click();
     }
   }
@@ -2797,6 +2840,26 @@ private addAnimationStyles(): void {
       badge.style.background = 'rgba(76, 175, 80, 0.2)';
       badge.style.color = '#4caf50';
     }
+  }
+
+  // [IntentFiles] best-effort project file list for the AI - harvested from
+  // the explorer tree DOM plus current results. Partial is fine: any real
+  // paths beat the empty list that made the AI give advice instead of files.
+  private getProjectFileListBestEffort(): string[] {
+    const out = new Set<string>();
+    try {
+      const nodes = document.querySelectorAll('[data-path], [data-file-path], [data-filepath]');
+      nodes.forEach((el) => {
+        const p = el.getAttribute('data-path') || el.getAttribute('data-file-path') || el.getAttribute('data-filepath');
+        if (p && /\.[a-z0-9]{1,5}$/i.test(p)) { out.add(p); }
+      });
+    } catch (_) {}
+    try {
+      for (const r of this.currentResults) { if (r && (r as any).filePath) { out.add((r as any).filePath); } }
+    } catch (_) {}
+    const arr = Array.from(out).slice(0, 200);
+    console.log('[IntentFiles] harvested ' + arr.length + ' project file paths for the AI');
+    return arr;
   }
 
   private async performAIEnhancedSearch(query: string, searchResults: SearchMatch[] = []): Promise<void> {
@@ -2821,13 +2884,17 @@ private addAnimationStyles(): void {
     aiSuggestionsPanel.style.display = 'block';
     aiSuggestionsPanel.classList.add('loading');
     
-    // Animated loading indicator - always Operator X02
+    // Animated loading indicator - PLAIN text: the gradient-clip shimmer
+    // class (.ai-loading-text) renders as a rotated smear in WebView2.
+    const __loadMsg = searchResults.length > 0
+      ? 'Operator X02 is analyzing ' + searchResults.length + ' results...'
+      : 'Operator X02 is finding relevant files for your request...';
     aiExplanation.innerHTML = `
       <div class="ai-loading-indicator">
         <div class="dot"></div>
         <div class="dot"></div>
         <div class="dot"></div>
-        <span class="ai-loading-text">Operator X02 is analyzing ${searchResults.length} results...</span>
+        <span style="font-size:12px;margin-left:8px;color:#a78bfa;">${__loadMsg}</span>
       </div>
     `;
     aiKeywordsContainer.innerHTML = '';
@@ -2847,7 +2914,7 @@ private addAnimationStyles(): void {
       console.log('[AISmartSearch] Search results to analyze:', resultItems.length);
 
       // Call AI engine with actual search results
-      const result = await this.aiEngine.searchWithAI(query, { files: [], searchResults: resultItems });
+      const result = await this.aiEngine.searchWithAI(query, { files: this.getProjectFileListBestEffort(), searchResults: resultItems });
 
       console.log('[AISmartSearch] Operator X02 result:', result);
 
@@ -2872,9 +2939,44 @@ private addAnimationStyles(): void {
         aiExplanation.innerHTML = '';
       }
 
-      // Hide strategy and suggested files sections (not needed - actual results shown below)
       if (aiStrategy) aiStrategy.style.display = 'none';
-      if (aiSuggestedFiles) aiSuggestedFiles.style.display = 'none';
+      // [IntentFiles][FileReasons] file picks as FULL-WIDTH rows with
+      // per-file Why / What / How description lines; panel width unclamped.
+      const __sf: any[] = ((result as any).suggestedFiles || []) as any[];
+      if (aiSuggestedFiles && aiFilesContainer && __sf.length > 0) {
+        try {
+          const __panel = (aiSuggestedFiles.closest('.ai-suggestions-panel') || aiSuggestedFiles.parentElement) as HTMLElement | null;
+          if (__panel) { __panel.style.width = '100%'; __panel.style.maxWidth = 'none'; __panel.style.boxSizing = 'border-box'; }
+          (aiSuggestedFiles as HTMLElement).style.width = '100%';
+          (aiFilesContainer as HTMLElement).style.width = '100%';
+        } catch (_) {}
+        aiFilesContainer.innerHTML = '';
+        for (const __e of __sf) {
+          const __p = typeof __e === 'string' ? __e : ((__e && __e.path) || '');
+          if (!__p) { continue; }
+          const __why = (__e && typeof __e === 'object' && __e.why) ? String(__e.why) : '';
+          const __what = (__e && typeof __e === 'object' && __e.what) ? String(__e.what) : '';
+          const __how = (__e && typeof __e === 'object' && __e.how) ? String(__e.how) : '';
+          const b = document.createElement('button');
+          b.className = 'ai-suggested-file-btn';
+          b.style.cssText = 'display:block;width:100%;box-sizing:border-box;text-align:left;background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.25);color:#c9d1d9;padding:7px 12px;border-radius:6px;font-size:11px;cursor:pointer;margin-bottom:5px;';
+          const __nm = __p.split(/[\\/]/).pop() || __p;
+          let __html = '<div><span style="color:#4fc3f7;font-weight:600;font-size:12px;">' + __nm + '</span> <span style="color:#888;margin-left:6px;">' + __p + '</span></div>';
+          const __desc: string[] = [];
+          if (__why) { __desc.push('<span style="color:#a78bfa;font-weight:600;">Why:</span> ' + __why); }
+          if (__what) { __desc.push('<span style="color:#a78bfa;font-weight:600;">What:</span> ' + __what); }
+          if (__how) { __desc.push('<span style="color:#a78bfa;font-weight:600;">How:</span> ' + __how); }
+          if (__desc.length > 0) {
+            __html += '<div style="margin-top:4px;font-size:10.5px;line-height:1.55;color:#9da5b0;white-space:normal;">' + __desc.join('<br>') + '</div>';
+          }
+          b.innerHTML = __html;
+          b.addEventListener('click', () => { this.openFile(__p); });
+          aiFilesContainer.appendChild(b);
+        }
+        aiSuggestedFiles.style.display = 'block';
+      } else if (aiSuggestedFiles) {
+        aiSuggestedFiles.style.display = 'none';
+      }
 
       // Display related search terms as clickable buttons
       aiKeywordsContainer.innerHTML = '';
@@ -3143,6 +3245,45 @@ if (e.key === 'Escape') {
   // SEARCH EXECUTION
   // ============================================================================
 
+// [PanelLoading] spinner card in the results area while the literal search
+// runs (updateStatus alone is easy to miss). displayResults() overwrites the
+// container on EVERY completion, so the card is auto-replaced; the catch
+// path clears it explicitly. Staged text via recursive setTimeout (never
+// setInterval - X02Perf culls intervals), stops when detached.
+private showSearchLoadingCard(query: string): void {
+  if (!this.resultsContainer) { return; }
+  if (!document.getElementById('x02-panel-spin-style')) {
+    const st = document.createElement('style');
+    st.id = 'x02-panel-spin-style';
+    st.textContent = '@keyframes x02pnlspin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(st);
+  }
+  const qShort = query.length > 40 ? query.slice(0, 40) + '...' : query;
+  this.resultsContainer.innerHTML = '';
+  const card = document.createElement('div');
+  card.id = 'x02-panel-loading';
+  card.style.cssText = 'display:flex;align-items:center;gap:10px;padding:18px 14px;color:#c9d1d9;font-size:12px;';
+  const ring = document.createElement('span');
+  ring.style.cssText = 'width:16px;height:16px;border-radius:50%;border:2px solid rgba(79,195,247,.25);border-top-color:#4fc3f7;animation:x02pnlspin .8s linear infinite;flex:0 0 auto;';
+  const txt = document.createElement('div');
+  const title = document.createElement('div');
+  title.textContent = 'Searching for "' + qShort + '"';
+  const sub = document.createElement('div');
+  sub.style.cssText = 'color:#888;font-size:11px;margin-top:2px;';
+  txt.appendChild(title); txt.appendChild(sub);
+  card.appendChild(ring); card.appendChild(txt);
+  this.resultsContainer.appendChild(card);
+  const stages = ['Scanning project files...', 'Matching line by line...', 'Collecting results...'];
+  let si = 0;
+  const step = () => {
+    if (!card.isConnected) { return; }
+    sub.textContent = stages[Math.min(si, stages.length - 1)];
+    si++;
+    setTimeout(step, 1100);
+  };
+  step();
+}
+
 private async performSearch(query: string): Promise<void> {
   if (!query.trim()) {
     this.clearResults();
@@ -3159,6 +3300,7 @@ private async performSearch(query: string): Promise<void> {
 
   this.isSearching = true;
   this.updateStatus('🔍 Searching...', 'searching');
+  this.showSearchLoadingCard(query);
   
   const startTime = performance.now();
   this.currentResults = [];
@@ -3206,15 +3348,21 @@ private async performSearch(query: string): Promise<void> {
     );
 
     // 🤖 Call AI AFTER search results are ready
-    if (this.aiSearchMode && query.length > 2 && this.currentResults.length > 0) {
-      this.performAIEnhancedSearch(query, this.currentResults);
-    } else if (this.aiSearchMode && this.currentResults.length === 0) {
-      // No results - let AI know and provide smart suggestions
-      this.performAIEnhancedSearch(query, []);
+    // [AIDebounce2] second-stage 700ms debounce: the literal search already
+    // debounces typing, but each completed literal pass used to fire an AI
+    // round-trip - composing a sentence in several pauses meant several AI
+    // calls. Only the final pause reaches the AI now.
+    if (this.aiSearchMode && query.length > 2) {
+      const __aiRes = this.currentResults.slice();
+      if ((this as any).__aiCallTimer) { clearTimeout((this as any).__aiCallTimer); }
+      (this as any).__aiCallTimer = setTimeout(() => {
+        this.performAIEnhancedSearch(query, __aiRes);
+      }, 700);
     }
 
   } catch (error: any) {
     console.error('❌ Search error:', error);
+    this.clearResults();
     this.updateStatus(`❌ Search failed: ${error.message || error}`, 'error');
   } finally {
     this.isSearching = false;
