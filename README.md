@@ -133,7 +133,7 @@ or a per-token memory fee.**
 
 <div align="center">
 
-<img width="2400" height="520" alt="Operator X02 Engineering Memory" src="https://github.com/user-attachments/assets/eb3d67a9-ac2f-4f7c-906d-9a978ea981ac" />
+<img width="1774" height="887" alt="ChatGPT Image Aug 17, 2026, 11_24_40 PM" src="https://github.com/user-attachments/assets/a0a05c3d-31b8-4ac8-9d77-3033c2d16266" />
 
 </div>
 
