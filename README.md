@@ -1,6 +1,6 @@
 <div align="center">
 
-<img width="2400" height="640" alt="Operator X02 banner" src="https://github.com/user-attachments/assets/ca6833c8-42e3-492f-9b27-748a587c34fa" />
+<img width="1920" height="819" alt="ChatGPT Image Aug 17, 2026, 10_24_52 PM" src="https://github.com/user-attachments/assets/c900ec88-7c56-443e-bbc9-5f4b21e2b513" />
 
 <br/>
 
@@ -484,6 +484,11 @@ Coding**
 English](https://medium.com/@sngaheng/the-craftsmans-tool-for-the-ai-era-why-we-chose-to-fight-vibe-coding-a03f23f0ae31)
 ·
 [阅读中文版](https://medium.com/@sngaheng/ai%E6%97%B6%E4%BB%A3%E7%9A%84%E5%B7%A5%E5%8C%A0%E5%B7%A5%E5%85%B7-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E4%BB%AC%E9%80%89%E6%8B%A9%E5%AF%B9%E6%8A%97-vibe-coding-08abc5cac950)
+
+
+X02 Rethinking the Boundaries Between Memory and AI Creativity https://operatorx02.com/ai-imagination-governance.html
+
+<img width="1536" height="1024" alt="ChatGPT Image Aug 17, 2026, 10_51_08 PM" src="https://github.com/user-attachments/assets/494129e3-471d-41f3-81ba-e7fe1e0c6c9a" />
 
 ------------------------------------------------------------------------
 
