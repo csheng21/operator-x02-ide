@@ -483,7 +483,7 @@ Coding**
 [Read in
 English](https://medium.com/@sngaheng/the-craftsmans-tool-for-the-ai-era-why-we-chose-to-fight-vibe-coding-a03f23f0ae31)
 ·
-[阅读中文版](https://medium.com/@sngaheng/ai%E6%97%B6%E4%BB%A3%E7%9A%84%E5%B7%A5%E5%8C%A0%E5%B7%A5%E5%85%B7-%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E4%BB%AC%E9%80%89%E6%8B%A9%E5%AF%B9%E6%8A%97-vibe-coding-08abc5cac950)
+[阅读中文版](https://operatorx02.com/vibe-coding-manifesto.html)
 
 
 X02 Rethinking the Boundaries Between Memory and AI Creativity https://operatorx02.com/ai-imagination-governance.html
