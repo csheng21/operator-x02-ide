@@ -184,6 +184,7 @@ and run on real hardware.
 SSH, flash, serial monitoring, remote development and deployment are
 part of the engineering workflow rather than an afterthought.
 
+
 [![All Platforms — Demos, Comparisons,
 FAQ](https://img.shields.io/badge/%F0%9F%94%8C%20ALL%20PLATFORMS-DEMOS%20%C2%B7%20COMPARISONS%20%C2%B7%20FAQ-1D6EFA?style=for-the-badge&labelColor=07090F)](https://operatorx02.com/x02-platforms-promo.html)
 
@@ -202,6 +203,7 @@ FAQ](https://img.shields.io/badge/%F0%9F%94%8C%20ALL%20PLATFORMS-DEMOS%20%C2%B7%
 Deploy models to a Jetson Orin, flash firmware to an Arduino, SSH into a
 Raspberry Pi and watch live device data — from the same engineering
 environment where the code was created.
+
 
 ------------------------------------------------------------------------
 
@@ -292,7 +294,8 @@ environment.
 
 <div align="center">
 
-<img width="2400" height="460" alt="Operator X02 Build Mode" src="https://github.com/user-attachments/assets/19f18b98-88f1-4600-a61b-8dd6536220d4" />
+<img width="1855" height="848" alt="ChatGPT Image Aug 19, 2026, 08_52_29 PM" src="https://github.com/user-attachments/assets/8d8e9b76-1d39-4282-a718-1b22768156dd" />
+
 
 </div>
 
