@@ -521,6 +521,8 @@ drives its engineering direction:
 **[→ Read the full story on
 operatorx02.com](https://operatorx02.com/about.html)**
 
+<img width="1018" height="606" alt="image" src="https://github.com/user-attachments/assets/b78b0ec7-f743-4f82-ba64-08b78bd25bb3" />
+
 ------------------------------------------------------------------------
 
 ## 📄 License
