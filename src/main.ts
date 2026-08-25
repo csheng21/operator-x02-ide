@@ -1,4 +1,5 @@
 import './ide/htmlRunOpen'; // one-click Play button for HTML projects
+import './ide/telemetry/livePing';
 import './ide/newsSystem/newsDialog'; // startup news popup
 import { showStartupDialog } from './startupDialog';
 // ============================================================================
@@ -44,6 +45,7 @@ import { initializeAIDirectEditor } from './ide/aiAssistant/aiDirectEditor';
 import { ProjectCreationManager } from './ide/projectCreation';
 import { initDomElements, renderConversationList, renderCurrentConversation } from './ui';
 import { loadApiSettings, loadConversations, loadCurrentConversationId } from './state';
+import './ide/serial/serialPanel';
 import { setupEventListeners, setupFileUploadListeners } from './events';
 import { initializeProjectCreation } from './ide/projectCreation';
 import { initializeFileExplorer } from './ide/fileExplorer';
@@ -7264,6 +7266,11 @@ window.addEventListener('beforeunload', () => {
 });
 
 console.log('Main.ts loaded - IDE with Plugin Detection');
+
+// FREE TIER (v1.5.9): Build Mode unlocked for all users.
+// Set to false to re-enable the premium license gate.
+// Both buildMode.ts and buildModePhase2.ts checkLicense() honour this flag.
+(window as any).__X02_DEV_BYPASS = true;
 
 // Wait for Run button to exist, then add dropdown
    function initializeBuildSystemDropdown() {

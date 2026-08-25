@@ -35,7 +35,11 @@ const CONFIG = {
   // 🆕 V3.0 FEATURES
   enableAISearch: false,          // DISABLED - too slow (12+ seconds), use keyword+embedding instead
   enableMemoryDecay: true,        // Older memories lose relevance
-  enableSmartSummaries: true,     // Generate summaries for context injection
+  enableSmartSummaries: false,    // OFF (2026-08-25) — every saved conversation fired
+                                  // one AI call, plus up to 5 more on every startup.
+                                  // createSimpleSummary() is the local fallback; search
+                                  // still works. Set back to true only after the model
+                                  // mapping for 'x02-coder' is confirmed to be a cheap one.
   enableEmbeddings: false,        // DISABLED - requires CDN load, use keyword search
   
   // ⚡ SPEED SETTINGS
