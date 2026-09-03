@@ -1,4 +1,4 @@
-﻿// src/ide/fileExplorer/fileTreeIntegration.ts
+// src/ide/fileExplorer/fileTreeIntegration.ts
 // ============================================================================
 // FILE TREE INTEGRATION - Connects Context Menu, FileLoader, and Renderer
 // ============================================================================
@@ -383,6 +383,7 @@ function setupEventListeners(): void {
 if (typeof window !== 'undefined') {
   // Expose functions globally
   (window as any).refreshFileTree = refreshFileTree;
+  (window as any).setProjectPath = setProjectPath;
   (window as any).reloadFileTree = refreshFileTree;
   (window as any).reRenderTree = reRenderTree;
   (window as any).triggerFileTreeRefresh = () => {

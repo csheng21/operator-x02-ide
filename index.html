@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -812,4 +812,58 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/editor/editor.main.min.js"></script>
     <script type="module" src="./src/main.ts"></script>
   <script src="/src/plugin-system.js?v=20260328"></script>
-  </body>
+  <script>
+  // X02 build-wait: fixed spinner toast with CYCLING status text while a build runs.
+  // Tied to window.__buildModeStatus. Hides when the progress panel appears.
+  (function(){
+    try{
+      if(!document.getElementById('x02-wait-css')){
+        var s=document.createElement('style');s.id='x02-wait-css';
+        s.textContent='@keyframes x02spin{to{transform:rotate(360deg)}}'+
+          '@keyframes x02fade{0%{opacity:0}15%{opacity:1}85%{opacity:1}100%{opacity:0}}'+
+          '#x02-wait-toast{position:fixed;right:24px;bottom:120px;z-index:2147483647;display:none;'+
+          'align-items:center;gap:10px;padding:10px 16px;background:#0d1117;border:1px solid #30363d;'+
+          'border-left:3px solid #3fb950;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,0.4);'+
+          'font-family:Consolas,monospace;font-size:13px;color:#3fb950;min-width:210px}'+
+          '#x02-wait-toast .spin{width:16px;height:16px;border:2px solid rgba(63,185,80,0.25);'+
+          'border-top-color:#3fb950;border-radius:50%;animation:x02spin 0.8s linear infinite;flex-shrink:0}'+
+          '#x02-wait-text{animation:x02fade 2.4s ease-in-out infinite}';
+        document.head.appendChild(s);
+      }
+      var toast=document.getElementById('x02-wait-toast');
+      if(!toast){
+        toast=document.createElement('div');toast.id='x02-wait-toast';
+        var d=document.createElement('span');d.className='spin';
+        var t=document.createElement('span');t.id='x02-wait-text';t.textContent='Build starting...';
+        toast.appendChild(d);toast.appendChild(t);
+        (document.body||document.documentElement).appendChild(toast);
+      }
+      // cycling phrases
+      var phrases=['Build starting...','Planning in progress...','Please wait, designing files...','Preparing to compile...'];
+      var pi=0, cycleTimer=null;
+      var startCycle=function(){
+        if(cycleTimer) return;
+        cycleTimer=setInterval(function(){
+          pi=(pi+1)%phrases.length;
+          var el=document.getElementById('x02-wait-text');
+          if(el){ el.textContent=phrases[pi]; }
+        }, 2400);
+      };
+      var stopCycle=function(){ if(cycleTimer){ clearInterval(cycleTimer); cycleTimer=null; pi=0; } };
+      var tick=function(){
+        var st=(window).__buildModeStatus;
+        var running = st && st.running;
+        var panelUp = document.querySelector('.x02-build-progress') || document.querySelector('.x02-bp-wrapper');
+        if(running && !panelUp){
+          toast.style.setProperty('display','flex','important');
+          startCycle();
+        } else {
+          toast.style.setProperty('display','none','important');
+          stopCycle();
+        }
+      };
+      setInterval(tick, 500);
+    }catch(e){}
+  })();
+</script>
+</body>

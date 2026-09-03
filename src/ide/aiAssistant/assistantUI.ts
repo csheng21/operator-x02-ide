@@ -2161,19 +2161,31 @@ function detectProjectType(files: { name: string; extension: string }[]): string
  * Build project context string
  */
 function buildProjectContextString(): string {
+  // r1273: if a Build Mode build is running, surface it to the AI as top priority.
+  const __bs = (window as any).__buildModeStatus;
+  let __buildBlock = '';
+  if (__bs && __bs.running) {
+    const __mins = Math.max(0, Math.round((Date.now() - (__bs.startedAt || Date.now())) / 60000));
+    __buildBlock = '=== ACTIVE BUILD IN PROGRESS ===\n' +
+      'Build Mode is building "' + (__bs.project || 'app') + '" (Tauri desktop app).\n' +
+      'Phase: ' + (__bs.phase || 'building') + '. Started ' + __mins + ' min ago. ' +
+      'Cold Tauri builds take ~30-45 min total (Rust compiles ~300+ crates).\n' +
+      'The user is most likely asking about THIS build. Prioritize answering about build ' +
+      'status, progress, and estimated completion. A build IS running - do not say there is no project.\n\n';
+  }
   const files = getProjectFilesFromDOM();
   const projectPath = getProjectPath();
   const projectName = projectPath?.split(/[/\\]/).pop() || 'Project';
   const projectType = detectProjectType(files);
   
-  if (files.length === 0) return '';
+  if (files.length === 0) return __buildBlock;
   
   const fileList = files.map(f => f.name).slice(0, 30).join(', ');
   const extra = files.length > 30 ? ` ... +${files.length - 30} more` : '';
   
   console.log(`📂 [ProjectContext] Found ${files.length} files, type: ${projectType}`);
   
-  return `[PROJECT CONTEXT]
+  return __buildBlock + `[PROJECT CONTEXT]
 Project: ${projectName}
 Type: ${projectType}
 Files (${files.length}): ${fileList}${extra}`;
@@ -3357,6 +3369,48 @@ async function handleEnhancedSendMessage(): Promise<void> {
   const hasContext = contextFiles.length > 0;
   
   if (!message && !hasFiles) return;
+  // r1273: debounce duplicate sends (send-button click + Enter key both fire this).
+  // Same message within 2s is ignored, preventing double build:/chat submissions.
+  {
+    const __now = Date.now();
+    const __last = (window as any).__lastSendMsg;
+    if (__last && __last.text === message && (__now - __last.at) < 2000) {
+      console.log('[Send] Duplicate send ignored (debounce):', message.substring(0, 40));
+      return;
+    }
+    (window as any).__lastSendMsg = { text: message, at: __now };
+  }
+  // r1275: INSTANT build indicator - show an animated card the moment a build: command is
+  // sent, before any license/plan work, so the user never sees a silent gap.
+  if (/^\s*build\s*:/i.test(message)) {
+    try {
+      var __bn = message.replace(/^\s*build\s*:/i, '').trim() || 'app';
+      var __host = document.getElementById('ai-conversation-messages') || document.getElementById('chatMessages') || document.querySelector('.messages-container');
+      if (__host && !document.getElementById('x02-instant-build')) {
+        var __c = document.createElement('div');
+        __c.id = 'x02-instant-build';
+        __c.style.cssText = 'background:#0d1117;border:1px solid #21262d;border-left:3px solid #d29922;border-radius:8px;padding:10px 14px;margin:8px 0;font-family:Consolas,monospace;font-size:12px;color:#c9d1d9;display:flex;align-items:center;gap:10px';
+        var __d = document.createElement('span');
+        __d.style.cssText = 'width:9px;height:9px;border-radius:50%;background:#d29922;flex-shrink:0;animation:x02-bp-pulse 0.9s ease-in-out infinite';
+        var __t = document.createElement('span');
+        __t.textContent = 'Build starting for ' + __bn + ' - preparing plan...';
+        __c.appendChild(__d); __c.appendChild(__t); __host.appendChild(__c);
+        try { __c.scrollIntoView({ behavior: 'smooth', block: 'end' }); } catch (e) {}
+        // r1276: keep it visible until the real spinner/panel takes over - RE-INJECT if a
+        // chat re-render wipes it (that was why it flashed/never showed). ~30s failsafe.
+        var __k = 0; var __iv = setInterval(function () {
+          __k++;
+          var __gone = document.querySelector('.x02-plan-spinner') || document.querySelector('.x02-build-progress') || document.querySelector('.x02-bp-wrapper');
+          if (__gone || __k > 60) { try { __c.remove(); } catch (e) {} clearInterval(__iv); return; }
+          // if the card got removed by a re-render, put it back
+          if (!document.getElementById('x02-instant-build')) {
+            var __h2 = document.getElementById('ai-conversation-messages') || document.getElementById('chatMessages') || document.querySelector('.messages-container');
+            if (__h2) { try { __h2.appendChild(__c); __c.scrollIntoView({ behavior: 'smooth', block: 'end' }); } catch (e) {} }
+          }
+        }, 400);
+      }
+    } catch (e) {}
+  }
   
   console.log('📨 handleEnhancedSendMessage called with:', message.substring(0, 100));
   
@@ -3397,6 +3451,18 @@ async function handleEnhancedSendMessage(): Promise<void> {
   messageInput.value = '';
   messageInput.style.height = 'auto';
   
+  // X02 Build Mode - card intercept (before AI call). Single chokepoint for BOTH
+  // scaffold routes (ide_create_file + @@X02_NEW_PROJECT). Skip flag lets button re-sends pass.
+  if ((window as any).__x02SkipIntent === true) {
+    (window as any).__x02SkipIntent = false;
+  } else if ((window as any).__x02BuildCard && (window as any).__x02BuildCard.maybeIntercept) {
+    try {
+      if ((window as any).__x02BuildCard.maybeIntercept(message)) {
+        try { chatFileDrop?.stopProcessing?.(); } catch (_) {}
+        return;
+      }
+    } catch (e) { /* fail-open: fall through to normal send */ }
+  }
   // X02 Build Mode - Early intercept (before AI call)
   if (message.toLowerCase().startsWith('build preview:')) {
     if ((window as any).handleBuildPreview) { (window as any).handleBuildPreview(message.slice(14).trim()); return; }

@@ -82,7 +82,12 @@ export async function callAIViaProxy(request: ProxyRequest): Promise<string> {
     console.error(`\u274c [Proxy] ${request.provider} ${response.status} ${response.statusText} \u2014 body:`, rawBody || '(empty)');
 
     if (response.status === 401) throw new Error('App authentication failed. Please update the app.');
-    if (response.status === 429) throw new Error('Rate limit exceeded. Please wait a moment.');
+    if (response.status === 429) {
+      // r1275: surface the REAL quota/rate-limit message from the proxy (e.g. daily token
+      // cap + reset time + how to add your own key), not a generic 'please wait'.
+      var __q = (parsed && parsed.message) ? String(parsed.message) : String(detail);
+      throw new Error(__q || 'Rate limit exceeded. Please wait a moment.');
+    }
     if (response.status === 503) throw new Error(String(detail) || `${request.provider} is not available.`);
 
     throw new Error(`Proxy ${response.status}: ${String(detail)}`);
